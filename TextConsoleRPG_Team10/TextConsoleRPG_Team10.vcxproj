@@ -142,6 +142,7 @@
     <ClInclude Include="include/Manager/DataManager.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Main.cpp" />
     <ClCompile Include="src/Item/AttackUp.cpp" />
     <ClCompile Include="src/Manager/BattleManager.cpp" />
     <ClCompile Include="src/Manager/GameManager.cpp" />
