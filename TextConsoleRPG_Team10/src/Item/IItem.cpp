@@ -2,6 +2,6 @@
 
 int IItem::GetMaxStack()
 {
-    // Implementation needed
-    return 0;
+    //아이템 최대 스택 수 반환
+    return _MaxStack;
 }
