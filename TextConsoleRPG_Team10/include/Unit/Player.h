@@ -1,6 +1,9 @@
 #pragma once
 #include "ICharacter.h"
 #include "../Item/Inventory.h"
+#include <string>
+
+using namespace std;
 
 class Player : public ICharacter
 {
@@ -11,6 +14,7 @@ int _CurrentExp;
     Inventory _Inventory;
 
 public:
+    Player(const string& name);
     void TakeDamage(int amount) override;
     void Attack(ICharacter* target) override;
     bool IsDead() override;
