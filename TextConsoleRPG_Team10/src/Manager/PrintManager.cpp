@@ -4,7 +4,7 @@
 
 using namespace std;
 
-void PrintManager::PrintLog(string Msg, ELogImportance Importance)
+void PrintManager::PrintLog(const string& Msg, ELogImportance Importance)
 {
     ETextColor PrevColor = GetCurrentTextColor();
     switch (Importance)
@@ -12,13 +12,13 @@ void PrintManager::PrintLog(string Msg, ELogImportance Importance)
     case ELogImportance::DISPLAY:
     {
         ChangeTextColor(ETextColor::YELLOW);
-        std::cout << "[DISPLAY]: ";
+        cout << "[DISPLAY]: ";
     }
         break;
     case ELogImportance::WARNING:
     {
         ChangeTextColor(ETextColor::RED);
-        std::cout << "[WARNING]: ";
+        cout << "[WARNING]: ";
     }
         break;
     default:
@@ -27,13 +27,13 @@ void PrintManager::PrintLog(string Msg, ELogImportance Importance)
 
     for (int i = 0; i < Msg.length(); i += _LineLimit)
     {
-        std::string MsgStr = Msg.substr(i, _LineLimit);
-        std::cout << MsgStr << '\n';
+        string MsgStr = Msg.substr(i, _LineLimit);
+        cout << MsgStr << '\n';
     }
     ChangeTextColor(PrevColor);
 }
 
-void PrintManager::PrintWithTyping(string Msg)
+void PrintManager::PrintWithTyping(const string& Msg)
 {
     int _Interval = 0;
     switch (_CurrentSpeed)
@@ -60,14 +60,15 @@ void PrintManager::PrintWithTyping(string Msg)
 
     for (int i = 0; i < Msg.length(); i++)
     {
-        std::cout << Msg[i];
+        cout << Msg[i];
         Sleep(Msg[i] == ' ' ? _Interval : _Interval * 2);
         // 줄당 글자 제한수에 걸리면 다음 줄로 개행
         if (i != 0 && i % _LineLimit == 0)
         {
-            std::cout << '\n';
+            cout << '\n';
         }
     }
+    cout << '\n';
 }
 
 void PrintManager::ChangeTextColor(ETextColor NewTextColor)
@@ -75,7 +76,7 @@ void PrintManager::ChangeTextColor(ETextColor NewTextColor)
     int ColorIndex = static_cast<int>(NewTextColor);
     if (NewTextColor >= ETextColor::MAX)
     {
-        std::cout << "Invalid Text Color Index\n";
+        cout << "Invalid Text Color Index\n";
         return;
     }
 

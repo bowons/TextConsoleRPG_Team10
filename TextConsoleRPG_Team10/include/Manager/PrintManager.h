@@ -46,8 +46,8 @@ private:
     int _LineLimit = 20;
 
 public:
-    void PrintLog(string Msg, ELogImportance Importance = ELogImportance::NONE);
-    void PrintWithTyping(string Msg);
+    void PrintLog(const string& Msg, ELogImportance Importance = ELogImportance::NONE);
+    void PrintWithTyping(const string& Msg);
     void ChangeTextColor(ETextColor NewTextColor = ETextColor::WHITE);
     ETextColor GetCurrentTextColor();
     void SetLineLimit(int Limit);
