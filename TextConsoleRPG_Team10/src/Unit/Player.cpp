@@ -21,19 +21,14 @@ void Player::TakeDamage(const int Amount)
   {
     _CurrentHP = 0;
   }
-  cout << _Name << "이(가) " << Amount << "의 피해를 입었습니다.\n"
-       << "(남은 체력: " << _CurrentHP << "/" << _MaxHP << ")\n";
 }
 
 void Player::Attack(ICharacter* Target) const 
 {
   if (Target == nullptr) 
   {
-    cout << "공격 대상이 없습니다.\n";
     return;
   }
-  cout << _Name << "이(가) " << Target->_Name << "을(를) 공격합니다!\n";
-  Target->TakeDamage(_Atk);
 }
 
 bool Player::IsDead() const
@@ -54,7 +49,7 @@ void Player::ProcessLevelUp()
 {
   if (_Level > 10) 
   {
-    cout << "최고 레벨에 도달했습니다!\n";
+    // To-Do : 최대 레벨 도달 시 처리
   } 
   else 
   {
@@ -63,30 +58,21 @@ void Player::ProcessLevelUp()
     _CurrentHP = _MaxHP;
     _Atk += (_Level * 5);
     _MaxExp += static_cast<int>(_MaxExp * 1.2f);
-
-    cout << "\n=== LEVEL UP! ===\n";
-    cout << "레벨 " << _Level << " 달성!\n";
-    cout << "최대 체력 증가: " << _MaximumHealthPoint << "\n";
-    cout << "공격력 증가: " << _AttackPower << "\n";
-    cout << "체력이 모두 회복되었습니다.\n";
   }
 }
 
 void Player::GainExp(const int Amount) 
 {
   _CurrentExp += Amount;
-  cout << Amount << "의 경험치를 획득했습니다! (현재 경험치: " << _CurrentExp
-       << "/" << _MaxExp << ")\n";
   CheckLevelUp();
 }
 
 void Player::GainGold(const int Amount) 
 {
   _Gold += Amount;
-  cout << Amount << "골드를 획득했습니다! (보유 골드: " << _Gold << ")\n";
 }
 
-void Player::UseItem(const int SlotIndex) 
-{ 
-  _Inventory.UseItem(SlotIndex, *this); 
-}
+//void Player::UseItem(const int SlotIndex) 
+//{ 
+//  _Inventory.UseItem(SlotIndex, *this); 
+//}
