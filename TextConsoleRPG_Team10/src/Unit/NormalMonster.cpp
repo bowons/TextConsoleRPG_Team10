@@ -9,6 +9,8 @@
 
 using namespace std;
 
+// 주석 확인
+
 // GameManager에 추가 후 삭제
 static mt19937 gen(random_device{}());
 
