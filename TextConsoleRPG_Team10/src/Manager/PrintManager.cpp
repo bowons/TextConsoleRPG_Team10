@@ -1,11 +1,10 @@
-#include "../../include/Manager/PrintManager.h"
-#include "Windows.h"
-#include <iostream>
+﻿#include <iostream>
 
-using namespace std;
+#include "Windows.h"
+#include "../../include/Manager/PrintManager.h"
 
 // 로그 및 일반 출력 함수 - 개행 없음
-void PrintManager::PrintLog(const string& Msg, ELogImportance Importance)
+void PrintManager::PrintLog(const std::string& Msg, ELogImportance Importance)
 {
     ETextColor PrevColor = GetCurrentTextColor();
     switch (Importance)
@@ -14,14 +13,14 @@ void PrintManager::PrintLog(const string& Msg, ELogImportance Importance)
     case ELogImportance::DISPLAY:
     {
         ChangeTextColor(ETextColor::YELLOW);
-        cout << "[DISPLAY]: ";
+        std::cout << "[DISPLAY]: ";
     }
     break;
     // 심각함 강조 - 에러나 위험 표시에 사용
     case ELogImportance::WARNING:
     {
         ChangeTextColor(ETextColor::RED);
-        cout << "[WARNING]: ";
+        std::cout << "[WARNING]: ";
     }
     break;
     default:
@@ -31,9 +30,9 @@ void PrintManager::PrintLog(const string& Msg, ELogImportance Importance)
     int LineCnt = Msg.length() / _LineLimit + 1;
     for (int i = 0; i < LineCnt; ++i)
     {
-        string MsgStr = Msg.substr(i* _LineLimit, _LineLimit);
-        cout << MsgStr;
-        if (i != LineCnt - 1)
+        std::string MsgStr = Msg.substr(i * _LineLimit, _LineLimit);
+        std::cout << MsgStr;
+        if (i != LineCnt -1)
         {
             EndLine();
         }
@@ -43,14 +42,14 @@ void PrintManager::PrintLog(const string& Msg, ELogImportance Importance)
 }
 
 // 로그 및 일반 출력 함수 - 개행 있음
-void PrintManager::PrintLogLine(const string& Msg, ELogImportance Importance)
+void PrintManager::PrintLogLine(const std::string& Msg, ELogImportance Importance)
 {
     PrintLog(Msg, Importance);
     EndLine();
 }
 
 // 타이핑 효과 적용 출력 함수 - 개행 없음
-void PrintManager::PrintWithTyping(const string& Msg)
+void PrintManager::PrintWithTyping(const std::string& Msg)
 {
     int _Interval = 0;
     switch (_CurrentSpeed)
@@ -75,10 +74,10 @@ void PrintManager::PrintWithTyping(const string& Msg)
         break;
     }
 
-    for (const char& ch:Msg)
+    for (const char& ch : Msg)
     {
-        cout << ch;
-        Sleep(ch == ' ' ? _Interval : _Interval * 2);
+        std::cout << ch;
+        Sleep(ch == ' ' ? _Interval : _Interval *2);
         // 줄당 글자 제한수에 걸리면 다음 줄로 개행
         ++_CurrentCharCnt;
         if (_CurrentCharCnt >= _LineLimit)
@@ -89,7 +88,7 @@ void PrintManager::PrintWithTyping(const string& Msg)
 }
 
 // 타이핑 효과 적용 출력 함수 - 개행 있음
-void PrintManager::PrintWithTypingLine(const string& Msg)
+void PrintManager::PrintWithTypingLine(const std::string& Msg)
 {
     PrintWithTyping(Msg);
     EndLine();
@@ -101,7 +100,7 @@ void PrintManager::ChangeTextColor(ETextColor NewTextColor)
     int ColorIndex = static_cast<int>(NewTextColor);
     if (NewTextColor >= ETextColor::MAX)
     {
-        cout << "\nInvalid Text Color Index: "<< static_cast<int>(NewTextColor);
+        std::cout << "\nInvalid Text Color Index: " << static_cast<int>(NewTextColor);
         EndLine();
         return;
     }
@@ -129,8 +128,8 @@ const ETextColor PrintManager::GetCurrentTextColor()
 // 개행
 void PrintManager::EndLine()
 {
-    cout << '\n';
-    _CurrentCharCnt = 0;
+    std::cout << '\n';
+    _CurrentCharCnt =0 ;
 }
 
 void PrintManager::SetLineLimit(int Limit)

@@ -1,11 +1,11 @@
 ﻿#pragma once
 #include <vector>
 #include "../Config.h"
+#include "ItemSlot.h"
 
 using namespace std;
 
 class IItem;
-class ItemSlot;
 class Player;
 
 //인벤토리 클래스
@@ -20,9 +20,7 @@ private:
 
 public:
     //생성자
-    Inventory(int maxSlots) : _MaxSlots(maxSlots) {
-        _Slots.resize(_MaxSlots);
-    }
+    Inventory(int MaxSlots) : _Slots(MaxSlots), _MaxSlots(MaxSlots) {}
     
     int GetItemAmount(IItem* item) const; //특정 아이템의 총 개수 반환
     void UseItem(int slotIndex, Player& p); //아이템 사용
@@ -32,7 +30,7 @@ public:
     template<typename T>
     int FindFirstSlotIndexOfType() const
     {
-        EItemType type = T()::GetItemType();  // 정적 호출
+        EItemType type = T().GetItemType();  // 정적 호출
         for (size_t i = 0; i < _Slots.size(); ++i) {
             if (_Slots[i].GetItem() && _Slots[i].GetItem()->GetItemType() == type) {
                 return static_cast<int>(i);

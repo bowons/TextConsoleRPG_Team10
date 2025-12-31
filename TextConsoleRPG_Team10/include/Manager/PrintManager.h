@@ -1,8 +1,6 @@
-#pragma once
+﻿#pragma once
 #include "../Singleton.h"
 #include <string>
-
-using namespace std;
 
 // 타이핑 속도 지정에 사용
 enum class ETypingSpeed : int
@@ -58,14 +56,14 @@ private:
 
 public:
     // 로그 출력 및 일반 출력 함수
-    void PrintLog(const string& Msg, ELogImportance Importance = ELogImportance::NONE);
+    void PrintLog(const std::string& Msg, ELogImportance Importance = ELogImportance::NONE);
     // 로그 출력 및 일반 출력 함수 + 개행
-    void PrintLogLine(const string& Msg, ELogImportance Importance = ELogImportance::NONE);
+    void PrintLogLine(const std::string& Msg, ELogImportance Importance = ELogImportance::NONE);
     
     // 타이핑 효과를 적용한 출력 함수
-    void PrintWithTyping(const string& Msg);
+    void PrintWithTyping(const std::string& Msg);
     // 타이핑 효과를 적용한 출력 함수 + 개행
-    void PrintWithTypingLine(const string& Msg);
+    void PrintWithTypingLine(const std::string& Msg);
     
     // 콘솔 텍스트 색상 변경 함수
     void ChangeTextColor(ETextColor NewTextColor = ETextColor::WHITE);

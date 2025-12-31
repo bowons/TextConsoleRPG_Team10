@@ -9,14 +9,10 @@ class Player;
 
 class ShopManager : public Singleton<ShopManager>
 {
-    friend class Singleton<ShopManager>;
-protected:
-    ShopManager() {};
-
 private:
     vector<IItem*> _SellList;
     
-private:
+protected:
     ShopManager() = default;
     friend class Singleton<ShopManager>;
 

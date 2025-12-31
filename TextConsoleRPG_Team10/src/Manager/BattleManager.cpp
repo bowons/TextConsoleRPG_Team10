@@ -20,6 +20,7 @@ bool BattleManager::StartAutoBattle(Player* P)
         if (NM->IsDead())
         {
             //플레이어 승리
+            // 전투 결과에 따른 보상 계산 및 지급, 플레이어는 경험치 및 골드를 획득합니다.
             CalculateReward(P, NM);
             return true;
         }

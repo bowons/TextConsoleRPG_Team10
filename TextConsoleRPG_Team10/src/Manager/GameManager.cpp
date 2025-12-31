@@ -19,7 +19,7 @@ void GameManager::StartGame()
     }
 
     // Main Player 생성
-    _MainPlayer = make_shared<Player>();
+    _MainPlayer = make_shared<Player>(PlayerName);
     // TODO: 플레이어 입력 시스템으로 플레이어 정보 입력 받아 설정
     // 유효한 값으로 입력된 경우 캐릭터 생성 로직 수행
 
@@ -53,9 +53,6 @@ void GameManager::RunMainLoop()
 
             break;
         }
-
-        // 전투 결과에 따른 보상 계산 및 지급, 플레이어는 경험치 및 골드를 획득합니다.
-        BattleManager::GetInstance()->CalculateReward(_MainPlayer.get());
 
         // TODO: 플레이어의 레벨 정보를 받아와 게임 종료 확인
         if (_MainPlayer->GetLevel() >= 10)

@@ -86,9 +86,6 @@
     <ClCompile Include="src/Item/HealPotion.cpp">
       <Filter>Source Files\Item</Filter>
     </ClCompile>
-    <ClCompile Include="src/Item/IItem.cpp">
-      <Filter>Source Files\Item</Filter>
-    </ClCompile>
     <ClCompile Include="src/Item/Inventory.cpp">
       <Filter>Source Files\Item</Filter>
     </ClCompile>

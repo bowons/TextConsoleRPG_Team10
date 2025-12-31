@@ -148,7 +148,6 @@
     <ClCompile Include="src/Manager/BattleManager.cpp" />
     <ClCompile Include="src/Manager/GameManager.cpp" />
     <ClCompile Include="src/Item/HealPotion.cpp" />
-    <ClCompile Include="src/Item/IItem.cpp" />
     <ClCompile Include="src/Manager/InputManager.cpp" />
     <ClCompile Include="src/Item/Inventory.cpp" />
     <ClCompile Include="src/Item/ItemSlot.cpp" />

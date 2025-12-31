@@ -34,7 +34,7 @@ void NormalMonster::TakeDamage(int Amount)
     }
 }
 
-void NormalMonster::Attack(ICharacter* Target)
+void NormalMonster::Attack(ICharacter* Target) const
 {
     if (Target == nullptr)
     {
@@ -45,7 +45,7 @@ void NormalMonster::Attack(ICharacter* Target)
     Target->TakeDamage(_Atk);
 }
 
-bool NormalMonster::IsDead()
+bool NormalMonster::IsDead() const
 {
     // Dead 여부 확인
     return _CurrentHP <= 0;
