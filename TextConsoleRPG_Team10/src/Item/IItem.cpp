@@ -1,7 +1,7 @@
 #include "../../include/Item/IItem.h"
 
-int IItem::GetMaxStack()
+int IItem::GetMaxStack() const
 {
-    //아이템 최대 스택 수 반환
+    //슬롯 당 최대 보유 개수 반환
     return _MaxStack;
 }

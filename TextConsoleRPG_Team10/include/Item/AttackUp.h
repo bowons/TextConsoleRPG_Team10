@@ -1,6 +1,7 @@
 #pragma once
 #include "IItem.h"
 
+//플레이어 공격력 증가 아이템
 class AttackUp : public IItem
 {
 public:
