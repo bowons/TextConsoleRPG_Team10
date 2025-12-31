@@ -24,4 +24,6 @@ public:
     void GainExp(const int Amount);
     void GainGold(const int Amount);
     void UseItem(const int SlotIndex);
+
+	Inventory& GetInventory() { return _Inventory; }
 };
