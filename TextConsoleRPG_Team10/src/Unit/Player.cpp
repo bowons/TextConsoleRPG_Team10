@@ -79,16 +79,16 @@ void Player::UseItem(const int SlotIndex)
 
 void Player::AddAttack(const int Amount) 
 { 
-  Atk += Amount;
+  _Atk += Amount;
 }
 
 void Player::Heal(const int Amount)
 { 
-	if (CurrentHP > MaxHP || CurrentHP + Amount > MaxHP) 
+	if (_CurrentHP > _MaxHP || _CurrentHP + Amount > _MaxHP) 
 	{
-		CurrentHP = MaxHP; 
+		_CurrentHP = _MaxHP; 
 	} else 
 	{
-		CurrentHP += Amount;
+		_CurrentHP += Amount;
     }
 }
