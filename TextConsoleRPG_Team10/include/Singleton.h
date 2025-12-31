@@ -9,7 +9,11 @@ protected:
     Singleton() {};
     virtual ~Singleton() {};
 
+    Singleton(const Singleton&) = delete;
+    Singleton& operator=(const Singleton&) = delete;
+
 public:
+
     static T* GetInstance()
     {
         if (_Instance == nullptr)

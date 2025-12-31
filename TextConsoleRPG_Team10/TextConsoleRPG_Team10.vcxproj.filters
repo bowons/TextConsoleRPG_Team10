@@ -1,123 +1,124 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
- <ItemGroup>
- <Filter Include="Header Files">
- <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
- </Filter>
- <Filter Include="Header Files\Item">
- <UniqueIdentifier>{A1B1C1D1-E1F1-11D1-AAAA-00A0C913D1F8}</UniqueIdentifier>
- </Filter>
- <Filter Include="Header Files\Unit">
- <UniqueIdentifier>{B2B2C2D2-E2F2-22D2-BBBB-00A0C913D1F8}</UniqueIdentifier>
- </Filter>
- <Filter Include="Header Files\Manager">
- <UniqueIdentifier>{C3B3C3D3-E3F3-33D3-CCCC-00A0C913D1F8}</UniqueIdentifier>
- </Filter>
- <Filter Include="Source Files">
- <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
- </Filter>
- <Filter Include="Source Files\Item">
- <UniqueIdentifier>{D4B4C4D4-E4F4-44D4-DDDD-00A0C913D1F8}</UniqueIdentifier>
- </Filter>
- <Filter Include="Source Files\Unit">
- <UniqueIdentifier>{E5B5C5D5-E5F5-55D5-EEEE-00A0C913D1F8}</UniqueIdentifier>
- </Filter>
- <Filter Include="Source Files\Manager">
- <UniqueIdentifier>{F6B6C6D6-E6F6-66D6-FFFF-00A0C913D1F8}</UniqueIdentifier>
- </Filter>
- </ItemGroup>
- <ItemGroup>
- <ClInclude Include="include/Item/AttackUp.h">
- <Filter>Header Files\Item</Filter>
- </ClInclude>
- <ClInclude Include="include/Item/HealPotion.h">
- <Filter>Header Files\Item</Filter>
- </ClInclude>
- <ClInclude Include="include/Item/IItem.h">
- <Filter>Header Files\Item</Filter>
- </ClInclude>
- <ClInclude Include="include/Item/Inventory.h">
- <Filter>Header Files\Item</Filter>
- </ClInclude>
- <ClInclude Include="include/Item/ItemSlot.h">
- <Filter>Header Files\Item</Filter>
- </ClInclude>
- <ClInclude Include="include/Unit/ICharacter.h">
- <Filter>Header Files\Unit</Filter>
- </ClInclude>
- <ClInclude Include="include/Unit/IMonster.h">
- <Filter>Header Files\Unit</Filter>
- </ClInclude>
- <ClInclude Include="include/Unit/NormalMonster.h">
- <Filter>Header Files\Unit</Filter>
- </ClInclude>
- <ClInclude Include="include/Unit/Player.h">
- <Filter>Header Files\Unit</Filter>
- </ClInclude>
- <ClInclude Include="include/Manager/BattleManager.h">
- <Filter>Header Files\Manager</Filter>
- </ClInclude>
- <ClInclude Include="include/Manager/GameManager.h">
- <Filter>Header Files\Manager</Filter>
- </ClInclude>
- <ClInclude Include="include/Manager/InputManager.h">
- <Filter>Header Files\Manager</Filter>
- </ClInclude>
- <ClInclude Include="include/Manager/PrintManager.h">
- <Filter>Header Files\Manager</Filter>
- </ClInclude>
- <ClInclude Include="include/Manager/ShopManager.h">
- <Filter>Header Files\Manager</Filter>
- </ClInclude>
- <ClInclude Include="include/Manager/DataManager.h">
- <Filter>Header Files\Manager</Filter>
- </ClInclude>
- <ClInclude Include="include/Singleton.h">
- <Filter>Header Files</Filter>
- </ClInclude>
- <ClInclude Include="include/TypingSpeed.h">
- <Filter>Header Files</Filter>
- </ClInclude>
- </ItemGroup>
- <ItemGroup>
- <ClCompile Include="src/Item/AttackUp.cpp">
- <Filter>Source Files\Item</Filter>
- </ClCompile>
- <ClCompile Include="src/Item/HealPotion.cpp">
- <Filter>Source Files\Item</Filter>
- </ClCompile>
- <ClCompile Include="src/Item/IItem.cpp">
- <Filter>Source Files\Item</Filter>
- </ClCompile>
- <ClCompile Include="src/Item/Inventory.cpp">
- <Filter>Source Files\Item</Filter>
- </ClCompile>
- <ClCompile Include="src/Item/ItemSlot.cpp">
- <Filter>Source Files\Item</Filter>
- </ClCompile>
- <ClCompile Include="src/Unit/NormalMonster.cpp">
- <Filter>Source Files\Unit</Filter>
- </ClCompile>
- <ClCompile Include="src/Unit/Player.cpp">
- <Filter>Source Files\Unit</Filter>
- </ClCompile>
- <ClCompile Include="src/Manager/BattleManager.cpp">
- <Filter>Source Files\Manager</Filter>
- </ClCompile>
- <ClCompile Include="src/Manager/GameManager.cpp">
- <Filter>Source Files\Manager</Filter>
- </ClCompile>
- <ClCompile Include="src/Manager/InputManager.cpp">
- <Filter>Source Files\Manager</Filter>
- </ClCompile>
- <ClCompile Include="src/Manager/PrintManager.cpp">
- <Filter>Source Files\Manager</Filter>
- </ClCompile>
- <ClCompile Include="src/Manager/ShopManager.cpp">
- <Filter>Source Files\Manager</Filter>
- </ClCompile>
- <ClCompile Include="src/Manager/DataManager.cpp">
- <Filter>Source Files\Manager</Filter>
- </ClCompile>
- </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Item">
+      <UniqueIdentifier>{A1B1C1D1-E1F1-11D1-AAAA-00A0C913D1F8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Unit">
+      <UniqueIdentifier>{B2B2C2D2-E2F2-22D2-BBBB-00A0C913D1F8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Manager">
+      <UniqueIdentifier>{C3B3C3D3-E3F3-33D3-CCCC-00A0C913D1F8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Item">
+      <UniqueIdentifier>{D4B4C4D4-E4F4-44D4-DDDD-00A0C913D1F8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Unit">
+      <UniqueIdentifier>{E5B5C5D5-E5F5-55D5-EEEE-00A0C913D1F8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Manager">
+      <UniqueIdentifier>{F6B6C6D6-E6F6-66D6-FFFF-00A0C913D1F8}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="include/Item/AttackUp.h">
+      <Filter>Header Files\Item</Filter>
+    </ClInclude>
+    <ClInclude Include="include/Item/HealPotion.h">
+      <Filter>Header Files\Item</Filter>
+    </ClInclude>
+    <ClInclude Include="include/Item/IItem.h">
+      <Filter>Header Files\Item</Filter>
+    </ClInclude>
+    <ClInclude Include="include/Item/Inventory.h">
+      <Filter>Header Files\Item</Filter>
+    </ClInclude>
+    <ClInclude Include="include/Item/ItemSlot.h">
+      <Filter>Header Files\Item</Filter>
+    </ClInclude>
+    <ClInclude Include="include/Unit/ICharacter.h">
+      <Filter>Header Files\Unit</Filter>
+    </ClInclude>
+    <ClInclude Include="include/Unit/IMonster.h">
+      <Filter>Header Files\Unit</Filter>
+    </ClInclude>
+    <ClInclude Include="include/Unit/NormalMonster.h">
+      <Filter>Header Files\Unit</Filter>
+    </ClInclude>
+    <ClInclude Include="include/Unit/Player.h">
+      <Filter>Header Files\Unit</Filter>
+    </ClInclude>
+    <ClInclude Include="include/Manager/BattleManager.h">
+      <Filter>Header Files\Manager</Filter>
+    </ClInclude>
+    <ClInclude Include="include/Manager/GameManager.h">
+      <Filter>Header Files\Manager</Filter>
+    </ClInclude>
+    <ClInclude Include="include/Manager/InputManager.h">
+      <Filter>Header Files\Manager</Filter>
+    </ClInclude>
+    <ClInclude Include="include/Manager/PrintManager.h">
+      <Filter>Header Files\Manager</Filter>
+    </ClInclude>
+    <ClInclude Include="include/Manager/ShopManager.h">
+      <Filter>Header Files\Manager</Filter>
+    </ClInclude>
+    <ClInclude Include="include/Manager/DataManager.h">
+      <Filter>Header Files\Manager</Filter>
+    </ClInclude>
+    <ClInclude Include="include/Singleton.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include/Config.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src/Item/AttackUp.cpp">
+      <Filter>Source Files\Item</Filter>
+    </ClCompile>
+    <ClCompile Include="src/Item/HealPotion.cpp">
+      <Filter>Source Files\Item</Filter>
+    </ClCompile>
+    <ClCompile Include="src/Item/IItem.cpp">
+      <Filter>Source Files\Item</Filter>
+    </ClCompile>
+    <ClCompile Include="src/Item/Inventory.cpp">
+      <Filter>Source Files\Item</Filter>
+    </ClCompile>
+    <ClCompile Include="src/Item/ItemSlot.cpp">
+      <Filter>Source Files\Item</Filter>
+    </ClCompile>
+    <ClCompile Include="src/Unit/NormalMonster.cpp">
+      <Filter>Source Files\Unit</Filter>
+    </ClCompile>
+    <ClCompile Include="src/Unit/Player.cpp">
+      <Filter>Source Files\Unit</Filter>
+    </ClCompile>
+    <ClCompile Include="src/Manager/BattleManager.cpp">
+      <Filter>Source Files\Manager</Filter>
+    </ClCompile>
+    <ClCompile Include="src/Manager/GameManager.cpp">
+      <Filter>Source Files\Manager</Filter>
+    </ClCompile>
+    <ClCompile Include="src/Manager/InputManager.cpp">
+      <Filter>Source Files\Manager</Filter>
+    </ClCompile>
+    <ClCompile Include="src/Manager/PrintManager.cpp">
+      <Filter>Source Files\Manager</Filter>
+    </ClCompile>
+    <ClCompile Include="src/Manager/ShopManager.cpp">
+      <Filter>Source Files\Manager</Filter>
+    </ClCompile>
+    <ClCompile Include="src/Manager/DataManager.cpp">
+      <Filter>Source Files\Manager</Filter>
+    </ClCompile>
+    <ClCompile Include="Main.cpp" />
+  </ItemGroup>
 </Project>

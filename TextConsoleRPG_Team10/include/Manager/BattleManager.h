@@ -11,7 +11,7 @@ private:
     IMonster* _CurrentMonster;
 
 public:
-    void StartAutoBattle(Player* p);
+    bool StartAutoBattle(Player* p);
     void ProcessTurn(ICharacter* atk, ICharacter* def);
     void CalculateReward(Player* p);
 };

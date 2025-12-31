@@ -17,4 +17,10 @@ public:
     virtual void Attack(ICharacter* target) = 0;
     virtual bool IsDead() = 0;
     virtual ~ICharacter() {}
+
+    inline const::string& GetName() const { return _Name; }
+    inline int GetLevel() const { return _Level; }
+    inline int GetCurrentHP() const { return _CurrentHP; }
+    inline int GetMaxHP() const { return _MaxHP; }
+    inline int GetAtk() const { return _Atk; }
 };
