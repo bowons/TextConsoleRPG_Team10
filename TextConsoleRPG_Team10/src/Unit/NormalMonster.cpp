@@ -28,10 +28,18 @@ void NormalMonster::TakeDamage(int Amount)
 {
     // 데미지 받음
     _CurrentHP -= Amount;
+    if (_CurrentHP < 0) 
+    {
+        _CurrentHP = 0;
+    }
 }
 
 void NormalMonster::Attack(ICharacter* Target)
 {
+    if (Target == nullptr)
+    {
+        return;
+    }
     // 공격 연출 등 나중에 추가하면 될 듯
     Target->TakeDamage(_Atk);
 }
