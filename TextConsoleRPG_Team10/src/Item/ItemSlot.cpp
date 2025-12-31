@@ -1,3 +1,4 @@
+﻿
 #include "../../include/Item/ItemSlot.h"
 
 ItemSlot::ItemSlot(IItem* item, int quantity)

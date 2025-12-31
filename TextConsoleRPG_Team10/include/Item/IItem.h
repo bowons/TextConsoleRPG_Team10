@@ -1,25 +1,26 @@
-#pragma once
+ï»¿#pragma once
 #include <string>
 
 using namespace std;
 
 class Player;
 
-//¾ÆÀÌÅÛ ÀÎÅÍÆäÀÌ½º Å¬·¡½º
+//ì•„ì´í…œ ì¸í„°í˜ì´ìŠ¤ í´ë˜ìŠ¤
 class IItem
 {
 protected:
-    string _ItemName; //¾ÆÀÌÅÛ ÀÌ¸§
-    int _Price; //¾ÆÀÌÅÛ °¡°İ
-    int _EffectAmount; //¾ÆÀÌÅÛ È¿°ú ¼öÄ¡
-    int _MaxStack; //½½·Ô ´ç ÃÖ´ë º¸À¯ °³¼ö
+    string _ItemName; //ì•„ì´í…œ ì´ë¦„
+    int _Price; //ì•„ì´í…œ ê°€ê²©
+    int _EffectAmount; //ì•„ì´í…œ íš¨ê³¼ ìˆ˜ì¹˜
+    int _MaxStack; //ìŠ¬ë¡¯ ë‹¹ ìµœëŒ€ ë³´ìœ  ê°œìˆ˜
 
 public:
-    //»ı¼ºÀÚ
+    //ìƒì„±ì
     IItem(string ItemName, int Price, int EffectAmount, int MaxStack)
-    : _ItemName(ItemName), _Price(Price), _EffectAmount(EffectAmount), _MaxStack(MaxStack){}
-    
-    virtual void ApplyEffect(Player& p) = 0; //¾ÆÀÌÅÛ »ç¿ë ½Ã È¿°ú Àû¿ë
-    virtual int GetMaxStack() const; //¾ÆÀÌÅÛ ÃÖ´ë ½ºÅÃ ¼ö ¹İÈ¯
-    virtual ~IItem() = default; //¼Ò¸êÀÚ
+        : _ItemName(ItemName), _Price(Price), _EffectAmount(EffectAmount), _MaxStack(MaxStack) {
+    }
+
+    virtual void ApplyEffect(Player& p) = 0; //ì•„ì´í…œ ì‚¬ìš© ì‹œ íš¨ê³¼ ì ìš©
+    virtual int GetMaxStack() const; //ì•„ì´í…œ ìµœëŒ€ ìŠ¤íƒ ìˆ˜ ë°˜í™˜
+    virtual ~IItem() = default; //ì†Œë©¸ì
 };

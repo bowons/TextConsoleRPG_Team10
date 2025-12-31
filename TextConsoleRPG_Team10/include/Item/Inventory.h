@@ -1,18 +1,18 @@
-#pragma once
+ï»¿#pragma once
 #include <vector>
 
 using namespace std;
 
-class IItem; 
+class IItem;
 class ItemSlot;
 class Player;
 
-//ÀÎº¥Åä¸® Å¬·¡½º
+//ì¸ë²¤í† ë¦¬ í´ë˜ìŠ¤
 class Inventory
 {
 private:
-    vector<ItemSlot*> _Slots; //¾ÆÀÌÅÛ ½½·Ô º¤ÅÍ
-    int _MaxSlots; //ÃÖ´ë ½½·Ô ¼ö
+    vector<ItemSlot*> _Slots; //ì•„ì´í…œ ìŠ¬ë¡¯ ë²¡í„°
+    int _MaxSlots; //ìµœëŒ€ ìŠ¬ë¡¯ ìˆ˜
 
 public:
     Inventory(int maxSlots);
