@@ -1,12 +1,14 @@
-#include "../../include/Manager/BattleManager.h"
+ï»¿#include "../../include/Manager/BattleManager.h"
 #include "../../include/Unit/NormalMonster.h"
 #include "../../include/Unit/Player.h"
 #include <iostream>
+#include <tuple>
+#include <memory>
 using namespace std;
 bool BattleManager::StartAutoBattle(Player* P)
 {
     // Implementation needed
-    // ÇöÀç: ÇÃ·¹ÀÌ¾î ¼±°ø, ³ë¸Ö ¸ó½ºÅÍ·Î °íÁ¤ (ÃßÈÄ ¸ó½ºÅÍ ÁöÁ¤ ÇÊ¿ä)
+    // í˜„ì¬: í”Œë ˆì´ì–´ ì„ ê³µ, ë…¸ë©€ ëª¬ìŠ¤í„°ë¡œ ê³ ì • (ì¶”í›„ ëª¬ìŠ¤í„° ì§€ì • í•„ìš”)
     NormalMonster* NM = new NormalMonster(P->GetLevel());
 
     while (true)
@@ -14,11 +16,15 @@ bool BattleManager::StartAutoBattle(Player* P)
         ProcessTurn(P, NM);
         if (NM->IsDead())
         {
+            //í”Œë ˆì´ì–´ ìŠ¹ë¦¬
+            CalculateReward(P, NM);
             return true;
         }
-        ProcessTurn(NM, P);
+        ProcessAttack(NM, P);
         if (P->IsDead())
         {
+            //í”Œë ˆì´ì–´ íŒ¨ë°°
+            cout << "í”Œë ˆì´ì–´ íŒ¨ë°°" << endl;
             return false;
         }
     }
@@ -27,15 +33,34 @@ bool BattleManager::StartAutoBattle(Player* P)
 
 void BattleManager::ProcessTurn(ICharacter* Atk, ICharacter* Def)
 {
-    //¾ÆÀÌÅÛ »ç¿ë ¿©ºÎ Ã¼Å© ÈÄ »ç¿ë
-    Atk->Attack(Def);
-    cout << Atk->GetName() << "ÀÇ °ø°İ" << endl;
-    cout << Def->GetName() << "ÀÇ ÇÇÇØ·®: " << Atk->GetAtk() << ", ³²Àº Ã¼·Â: " << Def->GetCurrentHP() << "/" << Def->GetMaxHP() << endl;
+    //ì•„ì´í…œ ì‚¬ìš© ì—¬ë¶€ ì²´í¬ í›„ ì‚¬ìš©
+    if(Atk->GetCurrentHP() < Atk->GetMaxHP() / 4) //dummy // ì²´ë ¥ 1/4 ì´í•˜ì¼ ë•Œ ì•„ì´í…œ ì‚¬ìš© 
+    {
+        Player* P = dynamic_cast<Player*>(Atk);
+        if(P != nullptr)
+        {
+            // ì•„ì´í…œ ë¯¸ë³´ìœ  ì˜ˆì™¸ì²˜ë¦¬ ì¶”ê°€ í•„ìš”
+            P->UseItem(0); //dummy
+            cout << P->GetName() << "ì´(ê°€) ì•„ì´í…œì„ ì‚¬ìš©í–ˆìŠµë‹ˆë‹¤." << endl;
+        }
+    }
+    ProcessAttack(Atk, Def);
 }
 
-void BattleManager::CalculateReward(Player* P)
+void BattleManager::ProcessAttack(ICharacter* Atk, ICharacter* Def)
+{
+    Atk->Attack(Def);
+    cout << Atk->GetName() << "ì˜ ê³µê²©" << endl;
+    cout << Def->GetName() << "ì˜ í”¼í•´ëŸ‰: " << Atk->GetAtk() << ", ë‚¨ì€ ì²´ë ¥: " << Def->GetCurrentHP() << "/" << Def->GetMaxHP() << endl;
+}
+
+void BattleManager::CalculateReward(Player* P, IMonster* M)
 {
     // Implementation needed
-    // ÀüÅõ °á°ú¿¡ µû¸¥ º¸»ó °è»ê ¹× Áö±Ş, ÇÃ·¹ÀÌ¾î´Â °æÇèÄ¡ ¹× °ñµå, ¾ÆÀÌÅÛ È¹µæ
-    // ¸ó½ºÅÍ µå·Ó ºÒ·¯¿À°í, ÀÌ°Å´Â °ÔÀÓ ¸Å´ÏÀú¿¡¼­ È£ÃâµÊ
+    // ì „íˆ¬ ê²°ê³¼ì— ë”°ë¥¸ ë³´ìƒ ê³„ì‚° ë° ì§€ê¸‰, í”Œë ˆì´ì–´ëŠ” ê²½í—˜ì¹˜ ë° ê³¨ë“œ, ì•„ì´í…œ íšë“
+    // ëª¬ìŠ¤í„° ë“œë¡­ ë¶ˆëŸ¬ì˜¤ê³ , ì´ê±°ëŠ” ê²Œì„ ë§¤ë‹ˆì €ì—ì„œ í˜¸ì¶œë¨
+    tuple<int, int, unique_ptr<IItem>>Reward=M->DropReward();
+    P->GainExp(get<0>(Reward));
+    P->GainGold(get<1>(Reward));
+    //P->GetInventory().AddItem(move(get<2>(Reward)), 1);
 }
