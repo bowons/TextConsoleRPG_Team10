@@ -1,5 +1,6 @@
 #include "../../include/Manager/GameManager.h"
 #include "../../include/Manager/BattleManager.h"
+#include "../../include/Unit/Player.h"
 
 using namespace std;
 
