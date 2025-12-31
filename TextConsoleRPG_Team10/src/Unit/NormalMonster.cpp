@@ -1,11 +1,18 @@
 #include "../../include/Unit/NormalMonster.h"
-#include "../../include/Manager/BattleManager.h" // Player 클래스 선언 추가
+#include "../../include/Manager/BattleManager.h" 
+#include "../../include/Item/IItem.h"
+#include "../../include/Item/HealPotion.h"
+#include "../../include/Item/AttackUp.h"
 #include <random>
+#include <tuple>
+#include <memory>
+
+using namespace std;
 
 // GameManager에 추가 후 삭제
 static mt19937 gen(random_device{}());
 
-NormalMonster::NormalMonster(const int PlayerLevel) 
+NormalMonster::NormalMonster(int PlayerLevel) 
 {
     _Name = "Normal Monster";
     _Level = PlayerLevel;
@@ -18,16 +25,16 @@ NormalMonster::NormalMonster(const int PlayerLevel)
     _Atk = AtkDist(gen);
 }
 
-void NormalMonster::TakeDamage(int amount)
+void NormalMonster::TakeDamage(int Amount)
 {
     // 데미지 받음
-    _CurrentHP -= amount;
+    _CurrentHP -= Amount;
 }
 
-void NormalMonster::Attack(ICharacter* target)
+void NormalMonster::Attack(ICharacter* Target)
 {
     // 공격 연출 등 나중에 추가하면 될 듯
-    target->TakeDamage(_Atk);
+    Target->TakeDamage(_Atk);
 }
 
 bool NormalMonster::IsDead()
@@ -38,9 +45,22 @@ bool NormalMonster::IsDead()
 
 void NormalMonster::DropReward()
 {
-  // 리워드 드롭
     // 경험치 50, 골드 10~20, 30% 확률 아이템 드롭
-    // 튜플로 전달
-    // TODO: 리워드 계산
-    //BattleManager::GetInstance()->CalculateReward(튜플);
+    unique_ptr<IItem> DropItem = nullptr;
+
+    if (uniform_int_distribution<>(0, 9)(gen) < 3) // 30%
+    {
+        if(uniform_int_distribution<>(0, 1)(gen)) // 50%
+        {
+            //HealPotion 생성
+            DropItem = make_unique<HealPotion>();
+        }
+        else
+        {
+            //AttackUp 생성
+            DropItem = make_unique<AttackUp>();
+        }
+    }
+    tuple<int, int, unique_ptr<IItem>> Reward(50, uniform_int_distribution<>(10, 20)(gen), move(DropItem));
+    BattleManager::GetInstance()->CalculateReward(Reward); // 배틀매니저 수정 필요
 }
