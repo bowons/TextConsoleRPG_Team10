@@ -68,7 +68,7 @@ string InputManager::GetStringInput(const string& Prompt, const vector<string>& 
 }
 
 // 정해둔 문자들 중에서 입력받기
-char InputManager::GetCharInput(const string& Prompt, const string& validChars)
+char InputManager::GetCharInput(const string& Prompt, const string& ValidChars)
 {
     string str;
     while (true)
@@ -86,7 +86,7 @@ char InputManager::GetCharInput(const string& Prompt, const string& validChars)
             continue;
         }
 
-        for (const char& option : validChars)
+        for (const char& option : ValidChars)
         {
             if (str[0] == option)
             {
