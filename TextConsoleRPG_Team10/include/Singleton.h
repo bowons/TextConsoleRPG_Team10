@@ -6,29 +6,19 @@ class Singleton
 protected:
     static T* _Instance;
 
-    Singleton();
-    virtual ~Singleton();
+    Singleton() {};
+    virtual ~Singleton() {};
 
 public:
-    static T* GetInstance();
+    static T* GetInstance()
+    {
+        if (_Instance == nullptr)
+        {
+            _Instance = new T();
+        }
+        return _Instance;
+    }
 };
 
 template <typename T>
 T* Singleton<T>::_Instance = nullptr;
-
-template <typename T>
-Singleton<T>::Singleton()
-{
-}
-
-template <typename T>
-Singleton<T>::~Singleton()
-{
-}
-
-template <typename T>
-T* Singleton<T>::GetInstance()
-{
-    // Implementation needed
-    return nullptr;
-}
