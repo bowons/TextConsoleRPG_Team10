@@ -83,7 +83,7 @@ void GameManager::RunMainLoop()
             Shop->BuyItem(_MainPlayer.get(), 1); // 상점에서 공격력 증가 포션 1개 구매
             PrintManager::GetInstance()->PrintLogLine("든든한 채비가 보험인 법이죠, 두둑한 주머니와 함께 " + _MainPlayer->GetName() + "는 다음 층으로 향합니다.");
         }
-        else if (lowerChoice)
+        else if (lowerChoice == 'n')
             PrintManager::GetInstance()->PrintLogLine("역시.. 돈은 아끼고 봐야죠, " + _MainPlayer->GetName() + "는 다음 층으로 향합니다.");
 
     }

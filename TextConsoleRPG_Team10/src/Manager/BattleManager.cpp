@@ -1,4 +1,5 @@
 ﻿#include "../../include/Manager/BattleManager.h"
+#include "../../include/Manager/PrintManager.h"
 #include "../../include/Unit/NormalMonster.h"
 #include "../../include/Unit/Player.h"
 #include <iostream>
@@ -35,17 +36,36 @@ bool BattleManager::StartAutoBattle(Player* P)
 
 void BattleManager::ProcessTurn(ICharacter* Atk, ICharacter* Def)
 {
+    // TODO: 전투 턴을 진행함
     //아이템 사용 여부 체크 후 사용
-    if(Atk->GetCurrentHP() < Atk->GetMaxHP() / 4) //dummy // 체력 1/4 이하일 때 아이템 사용 
+
+    // 플레이어의 아이템 사용 조건
+    // 회복 포션: 체력이 1/4 이하일 때 사용
+    // 공격력 포션: Def의 체력이 Atk의 공격력 보다 높다면 조건 진입
+    // Atk가 공격력 포션을 보유하고 있으며, Atk의 공격력 포션 사용을 가정해도 Def의 체력이 Atk의 공격력 보다 높다면 사용
+    
+    if(Atk->GetCurrentHP() < Atk->GetMaxHP() / 4) 
     {
         Player* P = dynamic_cast<Player*>(Atk);
         if(P != nullptr)
         {
-            // 아이템 미보유 예외처리 추가 필요
-            P->UseItem(0); //dummy
-            cout << P->GetName() << "이(가) 아이템을 사용했습니다." << endl;
+            // TODO: 인벤토리에서 회복 포션 슬롯 인덱스 찾기
+            
         }
     }
+
+    if (Def->GetCurrentHP() > Atk->GetAtk())
+    {
+        Player* P = dynamic_cast<Player*>(Atk);
+        if (P != nullptr)
+        {
+            // TODO: 인벤토리에서 공격력 증가 포션 슬롯 인덱스 찾기
+
+        }
+
+        return;
+    }
+
     ProcessAttack(Atk, Def);
 }
 

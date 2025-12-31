@@ -1,5 +1,6 @@
-#pragma once
+﻿#pragma once
 
+// ===================== Path Configurations =====================
 constexpr const char* DEFAULT_RESOURCE_PATH = "./Resources";            // 기본 리소스 경로
 
 constexpr const char* ASCII_FOLDER = "Ascii/";               // Ascii 아트 폴더
