@@ -14,14 +14,14 @@ private:
     Inventory _Inventory;
 
 public:
-    Player(const string& name);
-    void TakeDamage(int amount) override;
-    void Attack(ICharacter* target) override;
-    bool IsDead() override;
+    Player(const string& Name);
+    void TakeDamage(const int Amount) override;
+    void Attack(ICharacter* Target) const override;
+    bool IsDead() const override;
     
     void CheckLevelUp();
     void ProcessLevelUp();
-    void GainExp(int amount);
-    void GainGold(int amount);
-    void UseItem(int slotIndex);
+    void GainExp(const int Amount);
+    void GainGold(const int Amount);
+    void UseItem(const int SlotIndex);
 };

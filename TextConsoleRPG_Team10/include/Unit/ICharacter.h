@@ -13,9 +13,9 @@ protected:
     int _Atk;
 
 public:
-    virtual void TakeDamage(int amount) = 0;
-    virtual void Attack(ICharacter* target) = 0;
-    virtual bool IsDead() = 0;
+    virtual void TakeDamage(const int Amount) = 0;
+    virtual void Attack(ICharacter* Target) const = 0;
+    virtual bool IsDead() const = 0;
     virtual ~ICharacter() {}
 
     inline const::string& GetName() const { return _Name; }
