@@ -1,5 +1,6 @@
-#pragma once
+﻿#pragma once
 #include "IMonster.h"
+#include "../../include/Item/IItem.h"
 #include <tuple>
 
 class NormalMonster : public IMonster
@@ -9,5 +10,5 @@ public:
     void TakeDamage(int amount) override;
     void Attack(ICharacter* target) override;
     bool IsDead() override;
-    tuple<int, int, unique_ptr<IItem>> DropReward() override;
+    tuple<int, int, IItem*> DropReward() override;
 };
