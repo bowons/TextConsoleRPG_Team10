@@ -1,9 +1,10 @@
+ï»¿
 #include "../../include/Item/HealPotion.h"
 #include "../../include/Unit/Player.h"
 
 void HealPotion::ApplyEffect(Player& p)
 {
-    //ÇÃ·¹ÀÌ¾îÀÇ °ø°İ·Â Áõ°¡
-    //¡ØHeal ÇÔ¼ö Player Å¬·¡½º¿¡ ÀÖ¾î¾ßÇÔ (µ¿ÁÖ´Ô ÄÚµå È®ÀÎ)
+    //í”Œë ˆì´ì–´ì˜ ê³µê²©ë ¥ ì¦ê°€
+    //â€»Heal í•¨ìˆ˜ Player í´ë˜ìŠ¤ì— ìˆì–´ì•¼í•¨ (ë™ì£¼ë‹˜ ì½”ë“œ í™•ì¸)
     p.Heal(_EffectAmount);
 }

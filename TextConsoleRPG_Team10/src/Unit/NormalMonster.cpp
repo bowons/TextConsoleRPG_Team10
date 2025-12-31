@@ -11,7 +11,7 @@ using namespace std;
 // GameManager에 추가 후 삭제
 static mt19937 gen(random_device{}());
 
-NormalMonster::NormalMonster(int PlayerLevel) 
+NormalMonster::NormalMonster(int PlayerLevel)
 {
     _Name = "Normal Monster";
     _Level = PlayerLevel;
@@ -40,6 +40,7 @@ void NormalMonster::Attack(ICharacter* Target)
     {
         return;
     }
+
     // 공격 연출 등 나중에 추가하면 될 듯
     Target->TakeDamage(_Atk);
 }
@@ -57,7 +58,7 @@ tuple<int, int, IItem*> NormalMonster::DropReward()
 
     if (uniform_int_distribution<>(0, 9)(gen) < 3) // 30%
     {
-        if(uniform_int_distribution<>(0, 1)(gen)) // 50%
+        if (uniform_int_distribution<>(0, 1)(gen)) // 50%
         {
             //HealPotion 생성
         }

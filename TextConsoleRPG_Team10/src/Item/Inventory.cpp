@@ -1,4 +1,4 @@
-#include "../../include/Item/Inventory.h"
+﻿#include "../../include/Item/Inventory.h"
 
 void Inventory::UseItem(int slotIndex, Player& p)
 {
@@ -13,7 +13,7 @@ bool Inventory::AddItem(IItem* item, int quantity)
 
 void Inventory::RemoveItem(int slotIndex, int quantity)
 {
-  // Implementation needed
+    // Implementation needed
 }
 
 int Inventory::FindItemSlot(IItem* item)
