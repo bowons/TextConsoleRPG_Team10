@@ -1,5 +1,4 @@
 #include "../../include/Unit/NormalMonster.h"
-#include "../../include/Manager/BattleManager.h" 
 #include "../../include/Item/IItem.h"
 #include "../../include/Item/HealPotion.h"
 #include "../../include/Item/AttackUp.h"
@@ -8,8 +7,6 @@
 #include <memory>
 
 using namespace std;
-
-// 주석 확인
 
 // GameManager에 추가 후 삭제
 static mt19937 gen(random_device{}());
@@ -45,7 +42,7 @@ bool NormalMonster::IsDead()
     return _CurrentHP <= 0;
 }
 
-void NormalMonster::DropReward()
+tuple<int, int, unique_ptr<IItem>> NormalMonster::DropReward()
 {
     // 경험치 50, 골드 10~20, 30% 확률 아이템 드롭
     unique_ptr<IItem> DropItem = nullptr;
@@ -64,5 +61,5 @@ void NormalMonster::DropReward()
         }
     }
     tuple<int, int, unique_ptr<IItem>> Reward(50, uniform_int_distribution<>(10, 20)(gen), move(DropItem));
-    BattleManager::GetInstance()->CalculateReward(Reward); // 배틀매니저 수정 필요
+    return Reward;
 }
