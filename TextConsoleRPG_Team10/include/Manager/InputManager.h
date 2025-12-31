@@ -7,10 +7,15 @@ using namespace std;
 
 class InputManager : public Singleton<InputManager>
 {
+private:
+    string TrashStr = "TrashHsarT";
+    int TrashInt = -1005222;
+    char TrashCh = '~';
+
 public:
-    string GetInput(string prompt);
-    int GetIntInput(string prompt, int min, int max);
-    string GetStringInput(string prompt, vector<string> validOptions);
-    char GetCharInput(string prompt, string validChars);
-    bool GetYesNoInput(string prompt);
+    string GetInput(string Prompt);
+    int GetIntInput(string Prompt, int Min, int Max);
+    string GetStringInput(string Prompt, vector<string> ValidOptions);
+    char GetCharInput(string Prompt, string validChars);
+    bool GetYesNoInput(string Prompt);
 };
