@@ -10,7 +10,6 @@ class Player;
 class DataManager : public Singleton<DataManager>
 {
 private:
-    string _ResourcePath;
     bool _IsInitialized;
 
 private:
@@ -20,18 +19,18 @@ private:
     DataManager(const DataManager&) = delete;
     DataManager& operator=(const DataManager&) = delete;
 
-    string GetAsciiPath() const { return string(DEFAULT_RESOURCE_PATH) + "/" + ASCII_FOLDER; }
-    string GetCSVPath()   const { return string(DEFAULT_RESOURCE_PATH) + "/" + CSV_FOLDER; }
-    string GetDataPath()  const { return string(DEFAULT_RESOURCE_PATH) + "/" + PLAYER_DATA_FOLDER; }
-    string GetTextPath()  const { return string(DEFAULT_RESOURCE_PATH) + "/" + TEXT_FOLDER; }
+    string GetAsciiPath() const;
+    string GetCSVPath() const;
+    string GetTextPath() const;
 
 public:
     bool Initialize();
     string LoadTextFile(string fileName);
     vector<vector<string>> LoadCSVFile(string fileName);
     bool SaveTextFile(string fileName, string data);
-    bool SavePlayerData(Player* p);
-    bool LoadPlayerData(Player* p);
     bool FileExists(string fileName);
     bool DeleteFile(string fileName);
+    bool DirectoryExists(const string& DirPath);
+
+    inline const bool IsInitialized() { return _IsInitialized; };
 };
