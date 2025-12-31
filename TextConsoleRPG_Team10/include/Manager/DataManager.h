@@ -10,17 +10,27 @@ class Player;
 class DataManager : public Singleton<DataManager>
 {
 private:
-    string _ResourcePath;
-    string _SaveDataPath;
     bool _IsInitialized;
 
+private:
+    DataManager() = default;
+    friend class Singleton<DataManager>;
+
+    DataManager(const DataManager&) = delete;
+    DataManager& operator=(const DataManager&) = delete;
+
+    string GetAsciiPath() const;
+    string GetCSVPath() const;
+    string GetTextPath() const;
+
 public:
-    void Initialize();
+    bool Initialize();
     string LoadTextFile(string fileName);
     vector<vector<string>> LoadCSVFile(string fileName);
     bool SaveTextFile(string fileName, string data);
-    bool SavePlayerData(Player* p);
-    bool LoadPlayerData(Player* p);
     bool FileExists(string fileName);
     bool DeleteFile(string fileName);
+    bool DirectoryExists(const string& DirPath);
+
+    inline const bool IsInitialized() { return _IsInitialized; };
 };

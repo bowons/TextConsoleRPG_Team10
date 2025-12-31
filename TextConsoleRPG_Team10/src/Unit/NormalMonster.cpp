@@ -1,22 +1,65 @@
 #include "../../include/Unit/NormalMonster.h"
+#include "../../include/Item/IItem.h"
+#include "../../include/Item/HealPotion.h"
+#include "../../include/Item/AttackUp.h"
+#include <random>
+#include <tuple>
+#include <memory>
 
-void NormalMonster::TakeDamage(int amount)
+using namespace std;
+
+// GameManager에 추가 후 삭제
+static mt19937 gen(random_device{}());
+
+NormalMonster::NormalMonster(int PlayerLevel) 
 {
-    // Implementation needed
+    _Name = "Normal Monster";
+    _Level = PlayerLevel;
+
+    uniform_int_distribution<> HpDist(_Level * 20, _Level * 30);
+    _MaxHP = HpDist(gen);
+    _CurrentHP = _MaxHP;
+
+    uniform_int_distribution<> AtkDist(_Level * 5, _Level * 10);
+    _Atk = AtkDist(gen);
 }
 
-void NormalMonster::Attack(ICharacter* target)
+void NormalMonster::TakeDamage(int Amount)
 {
-    // Implementation needed
+    // 데미지 받음
+    _CurrentHP -= Amount;
+}
+
+void NormalMonster::Attack(ICharacter* Target)
+{
+    // 공격 연출 등 나중에 추가하면 될 듯
+    Target->TakeDamage(_Atk);
 }
 
 bool NormalMonster::IsDead()
 {
-    // Implementation needed
-    return false;
+    // Dead 여부 확인
+    return _CurrentHP <= 0;
 }
 
-void NormalMonster::DropReward()
+tuple<int, int, unique_ptr<IItem>> NormalMonster::DropReward()
 {
-  // Implementation needed
+    // 경험치 50, 골드 10~20, 30% 확률 아이템 드롭
+    unique_ptr<IItem> DropItem = nullptr;
+
+    if (uniform_int_distribution<>(0, 9)(gen) < 3) // 30%
+    {
+        if(uniform_int_distribution<>(0, 1)(gen)) // 50%
+        {
+            //HealPotion 생성
+            DropItem = make_unique<HealPotion>();
+        }
+        else
+        {
+            //AttackUp 생성
+            DropItem = make_unique<AttackUp>();
+        }
+    }
+    tuple<int, int, unique_ptr<IItem>> Reward(50, uniform_int_distribution<>(10, 20)(gen), move(DropItem));
+    return Reward;
 }
