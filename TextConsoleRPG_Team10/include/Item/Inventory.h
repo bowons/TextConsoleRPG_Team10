@@ -3,7 +3,7 @@
 
 using namespace std;
 
-class IItem; 
+class IItem;
 class ItemSlot;
 class Player;
 

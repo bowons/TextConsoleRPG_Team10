@@ -1,4 +1,4 @@
-#include "../../include/Unit/NormalMonster.h"
+ï»¿#include "../../include/Unit/NormalMonster.h"
 #include "../../include/Item/IItem.h"
 #include "../../include/Item/HealPotion.h"
 #include "../../include/Item/AttackUp.h"
@@ -8,10 +8,10 @@
 
 using namespace std;
 
-// GameManager¿¡ Ãß°¡ ÈÄ »èÁ¦
+// GameManagerì— ì¶”ê°€ í›„ ì‚­ì œ
 static mt19937 gen(random_device{}());
 
-NormalMonster::NormalMonster(int PlayerLevel) 
+NormalMonster::NormalMonster(int PlayerLevel)
 {
     _Name = "Normal Monster";
     _Level = PlayerLevel;
@@ -26,37 +26,37 @@ NormalMonster::NormalMonster(int PlayerLevel)
 
 void NormalMonster::TakeDamage(int Amount)
 {
-    // µ¥¹ÌÁö ¹ŞÀ½
+    // ë°ë¯¸ì§€ ë°›ìŒ
     _CurrentHP -= Amount;
 }
 
 void NormalMonster::Attack(ICharacter* Target)
 {
-    // °ø°İ ¿¬Ãâ µî ³ªÁß¿¡ Ãß°¡ÇÏ¸é µÉ µí
+    // ê³µê²© ì—°ì¶œ ë“± ë‚˜ì¤‘ì— ì¶”ê°€í•˜ë©´ ë  ë“¯
     Target->TakeDamage(_Atk);
 }
 
 bool NormalMonster::IsDead()
 {
-    // Dead ¿©ºÎ È®ÀÎ
+    // Dead ì—¬ë¶€ í™•ì¸
     return _CurrentHP <= 0;
 }
 
 tuple<int, int, unique_ptr<IItem>> NormalMonster::DropReward()
 {
-    // °æÇèÄ¡ 50, °ñµå 10~20, 30% È®·ü ¾ÆÀÌÅÛ µå·Ó
+    // ê²½í—˜ì¹˜ 50, ê³¨ë“œ 10~20, 30% í™•ë¥  ì•„ì´í…œ ë“œë¡­
     unique_ptr<IItem> DropItem = nullptr;
 
     if (uniform_int_distribution<>(0, 9)(gen) < 3) // 30%
     {
-        if(uniform_int_distribution<>(0, 1)(gen)) // 50%
+        if (uniform_int_distribution<>(0, 1)(gen)) // 50%
         {
-            //HealPotion »ı¼º
+            //HealPotion ìƒì„±
             DropItem = make_unique<HealPotion>();
         }
         else
         {
-            //AttackUp »ı¼º
+            //AttackUp ìƒì„±
             DropItem = make_unique<AttackUp>();
         }
     }
