@@ -19,7 +19,8 @@ public:
     IItem(string ItemName, int Price, int EffectAmount, int MaxCount)
     : _ItemName(ItemName), _Price(Price), _EffectAmount(EffectAmount), _MaxCount(MaxCount){}
     
-    virtual void ApplyEffect(Player& p) = 0; //아이템 사용 시 효과 적용
+    virtual void ApplyEffect(Player& P) = 0; //아이템 사용 시 효과 적용
     virtual int GetMaxCount() const; //아이템 최대 스택 수 반환
+
     virtual ~IItem() = default; //소멸자
 };

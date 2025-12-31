@@ -2,74 +2,78 @@
 #include "../../include/Item/ItemSlot.h"
 #include "../../include/Item/IItem.h"
 
-//빈 슬롯 인덱스 찾기
-int Inventory::FindEmptySlotIndex() const {
-    for (int i = 0; i < _Slots.size(); i++) {
-        if (_Slots[i].IsEmpty()) {
-            return i;
-        }
-    }
-    return -1; //빈 슬롯 없음
-}
-
-//특정 아이템이 든 슬롯 인덱스 찾기
-int Inventory::FindItemSlotIndex(IItem* item) const {
-
-    if (item == nullptr) {
-        return -1; //유효하지 않은 아이템 포인터
-    }
-
-    for (int i = 0; i < _Slots.size(); i++) {
-        if (_Slots[i].GetItem() == item) {
-            return i; //아이템이 든 슬롯 인덱스 반환
-        }
-    }
-
-    return -1; //아이템이 든 슬롯 없음
-}
-
-
 //특정 아이템의 총 개수 반환
-int Inventory::GetItemAmount(IItem* item) const {
-    int index = FindItemSlotIndex(item);
-    if (index == -1) {
-        return 0; //아이템 없음
-    }
-    return _Slots[index].GetAmount();
+int Inventory::GetItemAmount(int SlotIndex) const {
+    if (SlotIndex < 0 || SlotIndex >= _Slots.size())
+        return 0;
+
+    return _Slots[SlotIndex].GetAmount();
 }
 
-void Inventory::UseItem(int slotIndex, Player& p) {
+//아이템 추가
+bool Inventory::AddItem(int SlotIndex, int Amount) {
+    if (Amount <= 0)
+        return false; //추가 수량이 0 이하인 경우 false 반환
 
+    if (SlotIndex < 0 || SlotIndex >= _Slots.size())
+        return false; //유효하지 않은 슬롯 false 반환
+
+    ItemSlot& Slot = _Slots[SlotIndex];
+    IItem* Item = Slot.GetItem();
+
+    if (!Item) {
+        return false; //아이템이 없으면 false 반환
+    }
+
+    int MaxCount = Item->GetMaxCount(); //아이템 최대 보유 개수
+    int Current = Slot.GetAmount(); //현재 슬롯에 든 아이템 개수
+    int CanAdd = MaxCount - Current; //추가 가능한 개수 계산
+
+    if (CanAdd <= 0) {
+        return false; //더 이상 추가 불가
+    }
+
+    int addAmount = min(CanAdd, Amount); //추가할 개수 결정
+    Slot.AddAmount(addAmount); //아이템 개수 증가
+
+    return true;
 }
 
-//아이템 인벤토리에 추가
-bool Inventory::AddItem(IItem* item, int amount) {
-    if (item == nullptr) {
-        return false; //유효하지 않은 아이템 포인터
+
+//아이템 사용
+bool Inventory::UseItem(int SlotIndex, Player& P) {
+
+    if (SlotIndex < 0 || SlotIndex >= _Slots.size())
+        return false; //유효하지 않은 슬롯 false 반환
+
+    ItemSlot& slot = _Slots[SlotIndex];
+
+    if (slot.IsEmpty()) {
+        return false; //빈 슬롯이면 false 반환
     }
 
-    int index = FindItemSlotIndex(item);
-    int currentAmount = GetItemAmount(item);
+    IItem* item = slot.GetItem();
 
-    //(1) 최대 보유 가능 개수를 초과한 경우
-    if (item->GetMaxCount() < currentAmount + 1) {
-        return false;
+    if (!item) {
+        return false; //아이템이 없으면 false 반환
     }
 
-    if (index != -1) {
-        _Slots[index].AddAmount(1);
-    }
+    item->ApplyEffect(P); //아이템 효과 적용
+    slot.RemoveAmount(1); //아이템 개수 1 감소
 
-    //(2) 이미 슬롯에 아이템이 있는 경우
-    //(3) 아이템이 슬롯에 없는 경우
+    return true;
 
 }
-
-//아이템 인벤토리에서 제거
-void Inventory::RemoveItem(int slotIndex) {
-    if (slotIndex < 0 || slotIndex >= _Slots.size()) {
-        return; //유효하지 않은 슬롯 인덱스
+void Inventory::RemoveItem(int SlotIndex) {
+    if (SlotIndex < 0 || SlotIndex >= _Slots.size()) {
+        return; //유효하지 않은 슬롯 false 반환
     }
 
-    _Slots[slotIndex].ClearItem();
+    ItemSlot& Slot = _Slots[SlotIndex];
+    
+    if (Slot.IsEmpty()) {
+        return; //빈 슬롯이면 작업 수행X
+    }
+
+    Slot.RemoveAmount(1); //아이템 개수 1 감소
 }

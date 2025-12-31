@@ -15,10 +15,11 @@ public:
     ItemSlot() = default;
     
     bool IsEmpty() const; //슬롯이 비어있는지 확인
-    bool SetItem(IItem* Item, int amount); //아이템을 슬롯에 넣음 (아이템+개수 상태)
-    void AddAmount(int amount); //슬롯에 든 아이템 개수 증가
-    void RemoveAmount(int amount); //슬롯에 든 아이템 개수 감소
+    bool SetItem(IItem* Item, int Amount); //아이템을 슬롯에 넣음 (아이템+개수 상태)
+    void AddAmount(int Amount); //슬롯에 든 아이템 개수 증가
+    void RemoveAmount(int Amount); //슬롯에 든 아이템 개수 감소
     IItem* GetItem() const; //아이템 반환
     int GetAmount() const; //슬롯에 든 아이템 개수 반환
+
     void ClearItem(); //아이템 슬롯 초기화
 };
