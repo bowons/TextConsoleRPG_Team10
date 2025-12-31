@@ -18,14 +18,8 @@ public:
     virtual void TakeDamage(const int Amount) = 0;
     virtual void Attack(ICharacter* Target) const = 0;
     virtual bool IsDead() const = 0;
-<<<<<<< Updated upstream
-    virtual ~ICharacter() {}
-
-    inline const::string& GetName() const { return _Name; }
-=======
 
 	inline const string& GetName() const { return _Name; }
->>>>>>> Stashed changes
     inline int GetLevel() const { return _Level; }
     inline int GetCurrentHP() const { return _CurrentHP; }
     inline int GetMaxHP() const { return _MaxHP; }

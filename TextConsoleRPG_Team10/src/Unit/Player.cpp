@@ -72,7 +72,7 @@ void Player::GainGold(const int Amount)
   _Gold += Amount;
 }
 
-//void Player::UseItem(const int SlotIndex) 
-//{ 
-//  _Inventory.UseItem(SlotIndex, *this); 
-//}
+void Player::UseItem(const int SlotIndex) 
+{ 
+  _Inventory.UseItem(SlotIndex, *this); 
+}
