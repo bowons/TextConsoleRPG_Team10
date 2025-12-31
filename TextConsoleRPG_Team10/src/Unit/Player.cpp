@@ -1,4 +1,4 @@
-﻿#include "../../include/Unit/Player.h"
+#include "../../include/Unit/Player.h"
 #include <iostream>
 
 Player::Player(const string& Name) 
@@ -75,4 +75,21 @@ void Player::GainGold(const int Amount)
 void Player::UseItem(const int SlotIndex) 
 { 
   _Inventory.UseItem(SlotIndex, *this); 
+}
+
+void Player::AddAttack(const int Amount) 
+{ 
+  Atk += Amount;
+  _Inventory->UseItem(0, *this);
+}
+
+void Player::Heal(const int Amount)
+{ 
+	if (CurrentHP > MaxHP || CurrentHP + Amount > MaxHP) 
+	{
+		CurrentHP = MaxHP; 
+	} else 
+	{
+		CurrentHP += Amount;
+    }
 }

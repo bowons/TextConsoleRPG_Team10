@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "ICharacter.h"
 #include "../Item/Inventory.h"
 #include <string>
@@ -26,4 +26,7 @@ public:
     void UseItem(const int SlotIndex);
 
 	Inventory& GetInventory() { return _Inventory; }
+
+	void AddAttack(const int Amount);
+    void Heal(const int Amount);
 };
