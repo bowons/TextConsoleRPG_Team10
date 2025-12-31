@@ -15,7 +15,7 @@ public:
     // 정해진 옵션들 중 하나 입력받기
     string GetStringInput(const string& Prompt, const vector<string>& ValidOptions);
     // 정해둔 문자들 중에서 입력받기
-    char GetCharInput(const string& Prompt, const string& validChars);
+    char GetCharInput(const string& Prompt, const string& ValidChars);
     // Yes or No 입력 받기
     bool GetYesNoInput(const string& Prompt);
 
