@@ -10,7 +10,8 @@ protected:
     int _Level;
     int _CurrentHP;
     int _MaxHP;
-    int _Atk;
+    int _BaseAtk;
+    int _CurrentAtk;
 
 public:
     virtual ~ICharacter() {}
@@ -23,5 +24,6 @@ public:
     inline int GetLevel() const { return _Level; }
     inline int GetCurrentHP() const { return _CurrentHP; }
     inline int GetMaxHP() const { return _MaxHP; }
-    inline int GetAtk() const { return _Atk; }
+    inline int GetBaseAtk() const { return _BaseAtk; }
+    inline int GetCurrentAtk() const { return _CurrentAtk; }
 };

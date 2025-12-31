@@ -1,4 +1,4 @@
-﻿#include "../../include/Unit/Player.h"
+#include "../../include/Unit/Player.h"
 #include <iostream>
 
 Player::Player(const string& Name) 
@@ -8,7 +8,8 @@ Player::Player(const string& Name)
   _Level = 1;
   _MaxHP = 200;
   _CurrentHP = _MaxHP;
-  _Atk = 30;
+  _BaseAtk = 30;
+  _CurrentAtk = _BaseAtk;
   _MaxExp = 550;
   _CurrentExp = 0;
   _Gold = 100;
@@ -56,7 +57,8 @@ void Player::ProcessLevelUp()
     _Level++;
     _MaxHP += (_Level * 20);
     _CurrentHP = _MaxHP;
-    _Atk += (_Level * 5);
+    _BaseAtk += (_Level * 5);
+    _CurrentAtk = _BaseAtk;
     _MaxExp += static_cast<int>(_MaxExp * 1.2f);
   }
 }
@@ -75,4 +77,25 @@ void Player::GainGold(const int Amount)
 void Player::UseItem(const int SlotIndex) 
 { 
   _Inventory.UseItem(SlotIndex, *this); 
+}
+
+void Player::AddAttack(const int Amount) 
+{ 
+  _CurrentAtk += Amount;
+}
+
+void Player::ResetAttack() 
+{ 
+  _CurrentAtk = _BaseAtk; 
+}
+
+void Player::Heal(const int Amount)
+{ 
+	if (_CurrentHP > _MaxHP || _CurrentHP + Amount > _MaxHP) 
+	{
+		_CurrentHP = _MaxHP; 
+	} else 
+	{
+		_CurrentHP += Amount;
+    }
 }
