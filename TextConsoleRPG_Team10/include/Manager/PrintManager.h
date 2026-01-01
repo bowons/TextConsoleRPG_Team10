@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "../Singleton.h"
 #include <string>
 
@@ -50,7 +50,7 @@ private:
     // 현재 타이핑 속도
     ETypingSpeed _CurrentSpeed = ETypingSpeed::Normal;
     // 줄 당 글자 제한 수(= 줄 길이)
-    int _LineLimit = 40;
+    int _LineLimit = 106;
     // 현재 줄에 출력된 글자 수
     int _CurrentCharCnt = 0;
 

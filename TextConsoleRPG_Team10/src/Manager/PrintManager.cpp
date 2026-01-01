@@ -1,5 +1,4 @@
-﻿#include <iostream>
-
+#include <iostream>
 #include "Windows.h"
 #include "../../include/Manager/PrintManager.h"
 

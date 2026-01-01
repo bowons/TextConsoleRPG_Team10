@@ -1,11 +1,9 @@
-﻿#include "../../include/Manager/GameManager.h"
+#include "../../include/Manager/GameManager.h"
 #include "../../include/Manager/PrintManager.h"
 #include "../../include/Manager/InputManager.h"
 #include "../../include/Manager/ShopManager.h"
 #include "../../include/Manager/BattleManager.h"
 #include "../../include/Unit/Player.h"
-
-using namespace std;
 
 void GameManager::StartGame()
 {
