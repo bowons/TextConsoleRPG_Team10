@@ -12,6 +12,10 @@ private:
     int _MaxExp;
     int _Gold;
     Inventory _Inventory;
+    
+    // 임시 버프 관리
+    int _TempAtkBonus;
+    int _BuffRoundsRemaining;
 
 public:
     Player(const string& Name);
@@ -30,9 +34,17 @@ public:
 
 	Inventory& GetInventory() { return _Inventory; }
 
-	void AddAttack(const int Amount);
-    void ResetAttack();
-    void Heal(const int Amount);
+    // 범용 스탯 수정 메서드 - 아이템이나 버프/디버프 등에서 사용
+    void ModifyHP(int Amount);   // HP 증감 (최대치 제한)
+    void ModifyMaxHP(int Amount);       // 최대 HP 증감
+    void ModifyAtk(int Amount);  // 공격력 증감
+    void ModifyGold(int Amount);     // 골드 증감
+    
+    // 버프 관리 메서드
+    void ApplyTempAtkBuff(int Amount, int Rounds);
+    void ProcessRoundEnd();
+    void ResetBuffs();
+    int GetTotalAtk() const;
 
     // 플레이어 전용 공격 연출
     std::string GetAttackNarration() const override;

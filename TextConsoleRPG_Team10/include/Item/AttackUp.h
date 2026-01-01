@@ -10,4 +10,7 @@ public:
     AttackUp() : IItem("공격력 증가 포션", 100, 10, 5) {};
     
     void ApplyEffect(Player& Player) override;
+    
+    // 동일한 타입의 새 AttackUp 인스턴스 생성
+    std::unique_ptr<IItem> Clone() const override;
 };

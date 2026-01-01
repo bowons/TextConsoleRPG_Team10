@@ -9,16 +9,12 @@ using namespace std;
 
 void ShopManager::ReopenShop()
 {
-    // 기존 프로토타입 해제
-    for (auto& stock : _SellList)
-    {
-        delete stock.prototype;
-    }
+    // unique_ptr이므로 자동으로 메모리 해제됨
     _SellList.clear();
 
-    // 새 프로토타입 생성 및 재고 설정
-    _SellList.push_back({ new HealPotion(), 10 });  // HealPotion 10개
-    _SellList.push_back({ new AttackUp(), 5 });     // AttackUp 5개
+    // 프로토타입 생성 및 재고 설정
+    _SellList.push_back({ std::make_unique<HealPotion>(), 10 });
+    _SellList.push_back({ std::make_unique<AttackUp>(), 5 });
 }
 
 void ShopManager::PrintShop()
@@ -31,14 +27,8 @@ void ShopManager::PrintShop()
         const ItemStock& stock = _SellList[i];
         if (!stock.prototype) continue;
 
-        // 아이템 이름과 가격, 재고를 출력
-        std::string itemName = "알 수 없음";
-        int price = 0;
-        if (auto* item = stock.prototype)
-        {
-            itemName = item->GetName();
-            price = item->GetPrice();
-        }
+        std::string itemName = stock.prototype->GetName();
+        int price = stock.prototype->GetPrice();
 
         std::string msg = std::to_string(i) + ". " + itemName +
             " | 가격: " + std::to_string(price) +
@@ -61,13 +51,17 @@ bool ShopManager::BuyItem(Player* Player, int idx)
     if (stock.count <= 0)
     {
         PrintManager::GetInstance()->PrintLogLine("죄송합니다. 해당 상품은 품절입니다.");
-        return false;  // 재고 없음
+        return false;
     }
 
-    IItem* Selected = stock.prototype;
-    int Price = Selected ? Selected->GetPrice() : 0;
-    std::string ItemName = Selected ? Selected->GetName() : "알 수 없음";
+    if (!stock.prototype)
+    {
+        PrintManager::GetInstance()->PrintLogLine("상품 정보가 올바르지 않습니다.", ELogImportance::WARNING);
+        return false;
+    }
 
+    int Price = stock.prototype->GetPrice();
+    std::string ItemName = stock.prototype->GetName();
 
     // 플레이어의 골드 확인
     if (Player->GetGold() < Price)
@@ -76,31 +70,17 @@ bool ShopManager::BuyItem(Player* Player, int idx)
         return false;
     }
 
-    // 지정 타입의 포션 생성 추후 csv로 처리함
-    // 런타임에 원하는 타입의 포션을 생성하려면
-    // 미리 타입을 매핑해놓고 생성하는 Factory Method 디자인 패턴 형태로 구현되어야 합니다.
-    // 어차피 필수 기능이니까 이까지만 합니다 전
-    std::unique_ptr<IItem> Item;
-    if (dynamic_cast<HealPotion*>(Selected))
-    {
-        Item = std::make_unique<HealPotion>();
-    }
-    else if (dynamic_cast<AttackUp*>(Selected))
-    {
-        Item = std::make_unique<AttackUp>();
-    }
-    else {
-        return false;  // 알 수 없는 타입
-    }
+    // Clone을 사용하여 새 아이템 생성 (타입 판별 불필요)
+    std::unique_ptr<IItem> Item = stock.prototype->Clone();
 
     // Inventory에 추가
     int remain;
     bool success = Player->GetInventory().AddItem(std::move(Item), 1, remain);
     if (success && remain == 0)
     {
-        stock.count--;  // 재고 감소
-        Player->GainGold(-Price); // 골드 차감
-        PrintManager::GetInstance()->PrintLogLine(_SellList[idx].prototype->GetName() + "을(를) 구매하셨습니다! 남은 골드: " + std::to_string(Player->GetGold()));
+        stock.count--;
+        Player->ModifyGold(-Price);
+        PrintManager::GetInstance()->PrintLogLine(ItemName + "을(를) 구매하셨습니다! 남은 골드: " + std::to_string(Player->GetGold()));
         return true;
     }
     else
@@ -108,12 +88,10 @@ bool ShopManager::BuyItem(Player* Player, int idx)
         PrintManager::GetInstance()->PrintLogLine("인벤토리에 공간이 부족합니다.");
         return false;
     }
-    return false;
 }
 
 int ShopManager::SellItem(Player* Player, int slotIdx)
 {
-    // Implementation needed (판매 로직, 골드 추가 등)
     if (!Player) {
         return 0;
     }

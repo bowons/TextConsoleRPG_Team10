@@ -74,37 +74,43 @@ std::string Inventory::GetSlotItemTypeName(int SlotIndex) const
 bool Inventory::AddItem(std::unique_ptr<IItem> Item, int Amount, int& Remain) {
     Remain = Amount;
     if (!Item || Amount <= 0)
-        return false; // 유효하지 않은 입력
+        return false;
 
     int MaxStack = Item->GetMaxCount();
 
-    // 1. 동일 타입(같은 typeid) 슬롯에 포개기 (여러 슬롯에 분산 가능)
+    // 1. 동일 타입 슬롯에 포개기 (여러 슬롯에 분산 가능)
     for (auto& slot : _Slots) {
-        IItem* slotItem = slot.GetItem();
+   IItem* slotItem = slot.GetItem();
         if (slotItem && typeid(*slotItem) == typeid(*Item)) {
-            int canAdd = MaxStack - slot.GetAmount();
-            if (canAdd > 0) {
-                int toAdd = std::min(canAdd, Remain); // 해당 슬롯에는 넣을 수 있을 만큼만 추가됨
-                slot.AddAmount(toAdd);
-                Remain -= toAdd; // 남은것 빼기
-                if (Remain == 0)
-                    return true; // 모두 추가됨
-            }
-        }
+      int canAdd = MaxStack - slot.GetAmount();
+   if (canAdd > 0) {
+       int toAdd = std::min(canAdd, Remain);
+     slot.AddAmount(toAdd);
+        Remain -= toAdd;
+   if (Remain == 0)
+   return true;
     }
+     }
+ }
 
-    // 2. 빈 슬롯에 새로 추가 (여러 슬롯에 분산 가능)
-    for (auto& slot : _Slots) {
-        if (slot.IsEmpty()) {
-            int toAdd = std::min(MaxStack, Remain);
-            slot.SetItem(std::move(Item), toAdd);  // 소유권 이동
-            Remain -= toAdd;
-            if (Remain == 0)
-                return true; // 모두 추가됨
-        }
-    }
+    // 2. 빈 슬롯에 분산 저장 (Clone 사용)
+    // Clone을 통해 각 슬롯이 독립적인 아이템 인스턴스를 소유
+ // 원본 Item은 타입 참조용으로만 사용되며, 함수 종료 시 자동 해제됨
+ for (auto& slot : _Slots) {
+        if (slot.IsEmpty() && Remain > 0) {
+   int toAdd = std::min(MaxStack, Remain);
+            
+   // Clone으로 새 인스턴스 생성하여 슬롯에 저장
+            slot.SetItem(Item->Clone(), toAdd);
+            
+ Remain -= toAdd;
+  if (Remain == 0)
+   return true;
+}
+   }
 
-    // 3. 인벤토리에 다 못 넣은 경우 false, 남은 개수는 remain에 저장
+    // 인벤토리에 다 못 넣은 경우 false, 남은 개수는 remain에 저장
+  // 원본 Item은 여기서 자동으로 해제됨 (unique_ptr)
     return false;
 }
 

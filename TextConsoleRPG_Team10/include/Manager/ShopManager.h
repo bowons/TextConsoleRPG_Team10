@@ -1,6 +1,7 @@
 ﻿#pragma once
 #include "../Singleton.h"
 #include <vector>
+#include <memory>
 
 using namespace std;
 
@@ -8,8 +9,8 @@ class IItem;
 class Player;
 
 struct ItemStock {
-    IItem* prototype;  // 프로토타입 포인터 (ShopManager 소유)
-    int count;         // 재고 개수
+    std::unique_ptr<IItem> prototype;  // unique_ptr로 자동 메모리 관리
+    int count;
 };
 
 class ShopManager : public Singleton<ShopManager>

@@ -69,7 +69,7 @@ void GameManager::RunMainLoop()
         // 상점을 방문하지 않으면 즉시 전투를 다시 시작함
 
         PrintManager::GetInstance()->PrintLogLine(_MainPlayer->GetName() + "는 무사히 전투를 마쳤습니다.");
-        char choice = InputManager::GetInstance()->GetCharInput("다음 층으로 향하기 전 상점에 방문하시겠습니까? [Y] Yes, [N] No", "yYnY");
+        char choice = InputManager::GetInstance()->GetCharInput("다음 층으로 향하기 전 상점에 방문하시겠습니까? [Y] Yes, [N] No", "yYnN");
         char lowerChoice = static_cast<char>(tolower(choice));
 
         if (lowerChoice == 'y')

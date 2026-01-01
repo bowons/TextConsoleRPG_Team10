@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include <string>
+#include <memory>
 #include "../Config.h"
 
 using namespace std;
@@ -22,6 +23,11 @@ public:
     virtual ~IItem() = default; //소멸자
 
     virtual void ApplyEffect(Player& Player) = 0; //아이템 사용 시 효과 적용
+    
+    // Clone 메서드: 동일한 타입의 새로운 아이템 인스턴스 생성
+    // 인벤토리에서 여러 슬롯에 분산 저장 시 각 슬롯이 독립적인 아이템 객체를 소유하도록 함
+    virtual std::unique_ptr<IItem> Clone() const = 0;
+    
     int GetMaxCount() const { return _MaxCount; } //아이템 최대 스택 수 반환
     string GetName() const { return _ItemName; } //아이템 이름 반환
     int GetPrice() const { return _Price; } //아이템 가격 반환

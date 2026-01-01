@@ -1,4 +1,4 @@
-#include <iostream>
+﻿#include <iostream>
 #include "../../include/Manager/InputManager.h"
 #include "../../include/Manager/PrintManager.h"
 
@@ -76,7 +76,8 @@ char InputManager::GetCharInput(const string& Prompt, const string& ValidChars)
         PrintManager::GetInstance()->PrintLog(Prompt);
         getline(cin, str);
 
-        if (str.length()>1)
+        // 빈 문자열이거나 2글자 이상 입력 시 에러 처리
+        if (str.empty() || str.length() > 1)
         {
             string Msg = "유효하지 않은 입력입니다.\n";
             // string Msg = "Invalid input: ";

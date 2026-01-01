@@ -12,6 +12,10 @@ Player::Player(const string& Name) : _Inventory(10)
     _MaxExp = 550;
     _CurrentExp = 0;
     _Gold = 100;
+
+    // 버프 초기화
+    _TempAtkBonus = 0;
+    _BuffRoundsRemaining = 0;
 }
 
 void Player::TakeDamage(const int Amount)
@@ -28,7 +32,9 @@ void Player::Attack(ICharacter* Target) const
     if (!Target)
         return;
 
-    Target->TakeDamage(_Atk); // 피해만 전달
+    // 버프 포함한 총 공격력로 공격
+    int TotalDamage = _Atk + _TempAtkBonus;
+    Target->TakeDamage(TotalDamage);
 }
 
 std::string Player::GetAttackNarration() const
@@ -52,7 +58,7 @@ void Player::CheckLevelUp()
 
 void Player::ProcessLevelUp()
 {
-    if (_Level > 10)
+    if (_Level >= 10)
     {
         // To-Do : 최대 레벨 도달 시 처리
     }
@@ -74,10 +80,93 @@ void Player::GainExp(const int Amount)
 
 void Player::GainGold(const int Amount)
 {
-    _Gold += Amount;
+    ModifyGold(Amount);
 }
 
 void Player::UseItem(const int SlotIndex)
 {
     _Inventory.UseItem(SlotIndex, *this);
+}
+
+// 범용 스탯 수정 메서드들
+void Player::ModifyHP(const int Amount)
+{
+    _CurrentHP += Amount;
+
+    // 최대 HP 제한
+    if (_CurrentHP > _MaxHP)
+    {
+        _CurrentHP = _MaxHP;
+    }
+
+    // 최소 0 제한
+    if (_CurrentHP < 0)
+    {
+        _CurrentHP = 0;
+    }
+}
+
+void Player::ModifyMaxHP(const int Amount)
+{
+    _MaxHP += Amount;
+
+    // 최대 HP가 줄어들어 현재 HP가 초과하는 경우 조정
+    if (_CurrentHP > _MaxHP)
+    {
+        _CurrentHP = _MaxHP;
+    }
+}
+
+void Player::ModifyAtk(const int Amount)
+{
+    _Atk += Amount;
+
+    // 공격력 최소값 제한 (0 이하로 내려가지 않도록)
+    if (_Atk < 0)
+    {
+        _Atk = 0;
+    }
+}
+
+void Player::ModifyGold(const int Amount)
+{
+    _Gold += Amount;
+
+    // 골드 최소값 제한
+    if (_Gold < 0)
+    {
+        _Gold = 0;
+    }
+}
+
+// 버프 관리 메서드들
+void Player::ApplyTempAtkBuff(const int Amount, const int Rounds)
+{
+    _TempAtkBonus += Amount;
+    _BuffRoundsRemaining = Rounds;
+}
+
+void Player::ProcessRoundEnd()
+{
+    if (_BuffRoundsRemaining > 0)
+    {
+        _BuffRoundsRemaining--;
+    
+        // 버프가 끝났다면 효과 제거
+        if (_BuffRoundsRemaining == 0)
+        {
+            _TempAtkBonus = 0;
+        }
+    }
+}
+
+void Player::ResetBuffs()
+{
+    _TempAtkBonus = 0;
+    _BuffRoundsRemaining = 0;
+}
+
+int Player::GetTotalAtk() const
+{
+    return _Atk + _TempAtkBonus;
 }

@@ -2,10 +2,11 @@
 #include "ICharacter.h"
 #include "../../include/Item/IItem.h"
 #include <tuple>
+#include <memory>
 
 class IMonster : public ICharacter
 {
 public:
-    virtual tuple<int, int, IItem*> DropReward() = 0;
+    virtual std::tuple<int, int, std::unique_ptr<IItem>> DropReward() = 0;
     virtual ~IMonster() {}
 };

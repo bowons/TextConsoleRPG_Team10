@@ -2,6 +2,7 @@
 #include "IMonster.h"
 #include "../../include/Item/IItem.h"
 #include <tuple>
+#include <memory>
 
 class NormalMonster : public IMonster
 {
@@ -12,6 +13,6 @@ public:
     void Attack(ICharacter* Target) const override;
     bool IsDead() const override;
     
-    tuple<int, int, IItem*> DropReward() override;
+    std::tuple<int, int, std::unique_ptr<IItem>> DropReward() override;
     std::string GetAttackNarration() const override;
 };

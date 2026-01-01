@@ -49,24 +49,26 @@ bool NormalMonster::IsDead() const
     return _CurrentHP <= 0;
 }
 
-tuple<int, int, IItem*> NormalMonster::DropReward()
+tuple<int, int, unique_ptr<IItem>> NormalMonster::DropReward()
 {
     // 경험치 50, 골드 10~20, 30% 확률 아이템 드롭
-    IItem* DropItem = nullptr;
+    unique_ptr<IItem> DropItem = nullptr;
 
-    if (uniform_int_distribution<>(0, 9)(gen) < 3) // 30%
+    if (uniform_int_distribution<>(0, 9)(gen) < 3) // 30% 확률로 아이템 드롭
     {
-        if (uniform_int_distribution<>(0, 1)(gen)) // 50%
+        if (uniform_int_distribution<>(0, 1)(gen)) // 50% HealPotion, 50% AttackUp
         {
-            //HealPotion 생성
+            // Clone으로 새 HealPotion 인스턴스 생성
+            DropItem = HealPotion().Clone();
         }
         else
         {
-            //AttackUp 생성
+            // Clone으로 새 AttackUp 인스턴스 생성
+            DropItem = AttackUp().Clone();
         }
     }
-    tuple<int, int, IItem*> Reward(50, uniform_int_distribution<>(10, 20)(gen), DropItem);
-    return Reward;
+    
+    return {50, uniform_int_distribution<>(10, 20)(gen), move(DropItem)};
 }
 
 std::string NormalMonster::GetAttackNarration() const

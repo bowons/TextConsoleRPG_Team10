@@ -1,10 +1,14 @@
-﻿
-#include "../../include/Item/HealPotion.h"
+﻿#include "../../include/Item/HealPotion.h"
 #include "../../include/Unit/Player.h"
 
 void HealPotion::ApplyEffect(Player& P)
 {
-    //플레이어의 공격력 증가
-    //※Heal 함수 Player 클래스에 있어야함 (동주님 코드 확인)
-    //p.Heal(_EffectAmount);
+    P.ModifyHP(_EffectAmount);
+}
+
+std::unique_ptr<IItem> HealPotion::Clone() const
+{
+    // 새로운 HealPotion 인스턴스 생성하여 반환
+    // 각 슬롯이 독립적인 아이템 객체를 소유하도록 함
+    return std::make_unique<HealPotion>();
 }
