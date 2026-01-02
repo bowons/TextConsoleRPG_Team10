@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "ICharacter.h"
 #include "../../include/Item/IItem.h"
 #include <tuple>

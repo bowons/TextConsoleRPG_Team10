@@ -1,4 +1,4 @@
-﻿#include "../../include/Manager/ShopManager.h"
+#include "../../include/Manager/ShopManager.h"
 #include "../../include/Manager/PrintManager.h"
 #include "../../include/Item/HealPotion.h"
 #include "../../include/Item/AttackUp.h"

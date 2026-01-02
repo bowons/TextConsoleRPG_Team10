@@ -1,4 +1,4 @@
-﻿#include "../../include/Item/Inventory.h"
+#include "../../include/Item/Inventory.h"
 #include "../../include/Item/ItemSlot.h"
 #include "../../include/Item/IItem.h"
 #include "../../include/Config.h"

@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "IItem.h"
 
 //플레이어 체력 회복 아이템
