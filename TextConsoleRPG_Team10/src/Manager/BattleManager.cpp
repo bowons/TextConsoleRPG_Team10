@@ -7,8 +7,7 @@
 #include <iostream>
 #include <tuple>
 #include <memory>
-
-using namespace std;
+#include <Windows.h>
 
 bool BattleManager::StartAutoBattle(Player* P)
 {
@@ -18,7 +17,7 @@ bool BattleManager::StartAutoBattle(Player* P)
     //NormalMonster* NM = new NormalMonster(P->GetLevel());
     if (!P) return false;
 
-    auto NM = make_unique<NormalMonster>(P->GetLevel());
+    auto NM = std::make_unique<NormalMonster>(P->GetLevel());
     ICharacter* Target = NM.get();
 
     PrintManager::GetInstance()->PrintLogLine(Target->GetName() + "가 출현했습니다.. ");
@@ -108,7 +107,7 @@ void BattleManager::ProcessAttack(ICharacter* Atk, ICharacter* Def)
     // 버프 정보 포함한 피해 로그
     Player* _Player = dynamic_cast<Player*>(Atk);
     std::string damageInfo = " | 피해: " + std::to_string(Damage);
-
+    
     // 플레이어가 버프 상태라면 표시
     if (_Player && _Player->GetTotalAtk() > _Player->GetAtk())
     {
@@ -117,8 +116,9 @@ void BattleManager::ProcessAttack(ICharacter* Atk, ICharacter* Def)
     }
 
     std::string msg = Atk->GetName() + "의 공격" + damageInfo
-        + " | 남은 체력: " + std::to_string(Def->GetCurrentHP()) + "/" + std::to_string(Def->GetMaxHP());
+        + " | 남은 체력[" + Def->GetName() + "]: " + std::to_string(Def->GetCurrentHP()) + "/" + std::to_string(Def->GetMaxHP());
     PrintManager::GetInstance()->PrintLogLine(msg);
+    Sleep(30);
 }
 
 void BattleManager::CalculateReward(Player* P, IMonster* M)
@@ -131,22 +131,25 @@ void BattleManager::CalculateReward(Player* P, IMonster* M)
     int Gold = std::get<1>(Reward);
     std::unique_ptr<IItem> DroppedItem = std::move(std::get<2>(Reward));
 
+    PrintManager::GetInstance()->EndLine();
     if (Exp > 0)
     {
-        PrintManager::GetInstance()->PrintLogLine(P->GetName() + "은(는) " + std::to_string(Exp) + "의 경험치를 획득했습니다.");
+        PrintManager::GetInstance()->PrintLog(P->GetName() + "은(는) ");
+        PrintManager::GetInstance()->PrintColorText(std::to_string(Exp), ETextColor::LIGHT_GREEN);
+        PrintManager::GetInstance()->PrintLogLine("의 경험치를 획득했습니다.");
         P->GainExp(Exp);
         PrintManager::GetInstance()->PrintLogLine(P->GetName() + "의 EXP: " + std::to_string(P->GetExp()) + "/" + std::to_string(P->GetMaxExp()));
-        PrintManager::GetInstance()->PrintLogLine("");
     }
 
     if (Gold > 0)
     {
+        PrintManager::GetInstance()->PrintLog(P->GetName() + "은(는) ");
+        PrintManager::GetInstance()->PrintColorText(std::to_string(Gold), ETextColor::YELLOW);
+        PrintManager::GetInstance()->PrintLogLine("G를 획득했습니다.");
         P->GainGold(Gold);
-        PrintManager::GetInstance()->PrintLogLine(P->GetName() + "은(는) " + std::to_string(Gold) + " G를 획득했습니다.");
-        PrintManager::GetInstance()->PrintLogLine(P->GetName() + "의 소지 골드량은 ");
-        PrintManager::GetInstance()->PrintColorText(std::to_string(Gold) + " G", ETextColor::YELLOW);
+        PrintManager::GetInstance()->PrintLog(P->GetName() + "의 소지 골드량은 ");
+        PrintManager::GetInstance()->PrintColorText(std::to_string(P->GetGold()) + " G", ETextColor::YELLOW);
         PrintManager::GetInstance()->PrintLogLine("입니다.");
-        PrintManager::GetInstance()->PrintLogLine("");
     }
 
     if (DroppedItem)

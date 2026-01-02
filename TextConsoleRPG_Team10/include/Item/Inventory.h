@@ -4,8 +4,6 @@
 #include <typeinfo>
 #include "ItemSlot.h"
 
-using namespace std;
-
 class IItem;
 class Player;
 
@@ -13,7 +11,7 @@ class Player;
 class Inventory
 {
 private:
-    vector<ItemSlot> _Slots; //아이템 슬롯 목록
+    std::vector<ItemSlot> _Slots; //아이템 슬롯 목록
     int _MaxSlots; //최대 슬롯 수
 
     int FindEmptySlotIndex() const; //빈 슬롯 인덱스 찾기

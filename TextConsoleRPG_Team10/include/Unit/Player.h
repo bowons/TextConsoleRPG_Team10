@@ -3,7 +3,6 @@
 #include "../Item/Inventory.h"
 #include <string>
 
-using namespace std;
 
 class Player : public ICharacter
 {
@@ -18,7 +17,7 @@ private:
     int _BuffRoundsRemaining;
 
 public:
-    Player(const string& Name);
+    Player(const std::string& Name);
     void TakeDamage(const int Amount) override;
     void Attack(ICharacter* Target) const override;
     bool IsDead() const override;

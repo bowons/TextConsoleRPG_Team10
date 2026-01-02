@@ -38,6 +38,7 @@ void GameManager::RunMainLoop()
         PrintManager::GetInstance()->PrintLogLine(status);
 
         PrintManager::GetInstance()->PrintLogLine(_MainPlayer->GetName() + "는 다음 층으로 무거운 발걸음을 옮깁니다..");
+        PrintManager::GetInstance()->EndLine();
 
         // BattleManager를 통해 전투를 시작
         // TODO: AutoBattle의 결과를 bool 값으로 받아와야 함, 플레이어가 전투에서 패배한 경우 게임 종료
@@ -67,11 +68,14 @@ void GameManager::RunMainLoop()
         // 상점을 방문하지 않으면 즉시 전투를 다시 시작함
 
         PrintManager::GetInstance()->PrintLogLine(_MainPlayer->GetName() + "는 무사히 전투를 마쳤습니다.");
-        char choice = InputManager::GetInstance()->GetCharInput("다음 층으로 향하기 전 상점에 방문하시겠습니까? [Y] Yes, [N] No", "yYnN");
+        PrintManager::GetInstance()->EndLine();
+        PrintManager::GetInstance()->PrintWithTyping("다음 층으로 향하기 전 상점에 방문하시겠습니까? "); 
+        char choice = InputManager::GetInstance()->GetCharInput("[Y] Yes, [N] No ", "yYnN");
         char lowerChoice = static_cast<char>(tolower(choice));
 
         if (lowerChoice == 'y')
         {
+            PrintManager::GetInstance()->EndLine();
             ShopManager* Shop = ShopManager::GetInstance();
             Shop->ReopenShop();
             Shop->PrintShop();
@@ -82,6 +86,7 @@ void GameManager::RunMainLoop()
         else if (lowerChoice == 'n')
             PrintManager::GetInstance()->PrintLogLine("역시.. 돈은 아끼고 봐야죠, " + _MainPlayer->GetName() + "는 다음 층으로 향합니다.");
 
+        PrintManager::GetInstance()->EndLine();
     }
 }
 
