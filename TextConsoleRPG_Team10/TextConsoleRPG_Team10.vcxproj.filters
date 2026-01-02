@@ -99,6 +99,13 @@
     <ClInclude Include="SoundPlayer.h">
       <Filter>Header Files\Manager</Filter>
     </ClInclude>
+    <ClInclude Include="include\UI\ScreenBuffer.h" />
+    <ClInclude Include="include\UI\Panel.h" />
+    <ClInclude Include="include\UI\IContentRenderer.h" />
+    <ClInclude Include="include\UI\TextRenderer.h" />
+    <ClInclude Include="include\UI\StatRenderer.h" />
+    <ClInclude Include="include\UI\AsciiArtRenderer.h" />
+    <ClInclude Include="include\UI\UIDrawer.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Item\AttackUp.cpp">
@@ -143,9 +150,19 @@
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="src\Unit\Boss.cpp">
       <Filter>Source Files\Unit</Filter>
-    </ClCompile>  
+    </ClCompile>
     <ClCompile Include="SoundPlayer.cpp">
       <Filter>Source Files\Manager</Filter>
     </ClCompile>
+    <ClCompile Include="src\UI\ScreenBuffer.cpp" />
+    <ClCompile Include="src\UI\Panel.cpp" />
+    <ClCompile Include="src\UI\TextRenderer.cpp" />
+    <ClCompile Include="src\UI\StatRenderer.cpp" />
+    <ClCompile Include="src\UI\AsciiArtRenderer.cpp" />
+    <ClCompile Include="src\UI\UIDrawer.cpp" />
+    <ClCompile Include="Example_UIDrawer.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="UIDrawer_README.md" />
   </ItemGroup>
 </Project>

@@ -18,6 +18,11 @@ constexpr const char* ITEMS_CSV = "Items.csv";                // 아이템 목�
 constexpr const char* MONSTERS_CSV = "Monsters.csv";          // 몬스터 목록 CSV
 constexpr const char* MAPS_CSV = "Maps.csv";                  // 맵 목록 CSV
 
+// ===================== UI Drawer Configurations =====================
+constexpr int UI_SCREEN_WIDTH = 106;            // UI 화면 너비
+constexpr int UI_SCREEN_HEIGHT = 65;          // UI 화면 높이
+constexpr float UI_TARGET_FPS = 30.0f;              // UI 목표 FPS
+
 // ===================== Other Configurations =====================
 constexpr const char* ERR_INDEX = "ERR_INDEX";               // 인덱스 오류 문자열
 constexpr const char* ERR_NULL = "ERR_NULL";                 // 널 포인터 오류 문자열

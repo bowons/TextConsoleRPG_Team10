@@ -135,6 +135,13 @@
     <ClInclude Include="include\Manager\BattleManager.h" />
     <ClInclude Include="include\Manager\GameManager.h" />
     <ClInclude Include="include\Item\HealPotion.h" />
+    <ClInclude Include="include\UI\AsciiArtRenderer.h" />
+    <ClInclude Include="include\UI\IContentRenderer.h" />
+    <ClInclude Include="include\UI\Panel.h" />
+    <ClInclude Include="include\UI\ScreenBuffer.h" />
+    <ClInclude Include="include\UI\StatRenderer.h" />
+    <ClInclude Include="include\UI\TextRenderer.h" />
+    <ClInclude Include="include\UI\UIDrawer.h" />
     <ClInclude Include="include\Unit\ICharacter.h" />
     <ClInclude Include="include\Item\IItem.h" />
     <ClInclude Include="include\Unit\IMonster.h" />
@@ -155,6 +162,7 @@
     <ClInclude Include="SoundPlayer.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Example_UIDrawer.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="SoundPlayer.cpp" />
     <ClCompile Include="src\Item\AttackUp.cpp" />
@@ -164,6 +172,12 @@
     <ClCompile Include="src\Manager\InputManager.cpp" />
     <ClCompile Include="src\Item\Inventory.cpp" />
     <ClCompile Include="src\Item\ItemSlot.cpp" />
+    <ClCompile Include="src\UI\AsciiArtRenderer.cpp" />
+    <ClCompile Include="src\UI\Panel.cpp" />
+    <ClCompile Include="src\UI\ScreenBuffer.cpp" />
+    <ClCompile Include="src\UI\StatRenderer.cpp" />
+    <ClCompile Include="src\UI\TextRenderer.cpp" />
+    <ClCompile Include="src\UI\UIDrawer.cpp" />
     <ClCompile Include="src\Unit\NormalMonster.cpp" />
     <ClCompile Include="src\Unit\Player.cpp" />
     <ClCompile Include="src\Manager\PrintManager.cpp" />
@@ -171,6 +185,9 @@
     <ClCompile Include="src\Manager\DataManager.cpp" />
     <ClCompile Include="src\Factory\ItemFactory.cpp" />
     <ClCompile Include="src\Unit\Boss.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="UIDrawer_README.md" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
