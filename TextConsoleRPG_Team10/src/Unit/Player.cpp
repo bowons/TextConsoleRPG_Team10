@@ -1,4 +1,4 @@
-#include "../../include/Unit/Player.h"
+﻿#include "../../include/Unit/Player.h"
 #include <iostream>
 #include "../../include/Manager/PrintManager.h"
 
@@ -10,7 +10,7 @@ Player::Player(const std::string& Name) : _Inventory(10)
     _MaxHP = 200;
     _CurrentHP = _MaxHP;
     _Atk = 30;
-    _MaxExp = 550;
+    _MaxExp = 100;
     _CurrentExp = 0;
     _Gold = 100;
 
@@ -66,10 +66,10 @@ void Player::ProcessLevelUp()
     else
     {
         _Level++;
-        _MaxHP += (_Level * 20);
+        //_MaxHP += (_Level * 20);
         _CurrentHP = _MaxHP;
         _Atk += (_Level * 5);
-        _MaxExp += static_cast<int>(_MaxExp * 1.2f);
+        //_MaxExp += static_cast<int>(_MaxExp * 1.2f);
 
         // 로그 출력
         PrintManager::GetInstance()->PrintLogLine(_Name + "은(는) "+"LV" + std::to_string(_Level)+"이(가) 되었습니다!");
