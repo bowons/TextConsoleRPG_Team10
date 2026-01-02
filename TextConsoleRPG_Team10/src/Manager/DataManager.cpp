@@ -34,6 +34,7 @@ std::string DataManager::GetResourcePath(const std::string& resourceType) const
     if (resourceType == "Monsters") return GetMonstersPath();
     if (resourceType == "UI") return GetUIPath();
     if (resourceType == "Items") return GetItemsPath();
+    if (resourceType == "Sound") return GetSoundPath();
 
     SafeLog("DataManager::GetResourcePath - Unknown resource type: " + resourceType);
     return "";
@@ -54,7 +55,8 @@ bool DataManager::Initialize()
             GetMapsPath(),
             GetMonstersPath(),
             GetUIPath(),
-            GetItemsPath()
+            GetItemsPath(),
+            GetSoundPath()
         };
 
         for (const auto& DirStr : RequiredDirs)
