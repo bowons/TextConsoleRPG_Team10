@@ -1,4 +1,4 @@
-#include "../../include/Unit/NormalMonster.h"
+﻿#include "../../include/Unit/NormalMonster.h"
 #include "../../include/Item/IItem.h"
 #include "../../include/Unit/IMonster.h"
 #include "../../include/Item/HealPotion.h"
@@ -10,7 +10,7 @@
 // GameManager에 추가 후 삭제
 static std::mt19937 gen(std::random_device{}());
 
-NormalMonster::NormalMonster(int PlayerLevel, string Stage, string Name)
+NormalMonster::NormalMonster(int PlayerLevel, std::string Stage, std::string Name)
 {
     _Name = Name;
     _Level = PlayerLevel;

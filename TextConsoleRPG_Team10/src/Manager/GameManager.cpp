@@ -1,4 +1,4 @@
-#include "../../include/Manager/GameManager.h"
+﻿#include "../../include/Manager/GameManager.h"
 #include "../../include/Manager/PrintManager.h"
 #include "../../include/Manager/InputManager.h"
 #include "../../include/Manager/ShopManager.h"
@@ -10,7 +10,7 @@ void GameManager::StartGame()
     // Implementation needed
     PrintManager::GetInstance()->PrintLogLine("==========에레보스 타워: 뒤틀린 성의 종언==========");
 
-    string PlayerName = InputManager::GetInstance()->GetInput("플레이어 이름을 입력하세요: ");
+    std::string PlayerName = InputManager::GetInstance()->GetInput("플레이어 이름을 입력하세요: ");
     if (PlayerName.empty())
     {
         PlayerName = "Player";

@@ -7,7 +7,7 @@
 class IMonster : public ICharacter
 {
 protected:
-    string _Stage;
+    std::string _Stage;
 public:
     virtual std::tuple<int, int, std::unique_ptr<IItem>> DropReward() = 0;
     virtual ~IMonster() {}
