@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "../Singleton.h"
 #include "../Config.h"
 #include <string>
@@ -6,6 +6,7 @@
 
 class Player;
 struct ItemData;
+struct MonsterSpawnData;
 
 class DataManager : public Singleton<DataManager>
 {
@@ -54,6 +55,8 @@ public:
 
     // ===== 특화된 리소스 로딩 함수들을 아래에 구현 =====
     std::vector<ItemData> LoadItemData(const std::string& fileName = "Items.csv");
+    std::vector<MonsterSpawnData> LoadMonsterSpawnData(const std::string& fileName);
+    std::tuple<std::string, std::string> GetRandomStageAndMonster();
 
     // === 편의 함수 =====
     std::string GetResourcePath(const std::string& resourceType) const;

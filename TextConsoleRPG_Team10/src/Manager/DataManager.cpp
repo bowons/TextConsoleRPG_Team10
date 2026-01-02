@@ -1,6 +1,8 @@
-#include "../../include/Manager/DataManager.h"
+﻿#include "../../include/Manager/DataManager.h"
 #include "../../include/Manager/PrintManager.h"
 #include "../../include/Item/ItemData.h"
+#include "../../include/Item/MonsterSpawnData.h"
+#include "../../include/Manager/GameManager.h"
 
 #include <filesystem>
 #include <fstream>
@@ -389,4 +391,57 @@ std::vector<ItemData> DataManager::LoadItemData(const std::string& fileName)
     }
 
     return result;
+}
+
+std::vector<MonsterSpawnData> DataManager::LoadMonsterSpawnData(const std::string& fileName)
+{
+    std::vector<MonsterSpawnData> result;
+
+    auto csv = LoadCSVFile(GetMonstersPath(), fileName);
+
+    if (csv.size() <= 1)
+    {
+        SafeLog("Monster CSV is empty or header only: " + fileName);
+        return result;
+    }
+
+    for (size_t i = 1; i < csv.size(); ++i)
+    {
+        const auto& row = csv[i];
+        if (row.size() < 2)
+            continue;
+
+        MonsterSpawnData data;
+        data.Stage = row[0];
+        data.MonsterName = row[1];
+
+        result.push_back(data);
+    }
+
+    SafeLog("Loaded MonsterSpawnData: " + std::to_string(result.size()), ELogImportance::DISPLAY);
+    return result;
+}
+
+//랜덤 한개 읽음
+std::tuple<std::string, std::string> DataManager::GetRandomStageAndMonster()
+{
+    auto monsterData = LoadMonsterSpawnData("Monsters.csv");
+    if (monsterData.empty()) return { "", "" };
+
+    // 랜덤 엔진은 게임 매니저에서 가져옴
+
+    // 랜덤 스테이지 선택
+    std::vector<size_t> stageIndices;
+    for (size_t i = 0; i < monsterData.size(); ++i)
+        stageIndices.push_back(i);
+    std::uniform_int_distribution<size_t> dist(0, stageIndices.size() - 1);
+
+    size_t idx = dist(gen);
+
+    // 보스는 제외 (마지막 몬스터)
+    if (idx == monsterData.size() - 1 && monsterData.size() > 1)
+        idx--;
+
+    const auto& selected = monsterData[idx];
+    return { selected.Stage, selected.MonsterName };
 }

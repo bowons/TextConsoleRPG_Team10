@@ -1,7 +1,10 @@
-#pragma once
+﻿#pragma once
 #include "../Singleton.h"
 
 #include <memory>
+#include <random>
+
+static std::mt19937 gen(std::random_device{}());
 
 class Player;
 

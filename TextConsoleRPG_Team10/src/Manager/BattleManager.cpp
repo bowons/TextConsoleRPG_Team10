@@ -4,6 +4,9 @@
 #include "../../include/Item/HealPotion.h"
 #include "../../include/Item/AttackUp.h"
 #include "../../include/Unit/Player.h"
+#include "../../include/Manager/GameManager.h"
+#include "../../include/Manager/DataManager.h"
+#include "../../include/Item/MonsterSpawnData.h"
 #include <iostream>
 #include <tuple>
 #include <memory>
@@ -11,14 +14,17 @@
 
 bool BattleManager::StartAutoBattle(Player* P)
 {
-    // Implementation needed
-    // 현재: 플레이어 선공, 노멀 몬스터로 고정 (추후 몬스터 지정 필요)
-
-    //NormalMonster* NM = new NormalMonster(P->GetLevel());
     if (!P) return false;
 
-    auto NM = std::make_unique<NormalMonster>(P->GetLevel(), "과거의 잔영", "고스트");
+    DataManager* dm = DataManager::GetInstance();
+    auto [stage, monsterName] = dm->GetRandomStageAndMonster();
+    if (stage.empty() || monsterName.empty()) return false;
+
+    auto NM = std::make_unique<NormalMonster>(P->GetLevel(), stage, monsterName);
     ICharacter* Target = NM.get();
+
+   /* auto NM = std::make_unique<NormalMonster>(P->GetLevel(), "과거의 잔영", "고스트");
+    ICharacter* Target = NM.get();*/
 
     PrintManager::GetInstance()->PrintLogLine(Target->GetName() + "이(가) 출현했습니다.. ");
 
