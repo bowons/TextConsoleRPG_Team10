@@ -20,7 +20,7 @@ bool BattleManager::StartAutoBattle(Player* P)
     auto NM = std::make_unique<NormalMonster>(P->GetLevel());
     ICharacter* Target = NM.get();
 
-    PrintManager::GetInstance()->PrintLogLine(Target->GetName() + "가 출현했습니다.. ");
+    PrintManager::GetInstance()->PrintLogLine(Target->GetName() + "이(가) 출현했습니다.. ");
 
     while (true)
     {

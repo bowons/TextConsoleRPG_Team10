@@ -71,5 +71,5 @@ std::tuple<int, int, std::unique_ptr<IItem>> NormalMonster::DropReward()
 
 std::string NormalMonster::GetAttackNarration() const
 {
-    return _Name + "가 사납게 공격을 내지릅니다!";
+    return _Name + "이(가) 사납게 공격을 내지릅니다!";
 }

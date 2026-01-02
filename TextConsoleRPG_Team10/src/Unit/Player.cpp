@@ -72,7 +72,7 @@ void Player::ProcessLevelUp()
         _MaxExp += static_cast<int>(_MaxExp * 1.2f);
 
         // 로그 출력
-        PrintManager::GetInstance()->PrintLogLine(_Name + "은 "+"LV" + std::to_string(_Level)+"이(가) 되었습니다!");
+        PrintManager::GetInstance()->PrintLogLine(_Name + "은(는) "+"LV" + std::to_string(_Level)+"이(가) 되었습니다!");
         PrintManager::GetInstance()->EndLine();
     }
 }
