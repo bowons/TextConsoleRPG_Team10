@@ -16,4 +16,5 @@ public:
     void ProcessTurn(ICharacter* Atk, ICharacter* Def);
     void ProcessAttack(ICharacter* Atk, ICharacter* Def);
     void CalculateReward(Player* P, IMonster* M);
+    bool StartBossBattle(Player* P);
 };

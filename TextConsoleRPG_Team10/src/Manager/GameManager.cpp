@@ -57,6 +57,14 @@ void GameManager::RunMainLoop()
         // TODO: 플레이어의 레벨 정보를 받아와 게임 종료 확인
         if (_MainPlayer->GetLevel() >= 10)
         {
+            bool bossBattleWin = BattleManager::GetInstance()->StartBossBattle(_MainPlayer.get());
+            if (bossBattleWin == false)
+            {
+                EndGame();
+                // TODO: 게임 패배를 처리합니다.
+            }
+            PrintManager::GetInstance()->PrintLogLine("에레보스 타워의 최종 보스 '에테르노'를 물리쳤습니다!!");
+
             EndGame();
             // TODO: 게임 승리를 처리합니다.
             PrintManager::GetInstance()->PrintLogLine(_MainPlayer->GetName() + "은(는) 힘든 여정을 거쳐 무사히 탑의 정상에 도착했습니다..");

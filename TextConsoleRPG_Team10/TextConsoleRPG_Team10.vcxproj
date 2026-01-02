@@ -145,6 +145,7 @@
     <ClInclude Include="include/Manager/DataManager.h" />
     <ClInclude Include="include/Factory/ItemFactory.h" />
     <ClInclude Include="include/Factory/Factory.h" />
+    <ClInclude Include="include\Unit\Boss.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp" />
@@ -161,6 +162,7 @@
     <ClCompile Include="src/Manager/ShopManager.cpp" />
     <ClCompile Include="src/Manager/DataManager.cpp" />
     <ClCompile Include="src/Factory/ItemFactory.cpp" />
+    <ClCompile Include="src\Unit\Boss.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

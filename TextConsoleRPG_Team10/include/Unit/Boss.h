@@ -6,9 +6,9 @@
 class Boss : public IMonster
 {
 public:
-    Boss(const int PlayerLevel, string Stage, string Name);
+    Boss(const int PlayerLevel);
     void TakeDamage(int amount) override;
     void Attack(ICharacter* target) const override;
     bool IsDead() const override;
-    tuple<int, int, unique_ptr<IItem>> DropReward() override;
+    std::tuple<int, int, std::unique_ptr<IItem>> DropReward() override;
 };

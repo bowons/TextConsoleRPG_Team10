@@ -1,6 +1,7 @@
 ﻿#include "../../include/Manager/BattleManager.h"
 #include "../../include/Manager/PrintManager.h"
 #include "../../include/Unit/NormalMonster.h"
+#include "../../include/Unit/Boss.h"
 #include "../../include/Item/HealPotion.h"
 #include "../../include/Item/AttackUp.h"
 #include "../../include/Unit/Player.h"
@@ -22,9 +23,6 @@ bool BattleManager::StartAutoBattle(Player* P)
 
     auto NM = std::make_unique<NormalMonster>(P->GetLevel(), stage, monsterName);
     ICharacter* Target = NM.get();
-
-   /* auto NM = std::make_unique<NormalMonster>(P->GetLevel(), "과거의 잔영", "고스트");
-    ICharacter* Target = NM.get();*/
 
     PrintManager::GetInstance()->PrintLogLine(Target->GetName() + "이(가) 출현했습니다.. ");
 
@@ -173,5 +171,41 @@ void BattleManager::CalculateReward(Player* P, IMonster* M)
             PrintManager::GetInstance()->PrintLogLine(P->GetName() + "은(는) 인벤토리가 가득 차 있어 아이템을 얻지 못했습니다.", ELogImportance::WARNING);
         }
         PrintManager::GetInstance()->PrintLogLine("");
+    }
+}
+
+bool BattleManager::StartBossBattle(Player* P)
+{
+    if (!P) return false;
+
+    std::unique_ptr<Boss> boss = std::make_unique<Boss>(P->GetLevel());
+
+    ICharacter* Target = boss.get();
+
+    PrintManager::GetInstance()->PrintLogLine(Target->GetName() + "이(가) 출현했습니다.. ");
+
+    while (true)
+    {
+        // === 플레이어 턴 ===
+        ProcessTurn(P, Target);
+        if (Target->IsDead())
+        {
+            // 플레이어 승리
+            PrintManager::GetInstance()->PrintLogLine(P->GetName() + "이(가) " + Target->GetName() + "를 쓰러뜨렸습니다!!");
+            P->ResetBuffs();
+            return true;
+        }
+        
+        // === 몬스터 턴 ===
+        ProcessAttack(Target, P);
+        if (P->IsDead())
+        {
+            PrintManager::GetInstance()->PrintLogLine(P->GetName() + "이(가) 패배했습니다...");
+            P->ResetBuffs();
+            return false;
+        }
+        
+        // === 라운드 종료 ===
+        P->ProcessRoundEnd();
     }
 }

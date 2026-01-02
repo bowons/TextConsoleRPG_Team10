@@ -93,6 +93,9 @@
     <ClInclude Include="include/Config.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\Unit\Boss.h">
+      <Filter>Header Files\Unit</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src/Item/AttackUp.cpp">
@@ -135,5 +138,8 @@
       <Filter>Source Files\Factory</Filter>
     </ClCompile>
     <ClCompile Include="Main.cpp" />
+    <ClCompile Include="src\Unit\Boss.cpp">
+      <Filter>Source Files\Unit</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>
