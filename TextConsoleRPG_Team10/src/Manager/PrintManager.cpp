@@ -93,6 +93,14 @@ void PrintManager::PrintWithTypingLine(const std::string& Msg)
     EndLine();
 }
 
+void PrintManager::PrintColorText(const std::string& Msg, ETextColor Color)
+{
+    ETextColor PrevColor = GetCurrentTextColor();
+    ChangeTextColor(Color);
+    PrintLog(Msg);
+    ChangeTextColor(PrevColor);
+}
+
 // 텍스트 색상 변경
 void PrintManager::ChangeTextColor(ETextColor NewTextColor)
 {

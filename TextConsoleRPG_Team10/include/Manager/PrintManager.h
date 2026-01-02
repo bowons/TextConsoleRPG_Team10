@@ -64,6 +64,8 @@ public:
     void PrintWithTyping(const std::string& Msg);
     // 타이핑 효과를 적용한 출력 함수 + 개행
     void PrintWithTypingLine(const std::string& Msg);
+
+    void PrintColorText(const std::string& Msg, ETextColor Color);
     
     // 콘솔 텍스트 색상 변경 함수
     void ChangeTextColor(ETextColor NewTextColor = ETextColor::WHITE);

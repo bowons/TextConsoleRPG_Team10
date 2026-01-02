@@ -133,14 +133,20 @@ void BattleManager::CalculateReward(Player* P, IMonster* M)
 
     if (Exp > 0)
     {
-        P->GainExp(Exp);
         PrintManager::GetInstance()->PrintLogLine(P->GetName() + "은(는) " + std::to_string(Exp) + "의 경험치를 획득했습니다.");
+        P->GainExp(Exp);
+        PrintManager::GetInstance()->PrintLogLine(P->GetName() + "의 EXP: " + std::to_string(P->GetExp()) + "/" + std::to_string(P->GetMaxExp()));
+        PrintManager::GetInstance()->PrintLogLine("");
     }
 
     if (Gold > 0)
     {
         P->GainGold(Gold);
-        PrintManager::GetInstance()->PrintLogLine(P->GetName() + "은(는) " + std::to_string(Gold) + " 골드를 획득했습니다.");
+        PrintManager::GetInstance()->PrintLogLine(P->GetName() + "은(는) " + std::to_string(Gold) + " G를 획득했습니다.");
+        PrintManager::GetInstance()->PrintLogLine(P->GetName() + "의 소지 골드량은 ");
+        PrintManager::GetInstance()->PrintColorText(std::to_string(Gold) + " G", ETextColor::YELLOW);
+        PrintManager::GetInstance()->PrintLogLine("입니다.");
+        PrintManager::GetInstance()->PrintLogLine("");
     }
 
     if (DroppedItem)
@@ -151,10 +157,11 @@ void BattleManager::CalculateReward(Player* P, IMonster* M)
         if (P->GetInventory().AddItem(std::move(DroppedItem), 1, Remain))
         {
          PrintManager::GetInstance()->PrintLogLine(P->GetName() + "은(는) " + ItemName + "을 보상으로 얻었습니다.");
-   }
+        }
         else
         {
         PrintManager::GetInstance()->PrintLogLine(P->GetName() + "은(는) 인벤토리가 가득 차 있어 아이템을 얻지 못했습니다.");
         }
+        PrintManager::GetInstance()->PrintLogLine("");
     }
 }

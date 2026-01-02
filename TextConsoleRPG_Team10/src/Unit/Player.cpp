@@ -1,5 +1,6 @@
 #include "../../include/Unit/Player.h"
 #include <iostream>
+#include "../../include/Manager/PrintManager.h"
 
 Player::Player(const string& Name) : _Inventory(10)
 {
@@ -54,6 +55,10 @@ void Player::CheckLevelUp()
         _CurrentExp -= _MaxExp;
         ProcessLevelUp();
     }
+
+    PrintManager::GetInstance()->PrintLog(_Name + "은 ");
+    PrintManager::GetInstance()->PrintColorText("LV" + to_string(_Level), ETextColor::LIGHT_YELLOW);
+    PrintManager::GetInstance()->PrintLogLine("이 되었습니다!");
 }
 
 void Player::ProcessLevelUp()

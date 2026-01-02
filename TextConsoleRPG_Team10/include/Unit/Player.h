@@ -30,7 +30,9 @@ public:
     void UseItem(const int SlotIndex);
 
     inline int GetGold() const { return _Gold; }
+    inline int GetMaxGold() const { return _MaxExp; }
     inline int GetExp() const { return _CurrentExp; }
+    inline int GetMaxExp() const { return _MaxExp; }
 
 	Inventory& GetInventory() { return _Inventory; }
 
