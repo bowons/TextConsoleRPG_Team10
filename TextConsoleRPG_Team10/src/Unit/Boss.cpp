@@ -31,12 +31,14 @@ void Boss::TakeDamage(int Amount)
 {
     // 데미지 받음
     _CurrentHP -= Amount;
+
     // 데미지 받는 연출 추가
-    if (_CurrentHP < _MaxHP * 3 / 10)
+    float HpRatio = (float)_CurrentHP / (float)_MaxHP;
+    if (HpRatio < 0.3f)
     {
-        std::cout << "test 30프로 남음 연출" << std::endl;
+        std::cout << "test 30프로 남음 연출" << std::endl; // 나중에 수정필요함. 이상함.
     }
-    else if( _CurrentHP < _MaxHP * 6 / 10)
+    else if(HpRatio < 0.6f)
     {
         std::cout << "test 60프로 남음 연출" << std::endl;
     }
