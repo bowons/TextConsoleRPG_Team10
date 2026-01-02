@@ -1,4 +1,4 @@
-﻿#include "../../include/Item/Inventory.h"
+#include "../../include/Item/Inventory.h"
 #include "../../include/Item/ItemSlot.h"
 #include "../../include/Item/IItem.h"
 #include "../../include/Config.h"
@@ -18,14 +18,14 @@ int Inventory::FindEmptySlotIndex() const {
 }
 
 //특정 아이템이 든 슬롯 인덱스 찾기
-int Inventory::FindItemSlotIndex(IItem* item) const 
+int Inventory::FindItemSlotIndex(IItem* item) const
 {
-    if (item == nullptr) 
+    if (item == nullptr)
     {
         return -1; //유효하지 않은 아이템 포인터
     }
 
-    for (int i = 0; i < _Slots.size(); i++) 
+    for (int i = 0; i < _Slots.size(); i++)
     {
         IItem* slotItem = _Slots[i].GetItem();
         if (slotItem && typeid(*slotItem) == typeid(*item)) {
@@ -57,15 +57,23 @@ int Inventory::GetSlotAmount(int SlotIndex) const
 std::string Inventory::GetSlotItemTypeName(int SlotIndex) const
 {
     if (SlotIndex < 0 || SlotIndex >= _Slots.size())
-        return "ERR_INDEX"; // 유효하지 않은 인덱스
+        return ERR_INDEX; // 유효하지 않은 인덱스
 
     const ItemSlot& slot = _Slots[SlotIndex];
     IItem* item = slot.GetItem();
 
     if (!item)
-        return "ERR_NULL"; // 빈 슬롯
+        return ERR_NULL; // 빈 슬롯
 
     return typeid(*item).name(); // 컴파일러별로 가독성이 다를 수 있음
+}
+
+IItem* Inventory::GetItemAtSlot(int SlotIndex) const
+{
+    if (SlotIndex < 0 || SlotIndex >= _Slots.size())
+        return nullptr; // 유효하지 않은 인덱스
+
+    return _Slots[SlotIndex].GetItem();
 }
 
 // 아이템 인벤토리에 추가
@@ -80,34 +88,34 @@ bool Inventory::AddItem(std::unique_ptr<IItem> Item, int Amount, int& Remain) {
 
     // 1. 동일 타입 슬롯에 포개기 (여러 슬롯에 분산 가능)
     for (auto& slot : _Slots) {
-   IItem* slotItem = slot.GetItem();
+        IItem* slotItem = slot.GetItem();
         if (slotItem && typeid(*slotItem) == typeid(*Item)) {
-      int canAdd = MaxStack - slot.GetAmount();
-   if (canAdd > 0) {
-       int toAdd = std::min(canAdd, Remain);
-     slot.AddAmount(toAdd);
-        Remain -= toAdd;
-   if (Remain == 0)
-   return true;
+            int canAdd = MaxStack - slot.GetAmount();
+            if (canAdd > 0) {
+                int toAdd = std::min(canAdd, Remain);
+                slot.AddAmount(toAdd);
+                Remain -= toAdd;
+                if (Remain == 0)
+                    return true;
+            }
+        }
     }
-     }
- }
 
     // 2. 빈 슬롯에 분산 저장 (Clone 사용)
     // Clone을 통해 각 슬롯이 독립적인 아이템 인스턴스를 소유
  // 원본 Item은 타입 참조용으로만 사용되며, 함수 종료 시 자동 해제됨
- for (auto& slot : _Slots) {
+    for (auto& slot : _Slots) {
         if (slot.IsEmpty() && Remain > 0) {
-   int toAdd = std::min(MaxStack, Remain);
-            
-   // Clone으로 새 인스턴스 생성하여 슬롯에 저장
+            int toAdd = std::min(MaxStack, Remain);
+
+            // Clone으로 새 인스턴스 생성하여 슬롯에 저장
             slot.SetItem(Item->Clone(), toAdd);
-            
- Remain -= toAdd;
-  if (Remain == 0)
-   return true;
-}
-   }
+
+            Remain -= toAdd;
+            if (Remain == 0)
+                return true;
+        }
+    }
 
     // 인벤토리에 다 못 넣은 경우 false, 남은 개수는 remain에 저장
   // 원본 Item은 여기서 자동으로 해제됨 (unique_ptr)

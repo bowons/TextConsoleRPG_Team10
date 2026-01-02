@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <Filter Include="Header Files">
@@ -13,6 +13,9 @@
     <Filter Include="Header Files\Manager">
       <UniqueIdentifier>{C3B3C3D3-E3F3-33D3-CCCC-00A0C913D1F8}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Factory">
+      <UniqueIdentifier>{A7B7C7D7-E7F7-77D7-AAAA-00A0C913D1F8}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Source Files">
       <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
     </Filter>
@@ -24,6 +27,9 @@
     </Filter>
     <Filter Include="Source Files\Manager">
       <UniqueIdentifier>{F6B6C6D6-E6F6-66D6-FFFF-00A0C913D1F8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Factory">
+      <UniqueIdentifier>{B8B8C8D8-E8F8-88D8-BBBB-00A0C913D1F8}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -40,6 +46,9 @@
       <Filter>Header Files\Item</Filter>
     </ClInclude>
     <ClInclude Include="include/Item/ItemSlot.h">
+      <Filter>Header Files\Item</Filter>
+    </ClInclude>
+    <ClInclude Include="include/Item/ItemData.h">
       <Filter>Header Files\Item</Filter>
     </ClInclude>
     <ClInclude Include="include/Unit/ICharacter.h">
@@ -71,6 +80,12 @@
     </ClInclude>
     <ClInclude Include="include/Manager/DataManager.h">
       <Filter>Header Files\Manager</Filter>
+    </ClInclude>
+    <ClInclude Include="include/Factory/Factory.h">
+      <Filter>Header Files\Factory</Filter>
+    </ClInclude>
+    <ClInclude Include="include/Factory/ItemFactory.h">
+      <Filter>Header Files\Factory</Filter>
     </ClInclude>
     <ClInclude Include="include/Singleton.h">
       <Filter>Header Files</Filter>
@@ -115,6 +130,9 @@
     </ClCompile>
     <ClCompile Include="src/Manager/DataManager.cpp">
       <Filter>Source Files\Manager</Filter>
+    </ClCompile>
+    <ClCompile Include="src/Factory/ItemFactory.cpp">
+      <Filter>Source Files\Factory</Filter>
     </ClCompile>
     <ClCompile Include="Main.cpp" />
   </ItemGroup>

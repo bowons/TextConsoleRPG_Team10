@@ -1,4 +1,4 @@
-﻿#include "../../include/Item/ItemSlot.h"
+#include "../../include/Item/ItemSlot.h"
 #include "../../include/Item/IItem.h"
 
 //아이템 슬롯이 비어있는지 확인

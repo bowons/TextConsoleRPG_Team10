@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include <string>
 #include <memory>
 #include "../Config.h"
@@ -31,4 +31,6 @@ public:
     int GetMaxCount() const { return _MaxCount; } //아이템 최대 스택 수 반환
     string GetName() const { return _ItemName; } //아이템 이름 반환
     int GetPrice() const { return _Price; } //아이템 가격 반환
+
+    void SetPrice(int price) { _Price = price; } // 아이템 Price 설정 Setter
 };

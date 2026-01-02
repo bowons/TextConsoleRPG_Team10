@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include <vector>
 #include <string>
 #include <typeinfo>
@@ -26,7 +26,8 @@ public:
     int GetItemAmount(IItem* item) const; //특정 아이템의 총 개수 반환
     int GetSlotAmount(int SlotIndex) const; // 특정 슬롯의 아이템 개수 반환
     std::string GetSlotItemTypeName(int SlotIndex) const; //특정 슬롯의 아이템 타입 반환
-    
+    IItem* GetItemAtSlot(int SlotIndex) const;
+
     // 아이템 사용
     // return: 사용 성공 시 true, 실패 시 false
     bool UseItem(int SlotIndex, Player& p); //아이템 사용

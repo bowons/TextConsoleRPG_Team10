@@ -135,6 +135,7 @@
     <ClInclude Include="include/Manager/InputManager.h" />
     <ClInclude Include="include/Item/Inventory.h" />
     <ClInclude Include="include/Item/ItemSlot.h" />
+    <ClInclude Include="include/Item/ItemData.h" />
     <ClInclude Include="include/Unit/NormalMonster.h" />
     <ClInclude Include="include/Unit/Player.h" />
     <ClInclude Include="include/Manager/PrintManager.h" />
@@ -142,6 +143,8 @@
     <ClInclude Include="include/Singleton.h" />
     <ClInclude Include="include/Config.h" />
     <ClInclude Include="include/Manager/DataManager.h" />
+    <ClInclude Include="include/Factory/ItemFactory.h" />
+    <ClInclude Include="include/Factory/Factory.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp" />
@@ -157,6 +160,7 @@
     <ClCompile Include="src/Manager/PrintManager.cpp" />
     <ClCompile Include="src/Manager/ShopManager.cpp" />
     <ClCompile Include="src/Manager/DataManager.cpp" />
+    <ClCompile Include="src/Factory/ItemFactory.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

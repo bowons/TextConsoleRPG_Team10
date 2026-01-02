@@ -1,4 +1,4 @@
-﻿#include "../../include/Unit/NormalMonster.h"
+#include "../../include/Unit/NormalMonster.h"
 #include "../../include/Item/IItem.h"
 #include "../../include/Item/HealPotion.h"
 #include "../../include/Item/AttackUp.h"
