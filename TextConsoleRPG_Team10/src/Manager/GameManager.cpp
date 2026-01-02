@@ -17,7 +17,7 @@ void GameManager::StartGame()
     }
 
     // Main Player 생성
-    _MainPlayer = make_shared<Player>(PlayerName);
+    _MainPlayer = std::make_shared<Player>(PlayerName);
     // TODO: 플레이어 입력 시스템으로 플레이어 정보 입력 받아 설정
     // 유효한 값으로 입력된 경우 캐릭터 생성 로직 수행
 
@@ -34,7 +34,7 @@ void GameManager::RunMainLoop()
     // 게임 종료 확인
     while (!_IsGameOver)
     {
-        string status = "이름: " + _MainPlayer->GetName() + " | 레벨: " + to_string(_MainPlayer->GetLevel());
+        std::string status = "이름: " + _MainPlayer->GetName() + " | 레벨: " + std::to_string(_MainPlayer->GetLevel());
         PrintManager::GetInstance()->PrintLogLine(status);
 
         PrintManager::GetInstance()->PrintLogLine(_MainPlayer->GetName() + "은(는) 다음 층으로 무거운 발걸음을 옮깁니다..");
