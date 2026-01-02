@@ -1,4 +1,4 @@
-#include "../../include/Manager/BattleManager.h"
+﻿#include "../../include/Manager/BattleManager.h"
 #include "../../include/Manager/PrintManager.h"
 #include "../../include/Unit/NormalMonster.h"
 #include "../../include/Item/HealPotion.h"
@@ -17,7 +17,7 @@ bool BattleManager::StartAutoBattle(Player* P)
     //NormalMonster* NM = new NormalMonster(P->GetLevel());
     if (!P) return false;
 
-    auto NM = std::make_unique<NormalMonster>(P->GetLevel());
+    auto NM = std::make_unique<NormalMonster>(P->GetLevel(), "과거의 잔영", "고스트");
     ICharacter* Target = NM.get();
 
     PrintManager::GetInstance()->PrintLogLine(Target->GetName() + "이(가) 출현했습니다.. ");

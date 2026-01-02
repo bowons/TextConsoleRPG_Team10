@@ -1,5 +1,6 @@
-#include "../../include/Unit/NormalMonster.h"
+﻿#include "../../include/Unit/NormalMonster.h"
 #include "../../include/Item/IItem.h"
+#include "../../include/Unit/IMonster.h"
 #include "../../include/Item/HealPotion.h"
 #include "../../include/Item/AttackUp.h"
 #include <random>
@@ -9,10 +10,11 @@
 // GameManager에 추가 후 삭제
 static std::mt19937 gen(std::random_device{}());
 
-NormalMonster::NormalMonster(int PlayerLevel)
+NormalMonster::NormalMonster(int PlayerLevel, std::string Stage, std::string Name)
 {
-    _Name = "Normal Monster";
+    _Name = Name;
     _Level = PlayerLevel;
+    _Stage = Stage;
 
     std::uniform_int_distribution<> HpDist(_Level * 20, _Level * 30);
     _MaxHP = HpDist(gen);

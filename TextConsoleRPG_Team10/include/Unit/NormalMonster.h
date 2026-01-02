@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "IMonster.h"
 #include "../../include/Item/IItem.h"
 #include <tuple>
@@ -7,7 +7,8 @@
 class NormalMonster : public IMonster
 {
 public:
-    NormalMonster(const int PlayerLevel); 
+
+    NormalMonster(const int PlayerLevel, std::string Stage, std::string Name); 
     
     virtual void TakeDamage(int amount) override;
     void Attack(ICharacter* Target) const override;
@@ -15,4 +16,5 @@ public:
     
     std::tuple<int, int, std::unique_ptr<IItem>> DropReward() override;
     std::string GetAttackNarration() const override;
+
 };
