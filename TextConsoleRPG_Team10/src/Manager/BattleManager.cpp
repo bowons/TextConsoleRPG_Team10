@@ -23,7 +23,7 @@ bool BattleManager::StartAutoBattle(Player* P)
 
     auto NM = std::make_unique<NormalMonster>(P->GetLevel(), stage, monsterName);
     ICharacter* Target = NM.get();
-
+    PrintManager::GetInstance()->PrintLogLine(NM->GetStage());
     PrintManager::GetInstance()->PrintLogLine(Target->GetName() + "이(가) 출현했습니다.. ");
 
     while (true)
@@ -60,6 +60,11 @@ void BattleManager::ProcessTurn(ICharacter* Atk, ICharacter* Def)
     Player* _Player = dynamic_cast<Player*>(Atk);
     if (_Player)
     {
+        if (Def->GetCurrentHP() < _Player->GetTotalAtk())
+        {
+            ProcessAttack(Atk, Def);
+            return;
+        }
         // 체력이 1/4이하라면 회복 포션 사용 시도
         if (_Player->GetCurrentHP() <= _Player->GetMaxHP() / 4)
         {
@@ -67,6 +72,7 @@ void BattleManager::ProcessTurn(ICharacter* Atk, ICharacter* Def)
             if (Slot != -1) // 회복 포션 탐색 성공
             {
                 PrintManager::GetInstance()->PrintLogLine(_Player->GetName() + "이(가) 위험을 감지하고 회복포션을 사용합니다.");
+                PrintManager::GetInstance()->PrintLogLine("현재 체력: "+ std::to_string(Def->GetCurrentHP()) + "/" + std::to_string(Def->GetMaxHP()));
                 _Player->UseItem(Slot);
                 return;  // 체력 물약은 사용 후 바로 턴 종료
             }
@@ -79,6 +85,7 @@ void BattleManager::ProcessTurn(ICharacter* Atk, ICharacter* Def)
             if (Slot != -1) // 공격력 포션 탐색 성공
             {
                 PrintManager::GetInstance()->PrintLogLine(_Player->GetName() + "이(가) 전술적으로 공격력 포션을 사용합니다.");
+                PrintManager::GetInstance()->PrintLogLine("공격력: " + std::to_string(_Player->GetAtk()));
                 _Player->UseItem(Slot);
 
                 // 포션 적용후 바로 공격하거나 턴 끝내는 처리는 알아서
@@ -181,7 +188,8 @@ bool BattleManager::StartBossBattle(Player* P)
     std::unique_ptr<Boss> boss = std::make_unique<Boss>(P->GetLevel());
 
     ICharacter* Target = boss.get();
-
+    PrintManager::GetInstance()->PrintLogLine("보스 출현");
+    PrintManager::GetInstance()->PrintLogLine(boss->GetStage());
     PrintManager::GetInstance()->PrintLogLine(Target->GetName() + "이(가) 출현했습니다.. ");
 
     while (true)
