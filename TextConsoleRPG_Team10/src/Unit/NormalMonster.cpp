@@ -1,5 +1,6 @@
 ﻿#include "../../include/Unit/NormalMonster.h"
 #include "../../include/Item/IItem.h"
+#include "../../include/Unit/IMonster.h"
 #include "../../include/Item/HealPotion.h"
 #include "../../include/Item/AttackUp.h"
 #include <random>
@@ -11,10 +12,11 @@ using namespace std;
 // GameManager에 추가 후 삭제
 static mt19937 gen(random_device{}());
 
-NormalMonster::NormalMonster(int PlayerLevel)
+NormalMonster::NormalMonster(int PlayerLevel, string Stage, string Name)
 {
-    _Name = "Normal Monster";
+    _Name = Name;
     _Level = PlayerLevel;
+    _Stage = Stage;
 
     uniform_int_distribution<> HpDist(_Level * 20, _Level * 30);
     _MaxHP = HpDist(gen);
@@ -30,13 +32,13 @@ void NormalMonster::TakeDamage(int Amount)
     _CurrentHP -= Amount;
 }
 
-void NormalMonster::Attack(ICharacter* Target)
+void NormalMonster::Attack(ICharacter* Target) const
 {
     // 공격 연출 등 나중에 추가하면 될 듯
     Target->TakeDamage(_Atk);
 }
 
-bool NormalMonster::IsDead()
+bool NormalMonster::IsDead() const
 {
     // Dead 여부 확인
     return _CurrentHP <= 0;
