@@ -1,7 +1,7 @@
 #include "include/Manager/GameManager.h"
 #include "include/Manager/DataManager.h"
 #include "include/Manager/PrintManager.h"
-#include "SoundPlayer.h"
+// #include "SoundPlayer.h"  // SoundPlayer 테스트용 - 필요시 주석 해제
 #include <Windows.h>
 
 int main()
@@ -15,6 +15,8 @@ int main()
         return -1;
     }
 
+    // === SoundPlayer 테스트 코드 (주석 처리) ===
+    /*
     if (!SoundPlayer::GetInstance()->Initialize()) {
         PrintManager::GetInstance()->PrintLogLine("SoundPlayer 초기화 실패!", ELogImportance::WARNING);
         return -1;
@@ -28,7 +30,7 @@ int main()
     // 테스트용 배경음악 재생 (파일이 해당 경로에 있어야 합니다)
     // 예: Source/Game/Assets/Audio/BGM_Main.mp3
     SoundPlayer::GetInstance()->PlayLoop(
-        "812426__dinisnakamura__battle_bgm_castle_dragon_extended.wav",
+      "812426__dinisnakamura__battle_bgm_castle_dragon_extended.wav",
         "MainBGM", 0.3f);
 
     bool bRunning = true;
@@ -36,11 +38,11 @@ int main()
         // 키 입력 처리 (비동기 방식 테스트)
         if (GetAsyncKeyState('2') & 0x8000) {
             // 효과음 재생 (짧은 사운드 파일)
-            SoundPlayer::GetInstance()->Play("swish_2.wav", 0.8f);
+    SoundPlayer::GetInstance()->Play("swish_2.wav", 0.8f);
             Sleep(100); // 연속 입력 방지
-        }
+      }
 
-        if (GetAsyncKeyState(VK_ESCAPE) & 0x8000) {
+  if (GetAsyncKeyState(VK_ESCAPE) & 0x8000) {
             bRunning = false;
         }
 
@@ -48,13 +50,19 @@ int main()
         // 이 함수가 호출되어야 재생 끝난 사운드가 메모리에서 해제됩니다.
         SoundPlayer::GetInstance()->Update();
 
-        // CPU 점유율 과다 방지를 위한 미세한 대기
-        Sleep(10);
+    // CPU 점유율 과다 방지를 위한 미세한 대기
+    Sleep(10);
     }
 
     // 4. 종료 시 모든 사운드 정지 및 리소스 해제
     SoundPlayer::GetInstance()->StopAll();
 
     PrintManager::GetInstance()->PrintLogLine("테스트를 종료합니다.");
+    */
+ // === SoundPlayer 테스트 코드 끝 ===
+
+    // 3. 게임 시작 (메인 게임 루프)
+    GameManager::GetInstance()->StartGame();
+
     return 0;
 }
