@@ -4,7 +4,6 @@
 int main()
 {
     SetConsoleOutputCP(65001);
-
     GameManager::GetInstance()->StartGame();
     return 0;
 }

@@ -6,21 +6,19 @@
 #include <tuple>
 #include <memory>
 
-using namespace std;
-
 // GameManager에 추가 후 삭제
-static mt19937 gen(random_device{}());
+static std::mt19937 gen(std::random_device{}());
 
 NormalMonster::NormalMonster(int PlayerLevel)
 {
     _Name = "Normal Monster";
     _Level = PlayerLevel;
 
-    uniform_int_distribution<> HpDist(_Level * 20, _Level * 30);
+    std::uniform_int_distribution<> HpDist(_Level * 20, _Level * 30);
     _MaxHP = HpDist(gen);
     _CurrentHP = _MaxHP;
 
-    uniform_int_distribution<> AtkDist(_Level * 5, _Level * 10);
+    std::uniform_int_distribution<> AtkDist(_Level * 5, _Level * 10);
     _Atk = AtkDist(gen);
 }
 
@@ -49,14 +47,14 @@ bool NormalMonster::IsDead() const
     return _CurrentHP <= 0;
 }
 
-tuple<int, int, unique_ptr<IItem>> NormalMonster::DropReward()
+std::tuple<int, int, std::unique_ptr<IItem>> NormalMonster::DropReward()
 {
     // 경험치 50, 골드 10~20, 30% 확률 아이템 드롭
-    unique_ptr<IItem> DropItem = nullptr;
+    std::unique_ptr<IItem> DropItem = nullptr;
 
-    if (uniform_int_distribution<>(0, 9)(gen) < 3) // 30% 확률로 아이템 드롭
+    if (std::uniform_int_distribution<>(0, 9)(gen) < 3) // 30% 확률로 아이템 드롭
     {
-        if (uniform_int_distribution<>(0, 1)(gen)) // 50% HealPotion, 50% AttackUp
+        if (std::uniform_int_distribution<>(0, 1)(gen)) // 50% HealPotion, 50% AttackUp
         {
             // Clone으로 새 HealPotion 인스턴스 생성
             DropItem = HealPotion().Clone();
@@ -68,10 +66,10 @@ tuple<int, int, unique_ptr<IItem>> NormalMonster::DropReward()
         }
     }
     
-    return {50, uniform_int_distribution<>(10, 20)(gen), move(DropItem)};
+    return {50, std::uniform_int_distribution<>(10, 20)(gen), move(DropItem)};
 }
 
 std::string NormalMonster::GetAttackNarration() const
 {
-    return _Name + "가 사납게 공격을 내지릅니다!";
+    return _Name + "이(가) 사납게 공격을 내지릅니다!";
 }

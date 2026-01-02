@@ -1,7 +1,8 @@
 #include "../../include/Unit/Player.h"
 #include <iostream>
+#include "../../include/Manager/PrintManager.h"
 
-Player::Player(const string& Name) : _Inventory(10)
+Player::Player(const std::string& Name) : _Inventory(10)
 {
     _Name = Name;
     // To-Do : csv 파일에서 플레이어 초기 스탯 불러오기
@@ -69,6 +70,10 @@ void Player::ProcessLevelUp()
         _CurrentHP = _MaxHP;
         _Atk += (_Level * 5);
         _MaxExp += static_cast<int>(_MaxExp * 1.2f);
+
+        // 로그 출력
+        PrintManager::GetInstance()->PrintLogLine(_Name + "은(는) "+"LV" + std::to_string(_Level)+"이(가) 되었습니다!");
+        PrintManager::GetInstance()->EndLine();
     }
 }
 

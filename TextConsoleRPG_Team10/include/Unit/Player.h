@@ -1,9 +1,8 @@
-﻿#pragma once
+#pragma once
 #include "ICharacter.h"
 #include "../Item/Inventory.h"
 #include <string>
 
-using namespace std;
 
 class Player : public ICharacter
 {
@@ -18,7 +17,7 @@ private:
     int _BuffRoundsRemaining;
 
 public:
-    Player(const string& Name);
+    Player(const std::string& Name);
     void TakeDamage(const int Amount) override;
     void Attack(ICharacter* Target) const override;
     bool IsDead() const override;
@@ -30,7 +29,9 @@ public:
     void UseItem(const int SlotIndex);
 
     inline int GetGold() const { return _Gold; }
+    inline int GetMaxGold() const { return _MaxExp; }
     inline int GetExp() const { return _CurrentExp; }
+    inline int GetMaxExp() const { return _MaxExp; }
 
 	Inventory& GetInventory() { return _Inventory; }
 
