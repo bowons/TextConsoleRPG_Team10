@@ -41,6 +41,7 @@ private:
     inline std::string GetMonstersPath() const { return JoinPath(std::string(DEFAULT_RESOURCE_PATH), MONSTERS_FOLDER); }
     inline std::string GetUIPath() const { return JoinPath(std::string(DEFAULT_RESOURCE_PATH), UI_FOLDER); }
     inline std::string GetItemsPath() const { return JoinPath(std::string(DEFAULT_RESOURCE_PATH), ITEMS_FOLDER); }
+    inline std::string GetSoundPath() const { return JoinPath(std::string(DEFAULT_RESOURCE_PATH), Sound_FOLDER); }
 
 public:
     bool Initialize();

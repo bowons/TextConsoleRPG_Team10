@@ -17,7 +17,7 @@ class ShopManager : public Singleton<ShopManager>
 private:
     std::vector<ItemStock> _SellList;  // 판매 목록 (프로토타입 + 개수)
     std::unique_ptr<ItemFactory> _ItemFactory;  // ShopManager가 ItemFactory를 소유
-    
+
 protected:
     ShopManager();
     friend class Singleton<ShopManager>;
@@ -34,6 +34,6 @@ public:
     bool BuyItem(Player* Player, int Idx);
     int SellItem(Player* Player, int SlotIdx);
 
-	// 판매 목록 크기 반환
+    // 판매 목록 크기 반환
     size_t GetSellListSize() const { return _SellList.size(); }
 };

@@ -78,7 +78,7 @@ void GameManager::RunMainLoop()
 
         PrintManager::GetInstance()->PrintLogLine(_MainPlayer->GetName() + "은(는) 무사히 전투를 마쳤습니다.");
         PrintManager::GetInstance()->EndLine();
-        PrintManager::GetInstance()->PrintWithTyping("다음 층으로 향하기 전 상점에 방문하시겠습니까? "); 
+        PrintManager::GetInstance()->PrintWithTyping("다음 층으로 향하기 전 상점에 방문하시겠습니까? ");
         char choice = InputManager::GetInstance()->GetCharInput("[Y] Yes, [N] No ", "yYnN");
         char lowerChoice = static_cast<char>(tolower(choice));
 
@@ -88,11 +88,10 @@ void GameManager::RunMainLoop()
             ShopManager* Shop = ShopManager::GetInstance();
             Shop->ReopenShop();
 
-			// 상점 메뉴 루프
+            // 상점 메뉴 루프
             bool stayInShop = true;
-			while(stayInShop)
-			{
-				PrintManager::GetInstance()->PrintLogLine("===== 상점에 오신 것을 환영합니다! =====");
+            while (stayInShop)
+            {
                 Shop->PrintShop();
                 PrintManager::GetInstance()->EndLine();
                 PrintManager::GetInstance()->PrintLog("현재 소지금: ");
@@ -100,99 +99,100 @@ void GameManager::RunMainLoop()
                     ETextColor::YELLOW);
                 PrintManager::GetInstance()->PrintLog(
                     std::to_string(_MainPlayer->GetGold()));
-				PrintManager::GetInstance()->PrintLog(" G");
+                PrintManager::GetInstance()->PrintLog(" G");
                 PrintManager::GetInstance()->EndLine();
 
-				PrintManager::GetInstance()->ChangeTextColor(ETextColor::LIGHT_GRAY);
+                PrintManager::GetInstance()->ChangeTextColor(ETextColor::LIGHT_GRAY);
                 PrintManager::GetInstance()->PrintLogLine("[1] 아이템 구매");
                 PrintManager::GetInstance()->PrintLogLine("[2] 아이템 판매");
                 PrintManager::GetInstance()->PrintLogLine("[3] 상점 나가기");
                 PrintManager::GetInstance()->EndLine();
 
-				int shopChoice =
-					InputManager::GetInstance()->GetIntInput("선택: ", 1, 3);
-				PrintManager::GetInstance()->EndLine();
+                int shopChoice =
+                    InputManager::GetInstance()->GetIntInput("선택: ", 1, 3);
+                PrintManager::GetInstance()->EndLine();
 
-				if (shopChoice == 1) {
-					// 아이템 구매
-					PrintManager::GetInstance()->PrintLogLine("필요한 물건이 있으신가요? 선택해주세요!");
+                if (shopChoice == 1) {
+                    // 아이템 구매
                     int itemChoice = InputManager::GetInstance()->GetIntInput(
-						"구매할 아이템 번호를 선택하세요 (취소: 0): ", 0, static_cast<int>(Shop->GetSellListSize()));
-					
-					if (itemChoice > 0) 
-					{
-						Shop->BuyItem(_MainPlayer.get(), itemChoice - 1);
-                    } else 
-					{
-						PrintManager::GetInstance()->ChangeTextColor(ETextColor::LIGHT_BLUE);
-						PrintManager::GetInstance()->PrintLogLine("구매를 취소했습니다.");
-						PrintManager::GetInstance()->ChangeTextColor(ETextColor::LIGHT_GRAY);
+                        "구매할 아이템 번호를 선택하세요 (취소: 0): ", 0, static_cast<int>(Shop->GetSellListSize()));
+
+                    if (itemChoice > 0)
+                    {
+                        Shop->BuyItem(_MainPlayer.get(), itemChoice - 1);
+                    }
+                    else
+                    {
+                        PrintManager::GetInstance()->ChangeTextColor(ETextColor::LIGHT_BLUE);
+                        PrintManager::GetInstance()->PrintLogLine("구매를 취소했습니다.");
+                        PrintManager::GetInstance()->ChangeTextColor(ETextColor::LIGHT_GRAY);
                     }
                     PrintManager::GetInstance()->EndLine();
-                } else if (shopChoice == 2) {
-					// 아이템 판매
+                }
+                else if (shopChoice == 2) {
+                    // 아이템 판매
                     PrintManager::GetInstance()->ChangeTextColor(ETextColor::LIGHT_CYAN);
                     PrintManager::GetInstance()->PrintLogLine("===== 내 인벤토리 =====");
                     Inventory& inventory = _MainPlayer->GetInventory();
-					bool hasItems = false;
+                    bool hasItems = false;
                     for (int i = 0; i < 10; ++i) {
-						IItem* item = inventory.GetItemAtSlot(i);
+                        IItem* item = inventory.GetItemAtSlot(i);
                         int amount = inventory.GetSlotAmount(i);
 
-                        if (item && amount > 0) 
-						{
-							hasItems = true;
-							int sellPrice = static_cast<int>(item->GetPrice() * 0.6);
+                        if (item && amount > 0)
+                        {
+                            hasItems = true;
+                            int sellPrice = static_cast<int>(item->GetPrice() * 0.6);
                             std::string msg = std::to_string(i + 1) + ". " + item->GetName() + " x" +
-								std::to_string(amount) + " ( 판매가: " + std::to_string(sellPrice) + " G )";
+                                std::to_string(amount) + " ( 판매가: " + std::to_string(sellPrice) + " G )";
                             PrintManager::GetInstance()->PrintLogLine(msg);
                         }
                     }
 
-                    if (!hasItems) 
-					{
+                    if (!hasItems)
+                    {
                         PrintManager::GetInstance()->ChangeTextColor(ETextColor::RED);
-						PrintManager::GetInstance()->PrintLogLine("판매할 아이템이 없습니다.");
+                        PrintManager::GetInstance()->PrintLogLine("판매할 아이템이 없습니다.");
                         PrintManager::GetInstance()->ChangeTextColor(ETextColor::LIGHT_GRAY);
                         PrintManager::GetInstance()->EndLine();
-                    } 
-					else 
-					{
-						PrintManager::GetInstance()->EndLine();
+                    }
+                    else
+                    {
+                        PrintManager::GetInstance()->EndLine();
                         PrintManager::GetInstance()->ChangeTextColor(ETextColor::LIGHT_GRAY);
                         int slotChoice = InputManager::GetInstance()->GetIntInput(
-							"판매할 아이템 슬롯 번호를 선택하세요 (취소: 0): ", 0, 10);
-						if (slotChoice > 0) 
-						{
-							Shop->SellItem(_MainPlayer.get(), slotChoice - 1);
-                        } 
-				        else 
-				        {
-							PrintManager::GetInstance()->ChangeTextColor(ETextColor::LIGHT_BLUE);
-							PrintManager::GetInstance()->PrintLogLine("판매를 취소했습니다.");
-							PrintManager::GetInstance()->ChangeTextColor(ETextColor::LIGHT_GRAY);
+                            "판매할 아이템 슬롯 번호를 선택하세요 (취소: 0): ", 0, 10);
+                        if (slotChoice > 0)
+                        {
+                            Shop->SellItem(_MainPlayer.get(), slotChoice - 1);
+                        }
+                        else
+                        {
+                            PrintManager::GetInstance()->ChangeTextColor(ETextColor::LIGHT_BLUE);
+                            PrintManager::GetInstance()->PrintLogLine("판매를 취소했습니다.");
+                            PrintManager::GetInstance()->ChangeTextColor(ETextColor::LIGHT_GRAY);
                         }
                         PrintManager::GetInstance()->EndLine();
-					}
-                } 
-				else if (shopChoice == 3) 
-				{
+                    }
+                }
+                else if (shopChoice == 3)
+                {
                     // 상점 나가기
                     stayInShop = false;
-					PrintManager::GetInstance()->ChangeTextColor(ETextColor::LIGHT_BLUE);
+                    PrintManager::GetInstance()->ChangeTextColor(ETextColor::LIGHT_BLUE);
                     PrintManager::GetInstance()->PrintLogLine(
                         "상점을 나갑니다.");
-					PrintManager::GetInstance()->ChangeTextColor(ETextColor::LIGHT_GRAY);
+                    PrintManager::GetInstance()->ChangeTextColor(ETextColor::LIGHT_GRAY);
                 }
-			}
+            }
             PrintManager::GetInstance()->PrintLogLine("든든한 채비가 보험인 법이죠.");
-			PrintManager::GetInstance()->PrintLogLine("두둑한 주머니와 함께 " + _MainPlayer->GetName() + "은(는) 다음 층으로 향합니다.");
-        } 
-        else if (lowerChoice == 'n') 
-		{
-			 PrintManager::GetInstance()->PrintLogLine("역시.. 돈은 아끼고 봐야죠."); 
-			 PrintManager::GetInstance()->PrintLogLine(_MainPlayer->GetName() + "은(는) 다음 층으로 향합니다.");
-		}
+            PrintManager::GetInstance()->PrintLogLine("두둑한 주머니와 함께 " + _MainPlayer->GetName() + "은(는) 다음 층으로 향합니다.");
+        }
+        else if (lowerChoice == 'n')
+        {
+            PrintManager::GetInstance()->PrintLogLine("역시.. 돈은 아끼고 봐야죠.");
+            PrintManager::GetInstance()->PrintLogLine(_MainPlayer->GetName() + "은(는) 다음 층으로 향합니다.");
+        }
         PrintManager::GetInstance()->EndLine();
     }
 }

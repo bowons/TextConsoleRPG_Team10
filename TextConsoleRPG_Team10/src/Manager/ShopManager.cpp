@@ -107,9 +107,9 @@ bool ShopManager::BuyItem(Player* Player, int idx)
     // 플레이어의 골드 확인
     if (Player->GetGold() < Price)
     {
-      PrintManager::GetInstance()->PrintLogLine(
-          "[ \"" + ItemName + "\" 1개 구매 실패 ]" + " 소지금이 부족합니다. (" +
-          std::to_string(Price) + "골드 필요)");
+        PrintManager::GetInstance()->PrintLogLine(
+            "[ \"" + ItemName + "\" 1개 구매 실패 ]" + " 소지금이 부족합니다. (" +
+            std::to_string(Price) + "골드 필요)");
         return false;
     }
 
@@ -162,7 +162,7 @@ int ShopManager::SellItem(Player* Player, int SlotIdx)
         return 0;
     }
 
-	// 아이템 이름을 미리 저장 (제거 전에!)
+    // 아이템 이름을 미리 저장 (제거 전에!)
     std::string ItemName = Item->GetName();
 
     // 아이템 제거 및 골드 지급
