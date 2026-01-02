@@ -80,4 +80,5 @@ public:
     const int& GetLineLimit() const;
     // 타이핑 효과의 속도 설정 함수
     void SetTypingSpeed(ETypingSpeed NewSpeed);
+    int GetIntervalTime() const;
 }; 
