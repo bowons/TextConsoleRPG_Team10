@@ -1,0 +1,399 @@
+44.1kHz(1411kbps), 16-bit PCM WAV
+
+==========================================================
+// 씬
+Title1
+
+
+GameOver
+
+EnterShop
+- Rise07
+- https://opengameart.org/content/level-up-power-up-coin-get-13-sounds
+
+ExitShop
+- Rise04
+- https://opengameart.org/content/level-up-power-up-coin-get-13-sounds
+
+==========================================================
+// 캐릭터
+
+캐릭터 공통
+ PlayerAttack - encoding 
+- swish_2
+- https://opengameart.org/content/battle-sound-effects
+ PlayerHit
+ PlayerHitCritical
+ GetReward
+ LevelUp
+- Rise05
+- https://opengameart.org/content/level-up-power-up-coin-get-13-sounds
+ PlayerDead
+- 457531__breviceps__dinosaur-falls-to-the-ground.wav
+- https://freesound.org/people/Breviceps/sounds/457531/
+
+전사
+ Roar
+- 742753__shangasdfguy123__ghost-hippopotamus-roar
+- https://freesound.org/people/ShangASDFGuy123/sounds/742753/
+ Smash
+- 717990__johnny25225__heavywobblyimpacthit_01
+- https://freesound.org/people/Johnny25225/sounds/717990/
+
+
+마법사
+ Fireball
+- 442872__qubodup__fire-magic
+- https://freesound.org/people/qubodup/sounds/442872/
+ Overload- encoding
+- spell
+- https://opengameart.org/content/rpg-sound-pack
+
+프리스트
+ Blessing
+- exit
+- https://opengameart.org/content/atmospheric-interaction-sound-pack
+ Healing
+- healing
+- https://opengameart.org/content/spell-sounds
+
+궁수
+ Aim
+- menu/wall
+- https://opengameart.org/content/atmospheric-interaction-sound-pack
+ MultiShot - encoding 
+- swish_4 + swish_3
+- https://opengameart.org/content/battle-sound-effects
+
+
+동료 영입
+문 흔드는 소리(구조 요청) - not encoding 
+- creak2
+- https://opengameart.org/content/50-rpg-sound-effects
+문 여는 소리(동료 영입) - not encoding 
+- doorOpen_2
+- https://opengameart.org/content/50-rpg-sound-effects
+
+==========================================================
+아이템 + 상점 + 골드
+GetItem
+- Rise06
+- https://opengameart.org/content/level-up-power-up-coin-get-13-sounds
+ BuyItem - not encoding
+- coin3
+- https://opengameart.org/content/rpg-sound-pack
+ SellItem - not encoding
+- coin2
+- https://opengameart.org/content/rpg-sound-pack
+ UseItem - not encoding / 임시(포션류 한정 효과음)
+- bottle
+- https://opengameart.org/content/rpg-sound-pack
+ PowerUp
+- Upper01
+- https://opengameart.org/content/level-up-power-up-coin-get-13-sounds
+ ShopBGM - encoding 
+- a_small_fire_will_do
+- https://opengameart.org/content/a-small-fire-will-do-calming-loop
+
+ 상인 말소리
+ 골드 획득 - encoding 
+- Coin01
+- https://opengameart.org/content/level-up-power-up-coin-get-13-sounds
+ 골드 사용
+
+스테이지 별 배경음
+하수구
+ 물이 떨어지는 소리 - encoding 
+- atmosbasement.wav
+- https://opengameart.org/content/dripping-water-loop
+
+폐광 - 울리는 소리
+무덤 - 으스스한 소리
+유적
+ 753583__christmaskrumble666__ghost-music-box-bgm-rev
+- https://freesound.org/people/ChristmasKrumble666/sounds/753583/
+둥지 - 바람 소리 + 새 소리
+
+설원
+- 680741__christmaskrumble666__cold-ambient-bgm
+- https://freesound.org/people/ChristmasKrumble666/sounds/680741/
+
+붉은 달 - 
+안개 - 
+제단 - 
+공허 - 
+
+보스 공격 소리, 클리어 소리
+
+
+
+
+일반 몬스터 종류
+
+오염된 슬라임
+ SlimeHitted - not encoding
+- random5
+- https://opengameart.org/content/rpg-sound-pack
+ SlimeAttack
+- bubble3
+- https://opengameart.org/content/rpg-sound-pack
+ SlimeDead
+- impactsplat01
+- https://opengameart.org/content/8-wet-squish-slurp-impacts
+
+광폭한 쥐 - 공격, 사망
+  RatHitted - not encoding
+- random4
+- https://opengameart.org/content/rpg-sound-pack
+
+고블린 정찰병
+ GoblinHitted- not encoding
+- ogre5
+- https://opengameart.org/content/rpg-sound-pack
+ GoblinAttack - not encoding
+- ogre2
+- https://opengameart.org/content/rpg-sound-pack
+ GoblinDead - not encoding
+- ogre4
+- https://opengameart.org/content/rpg-sound-pack
+
+박쥐 떼 - 피격, 공격
+ FlyingMobDead
+- impactsplat02
+- https://opengameart.org/content/8-wet-squish-slurp-impacts
+
+해골 병사
+ SkeletonHitted - not encoding
+- wood-small
+- https://opengameart.org/content/rpg-sound-pack
+ SkeletonAttack
+- swing3
+- https://opengameart.org/content/rpg-sound-pack
+ GhostDead
+- ghost.wav
+- https://opengameart.org/content/ghost
+
+부패한 좀비
+ ZombieHitted - not encoding
+- zombie-13
+- https://opengameart.org/content/zombies-sound-pack
+ ZombieAttack - not encoding
+- zombie-24
+- https://opengameart.org/content/zombies-sound-pack
+ ZombieDead
+-  zombie-16
+- https://opengameart.org/content/zombies-sound-pack
+
+석재 가고일 - 공격, 사망
+ StoneHitted - not encoding
+- metal-small1
+- https://opengameart.org/content/rpg-sound-pack
+
+유적 수호자 - 피격, 공격, 사망
+
+하피 - 피격, 공격, 사망
+
+바실리스크 - 피격
+ BasiliskHitted
+- 457531__breviceps__dinosaur-falls-to-the-ground.wav
+- https://freesound.org/people/Breviceps/sounds/457531/
+ BasiliskAttack
+- 578601__podcapocalipsis__dinosaur-roar
+- https://freesound.org/people/Podcapocalipsis/sounds/578601/
+ BasiliskDead
+- 457531__breviceps__dinosaur-falls-to-the-ground.wav
+- https://freesound.org/people/Breviceps/sounds/457531/
+
+설원 늑대
+WolfHitted - not encoding
+- wolfman
+- https://opengameart.org/content/zombies-sound-pack
+ WolfAttack - not encoding
+- mnstr5
+- https://opengameart.org/content/zombies-sound-pack
+ WolfDead
+- mnstr10
+- https://opengameart.org/content/zombies-sound-pack
+
+예티 - 공격
+ YetiAttack - not encoding
+- giant1
+- https://opengameart.org/content/rpg-sound-pack
+ YetiHitted - not encoding
+- giant3
+- https://opengameart.org/content/rpg-sound-pack
+ YetiDead - not encoding
+- giant2
+- https://opengameart.org/content/rpg-sound-pack
+
+보이드 워커 - 피격, 공격, 사망
+
+하급 데몬 - 피격, 공격, 사망
+
+비홀더
+ GhostHitted - not encoding
+- water/link
+- https://opengameart.org/content/atmospheric-interaction-sound-pack
+GhostAttack
+- summer/magnet_action
+- https://opengameart.org/content/atmospheric-interaction-sound-pack
+ BeholderDead
+- high_pitch_scream
+- https://opengameart.org/content/high-pitch-scream-sounds2
+
+엘드리치 호러
+ GhostHitted - not encoding
+- water/link
+- https://opengameart.org/content/atmospheric-interaction-sound-pack
+ GhostAttack
+- summer/magnet_action
+- https://opengameart.org/content/atmospheric-interaction-sound-pack
+ GhostDead
+- ghost.wav
+- https://opengameart.org/content/ghost
+
+공허의 망령 - 피격, 공격
+ GhostDead
+- ghost.wav
+- https://opengameart.org/content/ghost
+
+살아있는 조각상 - 공격, 사망
+ StoneHitted - not encoding
+- metal-small1
+- https://opengameart.org/content/rpg-sound-pack
+
+
+엘리트 몬스터
+
+거대 시궁쥐 - 공격, 사망
+ RatHitted - not encoding
+- random4
+- https://opengameart.org/content/rpg-sound-pack
+
+고블린 대장
+ GoblinHitted- not encoding
+- ogre5
+- https://opengameart.org/content/rpg-sound-pack
+ GoblinAttack - not encoding
+- ogre2
+- https://opengameart.org/content/rpg-sound-pack
+ GoblinDead - not encoding
+- ogre4
+- https://opengameart.org/content/rpg-sound-pack
+
+스켈레톤 나이트
+ SkeletonKnightHitted - not encoding
+- chainmail2
+- https://opengameart.org/content/rpg-sound-pack
+ SkeletonKnightAttack - not encoding
+- sword-unsheathe3
+- https://opengameart.org/content/rpg-sound-pack
+ GhostDead
+- ghost.wav
+- https://opengameart.org/content/ghost
+
+옵시디언 골렘 - 공격
+ ObsidianGolemHitted - not encoding
+- metal-small2
+- https://opengameart.org/content/rpg-sound-pack
+ ObsidianGolemDead - not encoding
+- coin
+- https://opengameart.org/content/rpg-sound-pack
+
+하피 퀸 - 피격, 공격, 사망
+
+화이트 팽
+WolfHitted - not encoding
+- wolfman
+- https://opengameart.org/content/zombies-sound-pack
+ WolfAttack - not encoding
+- mnstr5
+- https://opengameart.org/content/zombies-sound-pack
+ WolfDead
+- mnstr10
+- https://opengameart.org/content/zombies-sound-pack
+
+블러드 하운드
+WolfHitted - not encoding
+- wolfman
+- https://opengameart.org/content/zombies-sound-pack
+ WolfAttack - not encoding
+- mnstr5
+- https://opengameart.org/content/zombies-sound-pack
+ WolfDead
+- mnstr10
+- https://opengameart.org/content/zombies-sound-pack
+
+카오스 아이 - 피격, 공격, 사망
+
+심연의 집사
+ GhostHitted - not encoding
+- water/link
+- https://opengameart.org/content/atmospheric-interaction-sound-pack
+ AbyssAttack - not encoding
+- water/magnet_action
+- https://opengameart.org/content/atmospheric-interaction-sound-pack
+ AbyssDead - not encoding
+- water/magnet_action
+- https://opengameart.org/content/atmospheric-interaction-sound-pack
+
+보스 몬스터 에테르노 - 피격, 공격(일반, 특수), 사망
+
+
+==============================================================
+cc0 체크
+
+SoundPack01
+- https://opengameart.org/content/level-up-power-up-coin-get-13-sounds
+
+RPGsounds_Kenney
+- https://opengameart.org/content/50-rpg-sound-effects
+
+battle_sound_effects
+- https://opengameart.org/content/battle-sound-effects
+
+RPG Sound Pack
+- https://opengameart.org/content/rpg-sound-pack
+
+ zombies
+- https://opengameart.org/content/zombies-sound-pack
+
+impsplat
+- https://opengameart.org/content/8-wet-squish-slurp-impacts
+
+ goblins - 톤이 높아서 분위기가 안 맞을 것 같음.
+- https://opengameart.org/content/goblins-sound-pack
+
+ spells
+- https://opengameart.org/content/spell-sounds
+
+ krank_sounds
+- https://opengameart.org/content/atmospheric-interaction-sound-pack
+
+단독 파일
+ ghost
+- https://opengameart.org/content/ghost
+ horde_war_drums_by_william_hector
+- https://opengameart.org/content/horde-war-drums-loop
+ high_pitch_scream_gverb & high_pitch_scream
+- https://opengameart.org/content/high-pitch-scream-sounds2
+ 742753__shangasdfguy123__ghost-hippopotamus-roar
+- https://freesound.org/people/ShangASDFGuy123/sounds/742753/
+ 717990__johnny25225__heavywobblyimpacthit_01
+- https://freesound.org/people/Johnny25225/sounds/717990/
+ 442872__qubodup__fire-magic
+- https://freesound.org/people/qubodup/sounds/442872/
+ 578601__podcapocalipsis__dinosaur-roar
+- https://freesound.org/people/Podcapocalipsis/sounds/578601/
+ 457531__breviceps__dinosaur-falls-to-the-ground.wav
+- https://freesound.org/people/Breviceps/sounds/457531/
+
+단독 파일 - BGM
+ atmosbasement
+- https://opengameart.org/content/dripping-water-loop
+ 732050__naomuhibu__lost-soulz-the-labyrinth-theme
+- https://freesound.org/people/naomuhibu/sounds/732050/
+ 680741__christmaskrumble666__cold-ambient-bgm
+- https://freesound.org/people/ChristmasKrumble666/sounds/680741/
+ 753583__christmaskrumble666__ghost-music-box-bgm-rev
+- https://freesound.org/people/ChristmasKrumble666/sounds/753583/
