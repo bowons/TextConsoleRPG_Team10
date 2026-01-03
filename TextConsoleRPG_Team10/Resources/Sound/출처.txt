@@ -1,5 +1,6 @@
 44.1kHz(1411kbps), 16-bit PCM WAV
 
+==========================================================
 // 씬
 Title1
 - 133008__cosmicd__annulet-of-absorption
@@ -17,6 +18,7 @@ ExitShop
 - warp02
 - https://opengameart.org/content/spell-sounds-starter-pack
 
+==========================================================
 // 캐릭터
 
 // 캐릭터 피격
@@ -42,16 +44,28 @@ LevelUp
 - https://opengameart.org/content/8-bit-sound-effects-library
 
 // 캐릭터 - 직업별
+// 마법사
 Fire1
 - foom_0
 - https://opengameart.org/content/spell-4-fire
 
-ArcherAttack
-- shoot_01
-- https://opengameart.org/content/8-bit-sound-effects-library
+OverCharge
+- curse2
+- https://opengameart.org/content/spell-sounds-starter-pack
 
+// 프리스트
+Blessing
+- heal
+- https://opengameart.org/content/spell-sounds-starter-pack
+
+Heal
+- blessing
+- https://opengameart.org/content/spell-sounds-starter-pack
+
+
+==========================================================
 // 몬스터
-
+// 몬스터 사망
 MonsterDead
 - Hero_Death_00
 - https://opengameart.org/content/8-bit-sound-effects-library
@@ -68,39 +82,79 @@ ZombieDeath
 -  zombie-16
 - https://opengameart.org/content/zombies-sound-pack
 
-// 아이템
-
-
-// 인코딩 필요
-Blessing
-- blessing
-- https://opengameart.org/content/spell-sounds-starter-pack
-
+// 몬스터 공격
 Curse
 - curse
 - https://opengameart.org/content/spell-sounds-starter-pack
 
-OverCharge
-- curse2
-- https://opengameart.org/content/spell-sounds-starter-pack
-
-
-Boss1
+// 보스
+Boss
 - explode
 - https://opengameart.org/content/spell-sounds-starter-pack
 
-Boss2
+Boss1
 - explod1
+- https://opengameart.org/content/spell-sounds-starter-pack
+
+==========================================================
+// 아이템
+UseItem
+- zap
 - https://opengameart.org/content/spell-sounds-starter-pack
 
 PowerUp
 - forcepush
 - https://opengameart.org/content/spell-sounds-starter-pack
 
-Heal
-- heal
-- https://opengameart.org/content/spell-sounds-starter-pack
 
-UseItem
-- zap
-- https://opengameart.org/content/spell-sounds-starter-pack
+==========================================================
+// 인코딩 필요
+
+
+
+
+
+
+
+
+
+
+
+
+
+아이템 획득, 몬스터별 사망 소리, 몬스터 피격 소리, 상점 진입 소리, 스테이지 별 배경음악
+아이템 구매 소리, 아이템 판매 소리, 골드 변화 소리, 직업별 공격 소리, 스킬 소리
+보스 공격 소리, 클리어 소리
+구조 요청(동료 영입)
+
+일반 몬스터 종류
+오염된 슬라임 - 사망
+광폭한 쥐
+고블린 정찰병
+박쥐 떼
+해골 병사
+부패한 좀비 - 사망
+석재 가고일
+유적 수호자
+하피, 바실리스크
+설원 늑대
+예티
+보이드 워커
+하급 데몬
+비홀더
+엘드리치 호러
+공허의 망령
+살아있는 조각상
+
+엘리트 몬스터
+거대 시궁쥐
+고블린 대장
+스켈레톤 나이트
+옵시디언 골렘
+하피 퀸
+화이트 팽
+블러드 하운드
+카오스 아이
+심연의 집사
+
+보스 몬스터 에테르노
