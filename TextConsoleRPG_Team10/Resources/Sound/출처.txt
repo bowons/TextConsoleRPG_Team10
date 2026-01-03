@@ -1,0 +1,106 @@
+44.1kHz(1411kbps), 16-bit PCM WAV
+
+// 씬
+Title1
+- 133008__cosmicd__annulet-of-absorption
+- https://opengameart.org/content/epic-amulet-item
+
+GameOver
+- Jingle_Lose_00
+- https://opengameart.org/content/8-bit-sound-effects-library
+
+EnterShop
+- warp
+- https://opengameart.org/content/spell-sounds-starter-pack
+
+ExitShop
+- warp02
+- https://opengameart.org/content/spell-sounds-starter-pack
+
+// 캐릭터
+
+// 캐릭터 피격
+PlayerHit
+- Hit_02
+- https://opengameart.org/content/8-bit-sound-effects-library
+
+PlayerHitCirtical
+- Hit_03
+- https://opengameart.org/content/8-bit-sound-effects-library
+
+// 보상 및 레벨업
+GetReward
+- Jingle_Achievement_00
+- https://opengameart.org/content/8-bit-sound-effects-library
+
+GetReward2
+- Jingle_Win_00
+- https://opengameart.org/content/8-bit-sound-effects-library
+
+LevelUp
+- Jingle_Achievement_01
+- https://opengameart.org/content/8-bit-sound-effects-library
+
+// 캐릭터 - 직업별
+Fire1
+- foom_0
+- https://opengameart.org/content/spell-4-fire
+
+ArcherAttack
+- shoot_01
+- https://opengameart.org/content/8-bit-sound-effects-library
+
+// 몬스터
+
+MonsterDead
+- Hero_Death_00
+- https://opengameart.org/content/8-bit-sound-effects-library
+
+FlyingMobDeath
+- impactsplat02
+- https://opengameart.org/content/8-wet-squish-slurp-impacts
+
+SlimeDeath
+- impactsplat01
+- https://opengameart.org/content/8-wet-squish-slurp-impacts
+
+ZombieDeath
+-  zombie-16
+- https://opengameart.org/content/zombies-sound-pack
+
+// 아이템
+
+
+// 인코딩 필요
+Blessing
+- blessing
+- https://opengameart.org/content/spell-sounds-starter-pack
+
+Curse
+- curse
+- https://opengameart.org/content/spell-sounds-starter-pack
+
+OverCharge
+- curse2
+- https://opengameart.org/content/spell-sounds-starter-pack
+
+
+Boss1
+- explode
+- https://opengameart.org/content/spell-sounds-starter-pack
+
+Boss2
+- explod1
+- https://opengameart.org/content/spell-sounds-starter-pack
+
+PowerUp
+- forcepush
+- https://opengameart.org/content/spell-sounds-starter-pack
+
+Heal
+- heal
+- https://opengameart.org/content/spell-sounds-starter-pack
+
+UseItem
+- zap
+- https://opengameart.org/content/spell-sounds-starter-pack
