@@ -272,15 +272,16 @@ std::vector<std::string> TextRenderer::WrapText(const std::string& text, int max
 
 void TextRenderer::Render(ScreenBuffer& buffer, const PanelBounds& bounds)
 {
-    if (!_IsDirty) return;
-
     // 패널 내부 영역 계산 (테두리 제외)
     int contentX = bounds.X + 1;
     int contentY = bounds.Y + 1;
     int contentWidth = bounds.Width - 2;
     int contentHeight = bounds.Height - 2;
 
-    if (contentWidth <= 0 || contentHeight <= 0) return;
+    if (contentWidth <= 0 || contentHeight <= 0) {
+        _IsDirty = false;
+        return;
+    }
 
     // 자동 스크롤: 항상 최신 줄 표시
     if (_AutoScroll && _Lines.size() > static_cast<size_t>(contentHeight))

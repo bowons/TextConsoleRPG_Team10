@@ -100,6 +100,8 @@ void UIDrawer::Update()
 
     float deltaTime = CalculateDeltaTime();
 
+    bool needsRedraw = false;
+
     // 모든 패널의 콘텐츠 업데이트 (애니메이션 등)
     for (auto& pair : _Panels) {
         Panel* panel = pair.second.get();
@@ -109,11 +111,15 @@ void UIDrawer::Update()
             // 콘텐츠가 dirty면 패널도 dirty
             if (panel->GetContentRenderer()->IsDirty()) {
                 panel->SetDirty();
+                needsRedraw = true;
             }
         }
     }
 
-    Render();
+    // 변경 사항이 있을 때만 렌더링
+    if (needsRedraw) {
+        Render();
+    }
 
     // FPS 제한
     float targetFrameTime = 1.0f / _TargetFPS;

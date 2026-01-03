@@ -705,13 +705,13 @@ void TestScene_AdvancedTextRenderer()
     guideText->AddLine("[TextRenderer의 새로운 기능]");
     guideText->AddLine("");
     guideText->AddLogLine("AddLogLine(text, importance)", ELogImportance::DISPLAY);
-    guideText->AddLine("  → PrintManager의 ELogImportance 지원");
+    guideText->AddLine("  -> PrintManager의 ELogImportance 지원");
     guideText->AddLine("");
     guideText->AddLine("AddLineWithColor(text, color)");
-    guideText->AddLine("  → 줄마다 다른 색상 지정");
+    guideText->AddLine("  -> 줄마다 다른 색상 지정");
     guideText->AddLine("");
     guideText->AddLine("EnableAutoWrap(true) + SetWrapWidth(width)");
-    guideText->AddLine("  → PrintManager의 LineLimit과 동일한 자동 줄바꿈");
+    guideText->AddLine("  -> PrintManager의 LineLimit과 동일한 자동 줄바꿈");
     guideText->AddLine("");
     guideText->AddLine("아무 키나 눌러 메인 메뉴로 돌아갑니다...");
     guideText->SetTextColor(15);

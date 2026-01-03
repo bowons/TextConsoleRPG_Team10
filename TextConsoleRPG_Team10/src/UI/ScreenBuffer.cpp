@@ -172,53 +172,79 @@ void ScreenBuffer::DrawBox(int x, int y, int width, int height, WORD attribute)
 void ScreenBuffer::Render()
 {
     HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
-    COORD coord = { 0, 0 };
-
-    // 커서를 (0,0)으로 이동
-    SetConsoleCursorPosition(hConsole, coord);
 
     // 커서 숨기기
     CONSOLE_CURSOR_INFO cursorInfo;
     GetConsoleCursorInfo(hConsole, &cursorInfo);
-    cursorInfo.bVisible = FALSE;
-    SetConsoleCursorInfo(hConsole, &cursorInfo);
+    bool wasCursorVisible = cursorInfo.bVisible;
+    if (wasCursorVisible) {
+        cursorInfo.bVisible = FALSE;
+        SetConsoleCursorInfo(hConsole, &cursorInfo);
+    }
 
-    // 한 번에 출력할 문자열 생성
-    std::string output;
-    output.reserve(_Width * _Height * 3);  // UTF-8 고려
+    // WriteConsoleOutputW를 사용한 방식 (유니코드 지원)
+    std::vector<CHAR_INFO> consoleBuffer(_Width * _Height);
 
-    WORD currentAttr = 7;
     for (int y = 0; y < _Height; ++y) {
         for (int x = 0; x < _Width; ++x) {
             const CharCell& cell = _Buffer[y][x];
+            CHAR_INFO& charInfo = consoleBuffer[y * _Width + x];
 
-            // 색상 변경
-            if (cell.Attribute != currentAttr) {
-                // 실시간 색상 변경은 성능 저하 → 일단 무시 또는 ANSI 이스케이프 코드 사용
-                currentAttr = cell.Attribute;
+            // 문자 설정
+            if (cell.ByteCount == 1 && cell.Bytes[0] != '\0') {
+                // ASCII
+                charInfo.Char.UnicodeChar = static_cast<wchar_t>(cell.Bytes[0]);
+                charInfo.Attributes = cell.Attribute;
             }
+            else if (cell.ByteCount > 1 && cell.Bytes[0] != '\0') {
+                // UTF-8 -> UTF-16 변환 (한글 등)
+                std::string utf8Str(cell.Bytes, cell.ByteCount);
+                int wideLen = MultiByteToWideChar(CP_UTF8, 0, utf8Str.c_str(), -1, NULL, 0);
+                wchar_t wideChar = L' ';
 
-            // 문자 출력
-            if (cell.ByteCount > 0 && cell.Bytes[0] != '\0') {
-                for (int i = 0; i < cell.ByteCount; ++i) {
-                    output += cell.Bytes[i];
+                if (wideLen > 0) {
+                    std::wstring wideStr(wideLen, 0);
+                    MultiByteToWideChar(CP_UTF8, 0, utf8Str.c_str(), -1, &wideStr[0], wideLen);
+                    wideChar = wideStr[0];
+                }
+
+                charInfo.Char.UnicodeChar = wideChar;
+                charInfo.Attributes = cell.Attribute | COMMON_LVB_LEADING_BYTE;
+
+                // 다음 칸 처리 (Trailing Byte)
+                if (x + 1 < _Width) {
+                    x++;  // 다음 칸으로 이동
+                    CHAR_INFO& nextCharInfo = consoleBuffer[y * _Width + x];
+                    nextCharInfo.Char.UnicodeChar = wideChar;
+                    nextCharInfo.Attributes = cell.Attribute | COMMON_LVB_TRAILING_BYTE;
                 }
             }
             else if (cell.Bytes[0] == '\0') {
-                // 이전 칸에 속하는 경우 (한글 2칸 처리) → 공백 출력하지 않음
-                continue;
+                // 이미 처리된 한글의 두 번째 칸
+            // 위에서 x++로 건너뛰므로 여기 도달하지 않음
+                charInfo.Char.UnicodeChar = L' ';
+                charInfo.Attributes = cell.Attribute;
             }
             else {
-                output += ' ';
+                charInfo.Char.UnicodeChar = L' ';
+                charInfo.Attributes = cell.Attribute;
             }
-        }
-        if (y < _Height - 1) {
-            output += '\n';
         }
     }
 
-    // 한 번에 출력
-    std::cout << output << std::flush;
+    // WriteConsoleOutputW로 한 번에 출력 (깜빡임 없음 + 유니코드 지원)
+    COORD bufferSize = { static_cast<SHORT>(_Width), static_cast<SHORT>(_Height) };
+    COORD bufferCoord = { 0, 0 };
+    SMALL_RECT writeRegion = { 0, 0, static_cast<SHORT>(_Width - 1), static_cast<SHORT>(_Height - 1) };
+
+    SetConsoleCursorPosition(hConsole, { 0, 0 });
+    WriteConsoleOutputW(hConsole, consoleBuffer.data(), bufferSize, bufferCoord, &writeRegion);
+
+    // 커서 복원
+    if (wasCursorVisible) {
+        cursorInfo.bVisible = TRUE;
+        SetConsoleCursorInfo(hConsole, &cursorInfo);
+    }
 }
 
 CharCell& ScreenBuffer::GetCell(int x, int y)
