@@ -97,7 +97,8 @@ GetItem
  PowerUp
 - Upper01
 - https://opengameart.org/content/level-up-power-up-coin-get-13-sounds
- ShopBGM - encoding 
+ 
+ BGM_Shop - encoding 
 - a_small_fire_will_do
 - https://opengameart.org/content/a-small-fire-will-do-calming-loop
 
@@ -110,27 +111,29 @@ GetItem
 ======================================================
 스테이지 별 배경음
 
-하수구
- 물이 떨어지는 소리 - encoding 
+하수구 
+ Ambient_01_Sewer
 - atmosbasement.wav
 - https://opengameart.org/content/dripping-water-loop
 
-폐광 - 울리는 소리
-무덤 - 으스스한 소리
-
-유적 - RuinBGM
+폐광
+ Ambient_02_AbandonedMine
 - 625296__pbmzbr__89448__bkamuse__dangerous-mine-shaft_edited
 - https://freesound.org/people/pbmzbr/sounds/625296/
+무덤 
+
+
+유적
 
 둥지 - 바람 소리 + 새 소리
 
-설원 - SnowFieldBGM
+설원 BGM_06_SnowField
 - 680741__christmaskrumble666__cold-ambient-bgm
 - https://freesound.org/people/ChristmasKrumble666/sounds/680741/
 
-붉은 달 - 
-안개 - 
-제단
+붉은 달
+안개
+제단 BGM_09_Altar
 - 753583__christmaskrumble666__ghost-music-box-bgm-rev
 - https://freesound.org/people/ChristmasKrumble666/sounds/753583/
 공허 - 
@@ -479,6 +482,9 @@ impsplat
  krank_sounds
 - https://opengameart.org/content/atmospheric-interaction-sound-pack
 
+ Alexander Ehlers - Free Music Pack
+- https://opengameart.org/content/free-music-pack
+
 단독 파일
  ghost
 - https://opengameart.org/content/ghost
@@ -534,6 +540,13 @@ impsplat
 - https://freesound.org/people/ChristmasKrumble666/sounds/753583/
  484368__spacejoe__bird-1
 - https://freesound.org/people/SpaceJoe/sounds/484368/
+ 
+ BGM_NoneSet01
+- 614546__szegvari__myst-dark-drone-synth-female-vocal-choir-atmo-ambience-cinematic
+- https://freesound.org/people/szegvari/sounds/614546/
+ BGM_NoneSet02
+- 825858__vrymaa__monastery-atmosphere-monk-chant-chimes.wav
+- https://freesound.org/people/Vrymaa/sounds/825858/
 
 단독 파일 - 보스 음성
  643715__snowfightstudios__devil-demon_i-am-death
