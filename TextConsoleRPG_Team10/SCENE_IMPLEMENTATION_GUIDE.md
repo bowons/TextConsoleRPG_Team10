@@ -6,8 +6,9 @@
 3. [구현해야 할 Scene 목록](#-구현해야-할-scene-목록)
 4. [Scene 구현 단계별 가이드](#-scene-구현-단계별-가이드)
 5. [Manager 활용 방법](#-manager-활용-방법)
-6. [실전 예제](#-실전-예제)
-7. [주의사항 및 팁](#-주의사항-및-팁)
+6. [**Scene 진행 중 동적 업데이트**](#-scene-진행-중-동적-업데이트) ⭐ **NEW**
+7. [실전 예제](#-실전-예제)
+8. [주의사항 및 팁](#-주의사항-및-팁)
 
 ---
 
@@ -387,6 +388,538 @@ if (success)
     std::cout << "판매 성공: " << itemName << " (+" << goldChange << "G)" << std::endl;
 }
 ```
+
+---
+
+## 🔄 Scene 진행 중 동적 업데이트
+
+Scene이 실행되는 동안 **ASCII 아트, 텍스트, 스탯을 실시간으로 업데이트**하는 방법입니다.
+
+### 기본 업데이트 패턴 (5단계)
+
+```cpp
+// 1. 패널 가져오기
+Panel* panel = _Drawer->GetPanel("PanelID");
+if (!panel) return;
+
+// 2. 렌더러 가져오기 (dynamic_cast 필수!)
+YourRenderer* renderer = dynamic_cast<YourRenderer*>(panel->GetContentRenderer());
+if (!renderer) return;
+
+// 3. 내용 수정
+renderer->UpdateMethod(...);
+
+// 4. 재렌더링 표시 (필수!)
+panel->Redraw();
+
+// 5. 화면 갱신
+_Drawer->Render();
+```
+
+---
+
+### 🎨 1. ASCII 아트 업데이트
+
+#### 방법 A: 다른 파일로 교체
+
+```cpp
+void BattleScene::UpdateMonsterArt(const std::string& monsterName)
+{
+    Panel* monsterPanel = _Drawer->GetPanel("MonsterArt");
+    if (!monsterPanel) return;
+    
+    AsciiArtRenderer* artRenderer = 
+ dynamic_cast<AsciiArtRenderer*>(monsterPanel->GetContentRenderer());
+    if (!artRenderer) return;
+    
+    // 새로운 아트 로드
+    DataManager* dm = DataManager::GetInstance();
+    artRenderer->LoadFromFile(dm->GetResourcePath("Monsters"), monsterName + ".txt");
+ 
+    // 필수: 재렌더링 표시 + 화면 갱신
+    monsterPanel->Redraw();
+    _Drawer->Render();
+}
+```
+
+#### 방법 B: 애니메이션 전환
+
+```cpp
+void BattleScene::ChangeMonsterAnimation(const std::string& animType)
+{
+    Panel* monsterPanel = _Drawer->GetPanel("MonsterArt");
+    if (!monsterPanel) return;
+    
+    AsciiArtRenderer* artRenderer = 
+        dynamic_cast<AsciiArtRenderer*>(monsterPanel->GetContentRenderer());
+    if (!artRenderer) return;
+    
+    DataManager* dm = DataManager::GetInstance();
+    
+    // 애니메이션 종류에 따라 다른 폴더 로드
+    if (animType == "attack")
+    {
+        artRenderer->LoadAnimationFromFolder(
+      dm->GetResourcePath("Animations") + "/MonsterAttack", 
+  0.2f  // 빠른 공격 애니메이션 (0.2초/프레임)
+     );
+  }
+    else if (animType == "idle")
+    {
+        artRenderer->LoadAnimationFromFolder(
+   dm->GetResourcePath("Animations") + "/MonsterIdle", 
+         0.5f  // 느린 대기 애니메이션 (0.5초/프레임)
+  );
+ }
+    
+    artRenderer->StartAnimation();
+    monsterPanel->Redraw();
+    _Drawer->Render();
+}
+```
+
+#### 방법 C: 렌더러 전체 교체
+
+```cpp
+void BattleScene::ReplaceMonsterArt(const std::string& newMonsterName)
+{
+    Panel* monsterPanel = _Drawer->GetPanel("MonsterArt");
+    if (!monsterPanel) return;
+  
+    // 새로운 렌더러 생성
+    auto newArtRenderer = std::make_unique<AsciiArtRenderer>();
+    
+    DataManager* dm = DataManager::GetInstance();
+  newArtRenderer->LoadFromFile(
+   dm->GetResourcePath("Monsters"), 
+        newMonsterName + ".txt"
+    );
+    newArtRenderer->SetAlignment(ArtAlignment::CENTER);
+    newArtRenderer->SetColor(ETextColor::LIGHT_RED);
+    
+    // 렌더러 교체
+    monsterPanel->SetContentRenderer(std::move(newArtRenderer));
+    
+    // 화면 갱신
+    _Drawer->Render();
+}
+```
+
+---
+
+### 📝 2. 텍스트 업데이트
+
+#### 텍스트 추가
+
+```cpp
+void BattleScene::AddBattleLog(const std::string& message)
+{
+    Panel* logPanel = _Drawer->GetPanel("BattleLog");
+    if (!logPanel) return;
+    
+    TextRenderer* logRenderer = 
+        dynamic_cast<TextRenderer*>(logPanel->GetContentRenderer());
+    if (!logRenderer) return;
+    
+    // 텍스트 추가
+    logRenderer->AddLine(message);
+    
+    // 자동 스크롤 활성화 (최신 로그가 보이도록)
+    logRenderer->SetAutoScroll(true);
+    
+    logPanel->Redraw();
+    _Drawer->Render();
+}
+```
+
+#### 텍스트 전체 교체
+
+```cpp
+void BattleScene::UpdateInstructions(const std::vector<std::string>& newInstructions)
+{
+    Panel* instructionPanel = _Drawer->GetPanel("Instructions");
+    if (!instructionPanel) return;
+    
+    TextRenderer* textRenderer = 
+        dynamic_cast<TextRenderer*>(instructionPanel->GetContentRenderer());
+    if (!textRenderer) return;
+    
+    // 기존 텍스트 모두 제거
+    textRenderer->Clear();
+    
+    // 새로운 텍스트 추가
+    for (const auto& line : newInstructions)
+    {
+        textRenderer->AddLine(line);
+    }
+    
+    instructionPanel->Redraw();
+    _Drawer->Render();
+}
+```
+
+#### 색상 있는 텍스트 추가
+
+```cpp
+void BattleScene::ShowHighlightMessage(const std::string& message, ETextColor color)
+{
+  Panel* messagePanel = _Drawer->GetPanel("Message");
+    if (!messagePanel) return;
+    
+  TextRenderer* textRenderer = 
+        dynamic_cast<TextRenderer*>(messagePanel->GetContentRenderer());
+    if (!textRenderer) return;
+    
+textRenderer->Clear();
+    textRenderer->AddLineWithColor(message, static_cast<WORD>(color));
+    
+    messagePanel->Redraw();
+    _Drawer->Render();
+}
+```
+
+---
+
+### 📊 3. 스탯 업데이트
+
+```cpp
+void BattleScene::UpdatePlayerStats(Player* player)
+{
+    Panel* statsPanel = _Drawer->GetPanel("PlayerStats");
+    if (!statsPanel) return;
+    
+    StatRenderer* statRenderer = 
+        dynamic_cast<StatRenderer*>(statsPanel->GetContentRenderer());
+    if (!statRenderer) return;
+    
+    // 스탯 값 업데이트
+    statRenderer->SetStat("이름", player->GetName());
+    statRenderer->SetStat("HP", 
+        std::to_string(player->GetCurrentHP()) + "/" + 
+        std::to_string(player->GetMaxHP())
+    );
+    statRenderer->SetStat("공격력", std::to_string(player->GetTotalAtk()));
+statRenderer->SetStat("레벨", "Lv." + std::to_string(player->GetLevel()));
+    statRenderer->SetStat("골드", std::to_string(player->GetGold()) + "G");
+    
+    statsPanel->Redraw();
+    _Drawer->Render();
+}
+```
+
+---
+
+### 🎯 렌더러별 주요 업데이트 메서드
+
+| 렌더러 | 메서드 | 설명 |
+|--------|--------|------|
+| **AsciiArtRenderer** | `LoadFromFile(path, file)` | 새 아트 로드 |
+| | `LoadAnimationFromFolder(path, fps)` | 애니메이션 로드 |
+| | `StartAnimation()` / `StopAnimation()` | 애니메이션 제어 |
+| | `SetAlignment(align)` | 정렬 변경 (LEFT/CENTER/RIGHT) |
+| | `SetColor(color)` | 색상 변경 |
+| **TextRenderer** | `AddLine(text)` | 텍스트 추가 |
+| | `Clear()` | 모든 텍스트 제거 |
+| | `AddLineWithColor(text, color)` | 색상 텍스트 추가 |
+| | `SetAutoScroll(enable)` | 자동 스크롤 설정 |
+| **StatRenderer** | `SetStat(key, value)` | 스탯 값 변경 |
+| | `SetKeyColor(color)` | 키 색상 변경 |
+| | `SetValueColor(color)` | 값 색상 변경 |
+
+---
+
+### ⚠️ 동적 업데이트 주의사항
+
+#### 1. **dynamic_cast 후 nullptr 체크 필수**
+
+```cpp
+// ❌ 잘못된 예 (크래시 위험!)
+TextRenderer* text = dynamic_cast<TextRenderer*>(panel->GetContentRenderer());
+text->AddLine("위험!");  // nullptr일 경우 크래시!
+
+// ✅ 올바른 예
+TextRenderer* text = dynamic_cast<TextRenderer*>(panel->GetContentRenderer());
+if (text) {
+    text->AddLine("안전!");
+}
+```
+
+#### 2. **Redraw() 호출 필수**
+
+```cpp
+// ❌ 화면에 안 보임
+renderer->AddLine("새 텍스트");
+_Drawer->Render();  // Redraw() 없이 Render()만 하면 업데이트 안 됨
+
+// ✅ 올바른 방법
+renderer->AddLine("새 텍스트");
+panel->Redraw();    // 반드시 Redraw() 호출!
+_Drawer->Render();
+```
+#### 3. **Update()에서 애니메이션 자동 재생**
+
+```cpp
+void BattleScene::Enter()
+{
+    // ...패널 생성...
+    
+    // 애니메이션 시작
+    artRenderer->LoadAnimationFromFolder(path, 0.5f);
+    artRenderer->StartAnimation();
+}
+
+void BattleScene::Update()
+{
+    if (!_IsActive) return;
+    
+    // Update() 호출 시 자동으로 애니메이션 프레임 전환됨
+ _Drawer->Update();  // ← 이 안에서 AsciiArtRenderer::Update() 자동 호출
+    
+    HandleInput();
+}
+```
+
+---
+
+### 💡 성능 최적화 팁
+
+#### 일괄 업데이트 후 한 번만 렌더링
+
+```cpp
+// ✅ 좋은 방법: 여러 패널 업데이트 후 한 번만 렌더링
+void BattleScene::UpdateAllUI(Player* player, IMonster* monster)
+{
+    UpdatePlayerStats(player);   // Redraw()만 호출
+    UpdateMonsterStats(monster);  // Redraw()만 호출
+    AddBattleLog("턴 종료");     // Redraw()만 호출
+    
+    _Drawer->Render();  // ← 마지막에 한 번만! (성능 향상)
+}
+
+// ❌ 나쁜 방법: 매번 렌더링 (비효율)
+void BattleScene::UpdateAllUI_Bad(Player* player, IMonster* monster)
+{
+    UpdatePlayerStats(player);
+    _Drawer->Render();  // 비효율  
+    UpdateMonsterStats(monster);
+    _Drawer->Render();  // 비효율    
+    AddBattleLog("턴 종료");
+    _Drawer->Render();  // 비효율
+}
+```
+
+#### 조건부 업데이트 (값이 변경된 경우에만)
+
+```cpp
+void BattleScene::UpdateStatsIfChanged(Player* player, int lastHP)
+{
+    if (player->GetCurrentHP() != lastHP)
+    {
+        UpdatePlayerStats(player);
+     lastHP = player->GetCurrentHP();
+    }
+}
+```
+
+---
+
+### 🎮 실전 예제: 전투 Scene 동적 업데이트
+
+```cpp
+class BattleScene : public UIScene
+{
+private:
+    bool _PlayerTurn = true;
+    
+public:
+    void Enter() override
+    {
+        _Drawer->ClearScreen();
+        _Drawer->RemoveAllPanels();
+        _Drawer->Activate();
+        _IsActive = true;
+        
+  CreateBattleUI();// 패널 생성 (한 번만)
+   _Drawer->Render();
+    }
+    
+    void CreateBattleUI()
+    {
+        DataManager* dm = DataManager::GetInstance();
+ 
+        // 1. 몬스터 아트 패널 (애니메이션)
+        Panel* monsterPanel = _Drawer->CreatePanel("MonsterArt", 30, 5, 50, 25);
+        monsterPanel->SetBorder(true, static_cast<WORD>(ETextColor::LIGHT_RED));
+        
+        auto monsterArt = std::make_unique<AsciiArtRenderer>();
+  monsterArt->LoadAnimationFromFolder(
+dm->GetResourcePath("Animations") + "/MonsterIdle", 
+          0.5f
+      );
+        monsterArt->StartAnimation();
+        monsterArt->SetAlignment(ArtAlignment::CENTER);
+        monsterPanel->SetContentRenderer(std::move(monsterArt));
+     
+        // 2. 플레이어 스탯 패널
+Panel* playerPanel = _Drawer->CreatePanel("PlayerStats", 0, 5, 25, 15);
+        playerPanel->SetBorder(true, static_cast<WORD>(ETextColor::LIGHT_GREEN));
+    
+        auto playerStats = std::make_unique<StatRenderer>();
+        Player* player = SceneManager::GetInstance()->GetPlayer();
+        playerStats->SetStat("이름", player->GetName());
+        playerStats->SetStat("HP", 
+   std::to_string(player->GetCurrentHP()) + "/" + 
+            std::to_string(player->GetMaxHP())
+ );
+        playerPanel->SetContentRenderer(std::move(playerStats));
+  
+        // 3. 전투 로그 패널
+        Panel* logPanel = _Drawer->CreatePanel("BattleLog", 0, 30, 106, 15);
+        logPanel->SetBorder(true, static_cast<WORD>(ETextColor::LIGHT_CYAN));
+        
+        auto logText = std::make_unique<TextRenderer>();
+        logText->AddLine("전투 시작!");
+        logText->SetAutoScroll(true);
+     logPanel->SetContentRenderer(std::move(logText));
+  }
+    
+    void Update() override
+    {
+        if (!_IsActive) return;
+        
+  // 애니메이션 업데이트 (자동)
+        _Drawer->Update();
+  
+   HandleInput();
+    }
+    
+ void HandleInput() override
+    {
+        InputManager* input = InputManager::GetInstance();
+        
+if (_PlayerTurn)
+        {
+    AddBattleLog("당신의 턴입니다.");
+            
+       int choice = input->GetIntInput("[1] 공격 [2] 아이템: ", 1, 2);
+        
+            if (choice == 1)
+ {
+    // 1. 공격 애니메이션으로 전환
+      ChangeMonsterAnimation("attack");
+                
+ // 2. 로그 추가
+       AddBattleLog("플레이어가 공격합니다!");
+     
+          // 3. 데미지 처리 후 스탯 업데이트
+           Player* player = SceneManager::GetInstance()->GetPlayer();
+       UpdatePlayerStats(player);
+   
+     Sleep(500);  // 애니메이션 표시 시간
+     
+    // 4. 대기 애니메이션으로 복귀
+        ChangeMonsterAnimation("idle");
+}
+            
+      _PlayerTurn = false;
+        }
+        else
+ {
+      // 몬스터 턴
+     AddBattleLog("몬스터의 공격!");
+            
+  Player* player = SceneManager::GetInstance()->GetPlayer();
+          UpdatePlayerStats(player);
+  
+Sleep(1000);
+     
+      _PlayerTurn = true;
+  }
+    }
+  
+    // === 헬퍼 메서드들 ===
+    
+    void AddBattleLog(const std::string& message)
+    {
+        Panel* logPanel = _Drawer->GetPanel("BattleLog");
+      if (!logPanel) return;
+        
+     TextRenderer* logRenderer = 
+  dynamic_cast<TextRenderer*>(logPanel->GetContentRenderer());
+        
+        if (logRenderer)
+        {
+     logRenderer->AddLine(message);
+  logPanel->Redraw();
+    _Drawer->Render();
+}
+    }
+    
+    void ChangeMonsterAnimation(const std::string& animType)
+    {
+   Panel* monsterPanel = _Drawer->GetPanel("MonsterArt");
+if (!monsterPanel) return;
+        
+        AsciiArtRenderer* artRenderer = 
+            dynamic_cast<AsciiArtRenderer*>(monsterPanel->GetContentRenderer());
+        if (!artRenderer) return;
+        
+        DataManager* dm = DataManager::GetInstance();
+        
+        if (animType == "attack")
+        {
+  artRenderer->LoadAnimationFromFolder(
+     dm->GetResourcePath("Animations") + "/MonsterAttack", 
+                0.2f
+      );
+        }
+    else if (animType == "idle")
+        {
+            artRenderer->LoadAnimationFromFolder(
+          dm->GetResourcePath("Animations") + "/MonsterIdle", 
+       0.5f
+            );
+        }
+        
+   artRenderer->StartAnimation();
+ monsterPanel->Redraw();
+        _Drawer->Render();
+    }
+    
+    void UpdatePlayerStats(Player* player)
+    {
+      Panel* statsPanel = _Drawer->GetPanel("PlayerStats");
+    if (!statsPanel) return;
+        
+        StatRenderer* statRenderer = 
+   dynamic_cast<StatRenderer*>(statsPanel->GetContentRenderer());
+        
+        if (statRenderer)
+        {
+        statRenderer->SetStat("HP", 
+    std::to_string(player->GetCurrentHP()) + "/" + 
+     std::to_string(player->GetMaxHP())
+            );
+    statsPanel->Redraw();
+     _Drawer->Render();
+   }
+    }
+};
+```
+
+---
+
+### ✅ 동적 업데이트 체크리스트
+
+Scene 진행 중 UI 업데이트 시:
+
+- [ ] 패널 ID를 정확하게 지정했는가?
+- [ ] `dynamic_cast` 후 `nullptr` 체크를 했는가?
+- [ ] 내용 변경 후 `panel->Redraw()` 호출했는가?
+- [ ] `_Drawer->Render()` 호출하여 화면 갱신했는가?
+- [ ] 파일 로드 시 경로가 올바른가? (DataManager 사용)
+- [ ] 애니메이션 시작 후 `Update()` 루프가 있는가?
+- [ ] 성능을 위해 일괄 업데이트 후 한 번만 렌더링하는가?
 
 ---
 
