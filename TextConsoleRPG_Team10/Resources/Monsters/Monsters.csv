@@ -1,9 +1,29 @@
-﻿stage,monster
-과거의 잔영,스켈레톤
-과거의 잔영,고스트
-근위대장의 방,타락한 기사
-왜곡된 기억,트라우마의 환영
-심연의 제단,데몬
-심연의 제단,비홀더
-심연의 통로,심연의 집사
-공허의 중심,에테르노
+﻿Theme,MonsterType,MonsterName,FileName
+하수구,Normal,오염된 슬라임
+하수구,Normal,광폭한 쥐
+하수구,Boss,거대 시궁쥐
+폐광,Normal,고블린 정찰병
+폐광,Normal,박쥐 떼
+폐광,Boss,고블린 대장
+무덤,Normal,해골 병사
+무덤,Normal,부패한 좀비
+무덤,Boss,스켈레톤 나이트
+유적,Normal,석재 가고일
+유적,Normal,유적 수호자
+유적,Boss,옵시디언 골렘
+둥지,Normal,하피
+둥지,Normal,바실리스크
+둥지,Boss,하피 퀸
+설원,Normal,설원 늑대
+설원,Normal,예티
+설원,Boss,화이트 팽
+붉은 달,Normal,보이드 워커
+붉은 달,Normal,하급 데몬
+붉은 달,Boss,블러드 하운드
+안개,Normal,비홀더
+안개,Normal,엘드리치 호러
+안개,Boss,카오스 아이
+제단,Normal,공허의 망령
+제단,Normal,살아있는 조각상
+제단,Boss,심연의 집사
+공허,Boss,에테르노
