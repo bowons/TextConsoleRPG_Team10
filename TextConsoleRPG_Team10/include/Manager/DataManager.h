@@ -1,12 +1,14 @@
-#pragma once
+﻿#pragma once
 #include "../Singleton.h"
 #include "../Config.h"
+#include "../../include/Item/MonsterSpawnData.h"
 #include <string>
 #include <vector>
+#include <optional>
 
 class Player;
 struct ItemData;
-struct MonsterSpawnData;
+//struct MonsterSpawnData;
 
 class DataManager : public Singleton<DataManager>
 {
@@ -57,7 +59,9 @@ public:
     // ===== 특화된 리소스 로딩 함수들을 아래에 구현 =====
     std::vector<ItemData> LoadItemData(const std::string& fileName = "Items.csv");
     std::vector<MonsterSpawnData> LoadMonsterSpawnData(const std::string& fileName);
-    std::tuple<std::string, std::string> GetRandomStageAndMonster();
+    std::optional<MonsterSpawnData>
+        GetMonster(const std::string& fileName, int floor);
+
 
     // 폴더 내 모든 파일 목록 가져오기 (확장자 필터 가능)
     std::vector<std::string> GetFilesInDirectory(const std::string& folderPath, const std::string& extension = "");
