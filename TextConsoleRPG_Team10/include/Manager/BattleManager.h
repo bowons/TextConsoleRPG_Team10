@@ -119,14 +119,14 @@ public:
     // 각 예약에 대해 IItem::CanUse 체크
     // 조건 만족 시 IItem::ApplyEffect 호출
     // 사용 실패 시 예약 유지 (다음 턴 재시도)
-    void ProcessReservedItems();
+    bool ProcessReservedItems();
 
-    // ===== 내부 로직 (팀원이 구현 예정) =====
+    // ===== 내부 로직 =====
 
     // 턴 처리 (아이템 사용 + 공격)
     // Player: 체력/공격력 포션 자동 사용 판단 → ProcessAttack 호출
     // Monster: 즉시 ProcessAttack 호출
-    void ProcessTurn(ICharacter* Atk, ICharacter* Def);
+    void ProcessTurn(ICharacter* Def);
 
     // 공격 처리 (피해 계산 + 로그 출력)
     // Attack() 호출
@@ -141,11 +141,6 @@ public:
     // BattleResult 업데이트
     void CalculateReward(Player* P, IMonster* M);
 
-    // ===== 레거시 인터페이스 (하위 호환용 - 제거 예정) =====
-
-    // 레거시: 자동 전투 (Scene 없이 동작)
-    //bool StartAutoBattle(Player* P);
-
-    // 레거시: 보스 전투 (Scene 없이 동작)
-    //bool StartBossBattle(Player* P);
+    // ===== 직업 우선 순위 헬퍼 =====
+    int GetJobPriority(ICharacter* character);
 };

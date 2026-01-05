@@ -17,185 +17,64 @@
 #include <Windows.h>
 #include <optional>
 
+// TODO: 로그 찍기, CalculateReward 내부 구현
 
-// ========================================
-// ===== 레거시 인터페이스 (참고용) =====
-// ========================================
-// 과거 구현 담당자를 위한 레거시 코드
-// Scene 기반 시스템으로 전환 예정
+// 코드 흐름, 각 함수 호출은 GM에서 이루어짐?
+//StartBattle / ProcessBattleTurn -> 플레이어 ProcessTurn -> ProcessAttack -> 몬스터 ProcessAttack / EndBattle -> CalculateReward
 
-//bool BattleManager::StartAutoBattle(Player* P)
-//{
-//    if (!P) return false;
-//
-//    DataManager* dm = DataManager::GetInstance();
-//    auto [stage, monsterName] = dm->GetRandomStageAndMonster();
-//    if (stage.empty() || monsterName.empty()) return false;
-//
-//    auto NM = std::make_unique<NormalMonster>(P->GetLevel(), stage, monsterName);
-//    ICharacter* Target = NM.get();
-//    PrintManager::GetInstance()->PrintLogLine(NM->GetStage());
-//    PrintManager::GetInstance()->PrintLogLine(Target->GetName() + "이(가) 출현했습니다.. ");
-//
-//    while (true)
-//    {
-//        // === 플레이어 턴 ===
-//        ProcessTurn(P, Target);
-//        if (Target->IsDead())
-//        {
-//            // 플레이어 승리
-//            PrintManager::GetInstance()->PrintLogLine(P->GetName() + "이(가) " + Target->GetName() + "를 쓰러뜨렸습니다!!");
-//            CalculateReward(P, dynamic_cast<IMonster*>(Target));
-//            P->ResetBuffs();
-//            return true;
-//        }
-//
-//        // === 몬스터 턴 ===
-//        ProcessAttack(Target, P);
-//        if (P->IsDead())
-//        {
-//            PrintManager::GetInstance()->PrintLogLine(P->GetName() + "이(가) 패배했습니다...");
-//            P->ResetBuffs();
-//            return false;
-//        }
-//
-//        // === 라운드 종료 ===
-//        P->ProcessRoundEnd();
-//    }
-//}
 
-//bool BattleManager::StartBossBattle(Player* P)
-//{
-//    if (!P) return false;
-//
-//    std::unique_ptr<Boss> boss = std::make_unique<Boss>(P->GetLevel());
-//
-//    ICharacter* Target = boss.get();
-//    PrintManager::GetInstance()->PrintLogLine("보스 출현");
-//    PrintManager::GetInstance()->PrintLogLine(boss->GetStage());
-//    PrintManager::GetInstance()->PrintLogLine(Target->GetName() + "이(가) 출현했습니다.. ");
-//
-//    while (true)
-//    {
-//        // === 플레이어 턴 ===
-//        ProcessTurn(P, Target);
-//        if (Target->IsDead())
-//        {
-//            // 플레이어 승리
-//            PrintManager::GetInstance()->PrintLogLine(P->GetName() + "이(가) " + Target->GetName() + "를 쓰러뜨렸습니다!!");
-//            P->ResetBuffs();
-//            return true;
-//        }
-//
-//        // === 몬스터 턴 ===
-//        ProcessAttack(Target, P);
-//        if (P->IsDead())
-//        {
-//            PrintManager::GetInstance()->PrintLogLine(P->GetName() + "이(가) 패배했습니다...");
-//            P->ResetBuffs();
-//            return false;
-//        }
-//
-//        // === 라운드 종료 ===
-//        P->ProcessRoundEnd();
-//    }
-//}
-
-void BattleManager::ProcessTurn(ICharacter* Atk, ICharacter* Def)
+void BattleManager::ProcessTurn(ICharacter* Def)
 {
-    // TODO: 팀원 구현 필요 (파티 기반 전투, 직업별 우선순위 등)
     // [Archer → Priest → Warrior → Mage]
 
-    bool turnConsumed = ProcessReservedItems();
-    if (turnConsumed)
-        return; // 이 캐릭터 턴 종료
+    GameManager* gm = GameManager::GetInstance();
+    const auto& party = gm->GetParty();
 
-    
-    //// 현재는 레거시 코드 유지 (참고용)
+    // 정렬용 복사본
+    std::vector<ICharacter*> sortedParty = party;
 
-    //// 자동 아이템 사용: Atk가 Player일 경우에는 인벤토리 검사
-    //Player* _Player = dynamic_cast<Player*>(Atk);
-    //if (_Player)
-    //{
-    //    if (Def->GetCurrentHP() < _Player->GetTotalAtk())
-    //    {
-    //        ProcessAttack(Atk, Def);
-    //        return;
-    //    }
-
-    //    // 인벤토리 접근 (bool + 포인터)
-    //    Inventory* inventory = nullptr;
-    //    if (!_Player->TryGetInventory(inventory))
-    //    {
-    //        ProcessAttack(Atk, Def);
-    //        return;
-    //    }
-
-    //    // 체력이 1/4이하라면 회복 포션 사용 시도
-    //    if (_Player->GetCurrentHP() <= _Player->GetMaxHP() / 4)
-    //    {
-    //        int Slot = inventory->FindFirstSlotIndexOfType<HealPotion>();
-    //        if (Slot != -1) // 회복 포션 탐색 성공
-    //        {
-    //            PrintManager::GetInstance()->PrintLogLine(_Player->GetName() + "이(가) 위험을 감지하고 회복포션을 사용합니다.");
-    //            PrintManager::GetInstance()->PrintLogLine("현재 체력: " + std::to_string(_Player->GetCurrentHP()) + "/" + std::to_string(_Player->GetMaxHP()));
-    //            _Player->UseItem(Slot);
-    //            return;  // 체력 물약은 사용 후 바로 턴 종료
-    //        }
-    //    }
-
-    //    // 상대 HP가 내 공격력보다 높다면 공격력 포션 사용 시도
-    //    if (Def->GetCurrentHP() > _Player->GetTotalAtk())
-    //    {
-    //        int Slot = inventory->FindFirstSlotIndexOfType<AttackUp>();
-    //        if (Slot != -1) // 공격력 포션 탐색 성공
-    //        {
-    //            PrintManager::GetInstance()->PrintLogLine(_Player->GetName() + "이(가) 전술적으로 공격력 포션을 사용합니다.");
-    //            PrintManager::GetInstance()->PrintLogLine("공격력: " + std::to_string(_Player->GetAtk()));
-    //            _Player->UseItem(Slot);
-    //            ProcessAttack(Atk, Def);
-    //            return;
-    //        }
-    //    }
-
-    //    // 일반 공격
-    //    ProcessAttack(Atk, Def);
-    //}
-    //else
-    //{
-    //    // Atk가 Player가 아닌 경우(몬스터 등)에는 아이템 사용 없음
-    //    ProcessAttack(Atk, Def);
-    //}
+    // 직업 우선순위 정렬
+    std::sort(sortedParty.begin(), sortedParty.end(),
+        [](ICharacter* a, ICharacter* b)
+        {
+            return GetJobPriority(a) < GetJobPriority(b);
+        });
+    // TODO: 로그 처리 수정 필요
+    PrintManager::GetInstance()->EndLine();
+    PrintManager::GetInstance()->PrintLogLine(
+        "=== 플레이어 턴 시작 ===",
+        ELogImportance::DISPLAY
+    );
+    // 파티 돌아가면서 공격 진행
+    for (ICharacter* member : sortedParty)
+    {
+        if (!member || member->IsDead())
+            continue;
+        // 1️ 예약 아이템 우선 처리
+        bool turnConsumed = ProcessReservedItems();
+        if (turnConsumed)
+        {
+            PrintManager::GetInstance()->PrintLogLine(
+                member->GetName() + "은(는) 아이템 사용으로 턴 종료",
+                ELogImportance::DISPLAY
+            );
+            continue;
+        }
+        // 2️ 공격 진행
+        ProcessAttack(member, Def);
+    }
 }
 
 void BattleManager::ProcessAttack(ICharacter* Atk, ICharacter* Def)
 {
-    // TODO: 팀원 구현 필요 (파티 공격 시스템 등)
-    // 현재는 레거시 코드 유지 (참고용)
-
     // 실제 피해 계산은 Attack 구현체가 담당
-    int _BeforeHP = Def->GetCurrentHP();
-    Atk->Attack(Def);
-    int Damage = _BeforeHP - Def->GetCurrentHP();
-
-    // 연출 출력
-    PrintManager::GetInstance()->PrintLogLine(Atk->GetAttackNarration());
-
-    // 버프 정보 포함한 피해 로그
-    Player* _Player = dynamic_cast<Player*>(Atk);
-    std::string damageInfo = " | 피해: " + std::to_string(Damage);
-
-    // 플레이어가 버프 상태라면 표시
-    if (_Player && _Player->GetTotalAtk() > _Player->GetAtk())
-    {
-        int BuffBonus = _Player->GetTotalAtk() - _Player->GetAtk();
-        damageInfo += " (버프 +" + std::to_string(BuffBonus) + ")";
-    }
-
-    std::string msg = Atk->GetName() + "의 공격" + damageInfo
-        + " | 남은 체력[" + Def->GetName() + "]: " + std::to_string(Def->GetCurrentHP()) + "/" + std::to_string(Def->GetMaxHP());
-    PrintManager::GetInstance()->PrintLogLine(msg);
-    Sleep(30);
+    // Attack은 공격명, 공격량 반환
+    // 데미지 호출 후 피해 계산은 데미지 함수에서 담당, 실제 피해량 반환
+    std::tuple<std::string, int> attackResult = Atk->Attack(Def);
+    // TODO: 공격 로그 출력, 어떤 공격을 얼마나 했는지.
+    int Damage = Def->TakeDamage(std::get<1>(attackResult));
+    // TODO: 피해량 로그 출력
+    
 }
 
 void BattleManager::CalculateReward(Player* P, IMonster* M)
@@ -351,7 +230,7 @@ bool BattleManager::StartBattle(EBattleType type, int Floor)
     }
     else
     {
-        // ✅ Normal + Elite 공용
+        // Normal + Elite 공용
         _CurrentMonster = std::make_unique<NormalMonster>(data);
     }
 
@@ -421,7 +300,7 @@ void BattleManager::EndBattle()
 
 bool BattleManager::ProcessBattleTurn()
 {
-    // TODO: 팀원 구현 필요
+    // 한 턴 처리 함수, 플레이어 > 몬스터 순서로 진행, 배틀 종료 시 false 반환
     // 1. 전투 중이 아니거나 몬스터가 없으면 false 반환
     if(!_IsBattleActive || !_CurrentMonster)
         return false;
@@ -432,17 +311,30 @@ bool BattleManager::ProcessBattleTurn()
     // 4. GameManager에서 메인 플레이어 가져오기
     GameManager* gm = GameManager::GetInstance();
     Player* mainPlayer = gm->GetMainPlayer().get();
-    // 5. 플레이어 턴: ProcessTurn(Player, Monster)
-    
+    // 5. 플레이어 턴: ProcessTurn(Monster)
+    ProcessTurn(_CurrentMonster.get());
     // 6. 몬스터 사망 확인
-    //- 사망 시: _Result.Victory = true, IsCompleted = true, 승리 메시지 출력, false 반환
+    //- 사망 시: _Result.Victory = true, IsCompleted = true, 승리 메시지 출력, true 반환
+    if(_CurrentMonster->IsDead())
+    {
+        _Result.Victory = true;
+        _Result.IsCompleted = true;
+        PrintManager::GetInstance()->PrintLogLine("몬스터를 물리쳤습니다! 전투에서 승리했습니다!", ELogImportance::DISPLAY);
+        return false;
+    }
     // 7. 몬스터 턴: ProcessAttack(Monster, Player)
+    ProcessAttack(_CurrentMonster.get(), mainPlayer);
     // 8. 플레이어 사망 확인
     //    - 사망 시: _Result.Victory = false, IsCompleted = true, 패배 메시지 출력, false 반환
-    // 9. 라운드 종료: 파티 전체 ProcessRoundEnd()
+    if(mainPlayer->IsDead())
+    {
+        _Result.Victory = false;
+        _Result.IsCompleted = true;
+        PrintManager::GetInstance()->PrintLogLine("파티가 전멸했습니다... 전투에서 패배했습니다.", ELogImportance::DISPLAY);
+        return false;
+    }
     // 10. 전투 계속: true 반환
-
-    return false;  // TODO: 구현 후 실제 결과 반환
+    return true;  // TODO: 구현 후 실제 결과 반환
 }
 
 // ========================================
@@ -528,9 +420,9 @@ bool BattleManager::CancelItemReservation(Player* player, int slotIndex)
     return false;
 }
 
-void BattleManager::ProcessReservedItems()
+bool BattleManager::ProcessReservedItems()
 {
-    if (_ItemReservations.empty()) return;
+    if (_ItemReservations.empty()) return false;
 
     PrintManager::GetInstance()->EndLine();
     PrintManager::GetInstance()->PrintLogLine("=== 예약된 아이템 처리 중 ===", ELogImportance::DISPLAY);
@@ -585,6 +477,7 @@ void BattleManager::ProcessReservedItems()
 
         // 예약 완료 → 비활성화
         reservation.IsActive = false;
+        return true;  // 아이템 사용으로 턴 소모
     }
 
     // 비활성화된 예약 정리
@@ -595,4 +488,16 @@ void BattleManager::ProcessReservedItems()
     );
 
     PrintManager::GetInstance()->EndLine();
+    return false;  // 아이템 사용 없음 → 턴 미소모
+}
+
+// 직업 우선순위 반환 함수
+int GetJobPriority(ICharacter* character)
+{
+    if (dynamic_cast<Archer*>(character))  return 0;
+    if (dynamic_cast<Priest*>(character))  return 1;
+    if (dynamic_cast<Warrior*>(character)) return 2;
+    if (dynamic_cast<Mage*>(character))    return 3;
+
+    return 99; // 예외 / 알 수 없는 타입
 }
