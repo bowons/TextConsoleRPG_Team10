@@ -492,16 +492,16 @@ void CharacterSelectScene::HandleInput()
           // 선택된 직업 데이터로 플레이어 스탯 설정
           const ClassData& selectedClass = _ClassDataList[_CurrentSelection];
 
-          player->ModifyMaxHP(selectedClass._HP - player->GetMaxHP());
-          player->ModifyHP(selectedClass._HP);  // 현재 HP도 최대치로
-          player->ModifyMaxMP(selectedClass._MP - player->GetMaxMP());
-          player->ModifyMP(selectedClass._MP);  // 현재 MP도 최대치로
-          player->ModifyAtk(selectedClass._Atk - player->GetAtk());
-          player->ModifyDef(selectedClass._Def - player->GetDef());
-          player->ModifyDex(selectedClass._Dex - player->GetDex());
-          player->ModifyLuk(selectedClass._Luk - player->GetLuk());
+          player->ModifyMaxHP(selectedClass._HP);
+          player->ModifyHP(selectedClass._HP);
+          player->ModifyMaxMP(selectedClass._MP);
+          player->ModifyMP(selectedClass._MP);
+          player->ModifyAtk(selectedClass._Atk);
+          player->ModifyDef(selectedClass._Def);
+          player->ModifyDex(selectedClass._Dex);
+          player->ModifyLuk(selectedClass._Luk);
           player->ModifyCriticalRate(selectedClass._CriticalRate -
-                                     player->GetCriticalRate());
+                                     player->GetCriticalRate()); // 기본 값이 존재하므로 조정
 
           // GameManager에 플레이어 등록 (shared_ptr로 변환)
           GameManager* gm = GameManager::GetInstance();
