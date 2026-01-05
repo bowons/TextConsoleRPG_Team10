@@ -134,6 +134,8 @@
   <ItemGroup>
     <!-- Core -->
     <ClInclude Include="include\Config.h" />
+    <ClInclude Include="include\Data\StageData.h" />
+    <ClInclude Include="include\Manager\StageManager.h" />
     <ClInclude Include="include\Singleton.h" />
     <!-- Common -->
     <ClInclude Include="include\Common\TextColor.h" />
@@ -188,6 +190,8 @@
   <ItemGroup>
     <!-- Main -->
     <ClCompile Include="Main.cpp" />
+    <ClCompile Include="src\Manager\StageManager.cpp" />
+    <ClCompile Include="src\UI\Scenes\StageSelectScene.cpp" />
     <ClCompile Include="UIDrawer_TestExample.cpp" />
     <!-- Factory -->
     <ClCompile Include="src\Factory\ItemFactory.cpp" />
@@ -222,7 +226,6 @@
     <ClCompile Include="src\UI\Scenes\PlayerNameInputScene.cpp" />
     <ClCompile Include="src\UI\Scenes\ResultScene.cpp" />
     <ClCompile Include="src\UI\Scenes\ShopScene.cpp" />
-    <ClCompile Include="src\UI\Scenes\StageSelectScene.cpp" />
     <ClCompile Include="src\UI\Scenes\StoryProgressScene.cpp" />
     <!-- Unit -->
     <ClCompile Include="src\Unit\Boss.cpp" />
@@ -231,9 +234,21 @@
   </ItemGroup>
   <!-- Documentation -->
   <ItemGroup>
+    <None Include="docs\StageSelectScene_Guide.md" />
     <None Include="ITEM_RESERVATION_USAGE.md" />
     <None Include="PROJECT_GUIDELINE.md" />
     <None Include="QUICK_REFERENCE.md" />
+    <None Include="Resources\Stages\Floor1.csv" />
+    <None Include="Resources\Stages\Floor10.csv" />
+    <None Include="Resources\Stages\Floor2.csv" />
+    <None Include="Resources\Stages\Floor3.csv" />
+    <None Include="Resources\Stages\Floor4.csv" />
+    <None Include="Resources\Stages\Floor5.csv" />
+    <None Include="Resources\Stages\Floor6.csv" />
+    <None Include="Resources\Stages\Floor7.csv" />
+    <None Include="Resources\Stages\Floor8.csv" />
+    <None Include="Resources\Stages\Floor9.csv" />
+    <None Include="Resources\Stages\FloorInfo.csv" />
     <None Include="SCENE_IMPLEMENTATION_GUIDE.md" />
     <None Include="UIDrawer_Flowchart.md" />
   </ItemGroup>

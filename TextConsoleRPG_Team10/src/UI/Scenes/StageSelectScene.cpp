@@ -5,9 +5,16 @@
 #include "../../../include/UI/AsciiArtRenderer.h"
 #include "../../../include/Manager/InputManager.h"
 #include "../../../include/Manager/SceneManager.h"
+#include "../../../include/Manager/StageManager.h"
+#include "../../../include/Manager/BattleManager.h"
 #include "../../../include/Manager/GameManager.h"
 #include "../../../include/Manager/DataManager.h"
 #include "../../../include/Common/TextColor.h"
+#include "../../../include/Unit/Player.h"
+#include "../../../include/Item/Inventory.h"
+#include "../../../include/Item/IItem.h"
+#include <algorithm>
+#include <set>
 
 StageSelectScene::StageSelectScene()
     : UIScene("StageSelect")
@@ -28,140 +35,225 @@ void StageSelectScene::Enter()
     _IsActive = true;
     _SelectedNodeIndex = 0;
 
-    // 임시: 노드 생성 (실제로는 StageManager나 GameManager에서 가져와야 함)
-    _CurrentNodes.clear();
-    _CurrentNodes.push_back({ ENodeType::Battle, "전투", 0 });
-    _CurrentNodes.push_back({ ENodeType::Shop, "상점", 1 });
-    _CurrentNodes.push_back({ ENodeType::Companion, "동료 영입", 2 });
+    StageManager* stageMgr = StageManager::GetInstance();
+    const StageFloorData* floorInfo = stageMgr->GetCurrentFloorInfo();
 
-    // =============================================================================
-    // 패널 레이아웃 (150x45 화면 기준)
-    // =============================================================================
+    // ===== 선택 가능한 노드 초기화 =====
+    RefreshAvailableNodes();
 
     // ===== 타이틀 패널 (상단) =====
-    Panel* titlePanel = _Drawer->CreatePanel("Title", 10, 2, 130, 6);
-    titlePanel->SetBorder(true, ETextColor::LIGHT_CYAN);
+    Panel* titlePanel = _Drawer->CreatePanel("Title", 2, 1, 120, 5);
+    titlePanel->SetBorder(true, ETextColor::LIGHT_YELLOW);
 
     auto titleText = std::make_unique<TextRenderer>();
-    titleText->AddLine("");
-    titleText->AddLine("");
-    titleText->AddLineWithColor("     [층수 _ 스테이지 진입 관련 문구]",
-        MakeColorAttribute(ETextColor::LIGHT_CYAN, EBackgroundColor::BLACK));
+    std::string title = "[  " + std::to_string(floorInfo->Floor) + "층 - " + floorInfo->Description + "  ]";
+    titleText->AddLineWithColor(title,
+        MakeColorAttribute(ETextColor::BLACK, EBackgroundColor::WHITE));
 
-    titlePanel->SetContentRenderer(std::move(titleText));
+    titlePanel->AddRenderer(50, 1, 100, 3, std::move(titleText));
     titlePanel->Redraw();
 
-    // TODO: 타이틀 동적 업데이트
-    // _CurrentStageLevel에 따라 "1층", "2층" 등 표시
-
     // ===== 진행 안내 패널 (상단 중앙) =====
-    Panel* guidePanel = _Drawer->CreatePanel("Guide", 10, 10, 130, 6);
+    Panel* guidePanel = _Drawer->CreatePanel("Guide", 2, 6, 120, 5);
     guidePanel->SetBorder(true, ETextColor::YELLOW);
 
-    auto guideText = std::make_unique<TextRenderer>();
-    guideText->AddLine("");
-    guideText->AddLineWithColor("  [진두 현황 문구] - 진두 총 n번, 일반 몹 n마리, 이벤트는 n마리 이하",
-        MakeColorAttribute(ETextColor::LIGHT_YELLOW, EBackgroundColor::BLACK));
-
-    guidePanel->SetContentRenderer(std::move(guideText));
-    guidePanel->Redraw();
-
-    // TODO: 진행 현황 동적 업데이트
-    // 현재까지 진행한 전투 수, 처치한 몹 수 등 표시
+    UpdateGuidePanel(guidePanel);
 
     // ===== 스테이지 진입 분할 노드 (중앙) =====
-    Panel* nodePanel = _Drawer->CreatePanel("Nodes", 10, 18, 130, 25);
-    nodePanel->SetBorder(true, ETextColor::CYAN);
+    Panel* nodePanel = _Drawer->CreatePanel("Nodes", 2, 11, 120, 20);
+    nodePanel->SetBorder(true, ETextColor::WHITE);
 
-    auto nodeText = std::make_unique<TextRenderer>();
-    nodeText->AddLine("");
-    nodeText->AddLine("");
-    nodeText->AddLine("");
-    nodeText->AddLine("     [스테이지 진입 분할 노드]");
-    nodeText->AddLine("");
-    nodeText->SetTextColor(MakeColorAttribute(ETextColor::DARK_GRAY, EBackgroundColor::BLACK));
+    RenderStageMap(nodePanel);
 
-    nodePanel->SetContentRenderer(std::move(nodeText));
-    nodePanel->Redraw();
+    // ===== 타워 패널 (우측) =====
+    Panel* towerPanel = _Drawer->CreatePanel("Tower", 122, 1, 30, 30);
+    auto towerArt = std::make_unique<AsciiArtRenderer>();
+    std::string uiPath = DataManager::GetInstance()->GetResourcePath("UI");
 
-    // TODO: 노드 목록 동적 표시
-    // _CurrentNodes를 순회하며 선택 가능한 노드들을 표시합니다.
-    //
-    // 구현 방법:
-    // Panel* nodePanel = _Drawer->GetPanel("Nodes");
-  // auto nodeText = std::make_unique<TextRenderer>();
-    //
-    // nodeText->AddLine("");
-    // nodeText->AddLine("  선택 가능한 경로:");
-    // nodeText->AddLine("");
-    //
-    // for (size_t i = 0; i < _CurrentNodes.size(); ++i) {
-    //     std::string nodeIcon = "";
-    //     ETextColor nodeColor = ETextColor::WHITE;
-    //
-    //     switch (_CurrentNodes[i].Type) {
-    //     case ENodeType::Battle:
-  //         nodeIcon = "⚔";
-    //         nodeColor = ETextColor::LIGHT_RED;
-    //         break;
-    //     case ENodeType::Shop:
-    //    nodeIcon = "🛒";
-    //nodeColor = ETextColor::LIGHT_YELLOW;
-    //break;
-    //     case ENodeType::Companion:
-    //         nodeIcon = "👤";
-    //         nodeColor = ETextColor::LIGHT_GREEN;
-    //       break;
-    //   case ENodeType::Boss:
-    //  nodeIcon = "💀";
-    // nodeColor = ETextColor::LIGHT_MAGENTA;
-    //         break;
-    //     }
-    //
- //  std::string prefix = (i == _SelectedNodeIndex) ? "> " : "  ";
-    //     std::string nodeLine = prefix + nodeIcon + " " + _CurrentNodes[i].Name;
-    //
-  //     if (i == _SelectedNodeIndex) {
-    //       nodeText->AddLineWithColor(nodeLine,
-  //     MakeColorAttribute(ETextColor::LIGHT_YELLOW, ...));
-    //     } else {
-    //         nodeText->AddLineWithColor(nodeLine,
-    //             MakeColorAttribute(nodeColor, ...));
-  //     }
-    //     nodeText->AddLine("");
-    // }
-    //
-    // nodePanel->SetContentRenderer(std::move(nodeText));
-    // nodePanel->Redraw();
+    bool towerLoaded = towerArt->LoadFromFile(uiPath, "Tower.txt");
+
+    if (towerLoaded)
+    {
+        towerArt->SetAlignment(ArtAlignment::CENTER);
+        towerArt->SetColor(ETextColor::WHITE);
+        towerPanel->SetContentRenderer(std::move(towerArt));
+    }
+    else
+    {
+        auto errorText = std::make_unique<TextRenderer>();
+        errorText->AddLine("");
+        errorText->AddLine("");
+        errorText->AddLineWithColor("[ Tower.txt not found ]", static_cast<WORD>(ETextColor::LIGHT_RED));
+        errorText->AddLine("");
+        errorText->SetTextColor(static_cast<WORD>(ETextColor::LIGHT_YELLOW));
+        towerPanel->SetContentRenderer(std::move(errorText));
+    }
+    UpdateTowerArrow(towerPanel, floorInfo->Floor);
 
     // ===== 진입 방식 및 키 설명 (하단) =====
-    Panel* controlPanel = _Drawer->CreatePanel("Control", 10, 44, 90, 6);
+    Panel* controlPanel = _Drawer->CreatePanel("Control", 2, 31, 120, 3);
     controlPanel->SetBorder(true, ETextColor::LIGHT_CYAN);
 
     auto controlText = std::make_unique<TextRenderer>();
-    controlText->AddLine("");
-    controlText->AddLineWithColor("  [진입 방식 및 키 설명]",
-        MakeColorAttribute(ETextColor::LIGHT_CYAN, EBackgroundColor::BLACK));
-    controlText->AddLine("");
-    controlText->AddLine("  [↑/↓] 선택   [Enter] 진입   [ESC] 메인 메뉴");
+    controlText->AddLineWithColor("  [진입 방식 및 키 설명]   [←/→/↑/↓] 선택   [Enter] 진입   [ESC] 메인 메뉴",
+        MakeColorAttribute(ETextColor::WHITE, EBackgroundColor::BLACK));
 
-    controlPanel->SetContentRenderer(std::move(controlText));
+    controlPanel->AddRenderer(20, 0, 100, 3, std::move(controlText));
     controlPanel->Redraw();
 
-    // ===== 인벤토리 & 커맨드 패널 (하단 우측) =====
-    Panel* commandPanel = _Drawer->CreatePanel("Command", 103, 44, 37, 6);
-    commandPanel->SetBorder(true, ETextColor::WHITE);
+    // ===== 인벤토리 & 시스템 로그 패널 (하단 우측) =====
+    Panel* systemPanel = _Drawer->CreatePanel("System", 2, 34, 100, 11);
+    systemPanel->SetBorder(true, ETextColor::WHITE);
 
-    auto commandText = std::make_unique<TextRenderer>();
-    commandText->AddLine("");
-    commandText->AddLineWithColor("  인벤토리 & 커맨드",
-        MakeColorAttribute(ETextColor::LIGHT_YELLOW, EBackgroundColor::BLACK));
-    commandText->AddLine("");
+    std::vector<std::string> initialLogs = {
+        "[디버그] StageSelectScene 진입",
+     "",
+  "[정보] 다음 스테이지를 선택하세요.",
+        "[성공] 게임을 시작합니다."
+    };
+    UpdateSystemLog(systemPanel, initialLogs);
 
-    commandPanel->SetContentRenderer(std::move(commandText));
-    commandPanel->Redraw();
+    Panel* inventoryPanel = _Drawer->CreatePanel("Inventory", 102, 34, 47, 11);
+    inventoryPanel->SetBorder(true, ETextColor::WHITE);
+
+    UpdateInventoryPanel(inventoryPanel);
 
     _Drawer->Render();
+}
+
+void StageSelectScene::UpdateTowerArrow(Panel* towerPanel, int currentFloor)
+{
+    auto arrowRenderer = std::make_unique<TextRenderer>();
+
+    const int towerHeight = 25;
+    const int maxFloor = 10;
+    const int topMargin = 6;
+    const int bottomMargin = 0;
+    const int usableHeight = towerHeight - topMargin - bottomMargin;
+
+    int arrowLine = topMargin + ((maxFloor - currentFloor) * usableHeight / maxFloor);
+
+    for (int i = 0; i < arrowLine; ++i)
+    {
+        arrowRenderer->AddLine("");
+    }
+
+    arrowRenderer->AddLineWithColor("*----►",
+        MakeColorAttribute(ETextColor::LIGHT_YELLOW, EBackgroundColor::BLACK));
+
+    towerPanel->AddRenderer(0, 0, 5, towerHeight, std::move(arrowRenderer));
+    towerPanel->Redraw();
+}
+
+void StageSelectScene::UpdateSystemLog(Panel* systemPanel, const std::vector<std::string>& messages)
+{
+    if (!systemPanel) return;
+
+    auto logText = std::make_unique<TextRenderer>();
+    logText->AddLineWithColor("[ 시스템 로그 ]",
+        MakeColorAttribute(ETextColor::LIGHT_YELLOW, EBackgroundColor::BLACK));
+
+    int maxLines = 8;
+    int messageSize = static_cast<int>(messages.size());
+    int displayCount = (messageSize < maxLines) ? messageSize : maxLines;
+
+    for (int i = 0; i < displayCount; ++i)
+    {
+        if (messages[i].empty())
+        {
+            logText->AddLine("");
+            continue;
+        }
+
+        WORD color;
+        if (messages[i].find("[디버그]") != std::string::npos)
+            color = MakeColorAttribute(ETextColor::DARK_GRAY, EBackgroundColor::BLACK);
+        else if (messages[i].find("[경고]") != std::string::npos || messages[i].find("[오류]") != std::string::npos)
+            color = MakeColorAttribute(ETextColor::LIGHT_RED, EBackgroundColor::BLACK);
+        else if (messages[i].find("[성공]") != std::string::npos)
+            color = MakeColorAttribute(ETextColor::LIGHT_GREEN, EBackgroundColor::BLACK);
+        else if (messages[i].find("[정보]") != std::string::npos)
+            color = MakeColorAttribute(ETextColor::LIGHT_CYAN, EBackgroundColor::BLACK);
+        else
+            color = MakeColorAttribute(ETextColor::WHITE, EBackgroundColor::BLACK);
+
+        logText->AddLineWithColor(messages[i], color);
+    }
+
+    systemPanel->ClearRenderers();
+    systemPanel->AddRenderer(0, 0, 98, 9, std::move(logText));
+    systemPanel->Redraw();
+}
+
+void StageSelectScene::UpdateInventoryPanel(Panel* inventoryPanel)
+{
+    if (!inventoryPanel) return;
+
+    auto inventoryText = std::make_unique<TextRenderer>();
+
+    Player* player = GameManager::GetInstance()->GetMainPlayer().get();
+
+    if (!player)
+    {
+        inventoryText->AddLineWithColor("[ 인벤토리 ]",
+            MakeColorAttribute(ETextColor::LIGHT_YELLOW, EBackgroundColor::BLACK));
+        inventoryText->AddLineWithColor("플레이어 정보를 불러올 수 없습니다.",
+            MakeColorAttribute(ETextColor::LIGHT_RED, EBackgroundColor::BLACK));
+
+        inventoryPanel->ClearRenderers();
+        inventoryPanel->AddRenderer(0, 0, 45, 9, std::move(inventoryText));
+        inventoryPanel->Redraw();
+        return;
+    }
+
+    Inventory* inventory = nullptr;
+    if (!player->TryGetInventory(inventory) || !inventory)
+    {
+        inventoryText->AddLineWithColor("[ 인벤토리 ]",
+            MakeColorAttribute(ETextColor::LIGHT_YELLOW, EBackgroundColor::BLACK));
+        inventoryText->AddLineWithColor("인벤토리가 비활성화되어 있습니다.",
+            MakeColorAttribute(ETextColor::DARK_GRAY, EBackgroundColor::BLACK));
+
+        inventoryPanel->ClearRenderers();
+        inventoryPanel->AddRenderer(0, 0, 45, 9, std::move(inventoryText));
+        inventoryPanel->Redraw();
+        return;
+    }
+
+    int usedSlots = 0;
+    const int maxSlots = 5;
+    for (int i = 0; i < maxSlots; ++i)
+    {
+        if (inventory->GetItemAtSlot(i) != nullptr)
+            usedSlots++;
+    }
+
+    std::string header = "[ 인벤토리 (" + std::to_string(usedSlots) + "/" + std::to_string(maxSlots) + ") ]";
+    inventoryText->AddLineWithColor(header,
+        MakeColorAttribute(ETextColor::LIGHT_YELLOW, EBackgroundColor::BLACK));
+
+    for (int i = 0; i < maxSlots; ++i)
+    {
+        IItem* item = inventory->GetItemAtSlot(i);
+        if (item)
+        {
+            int amount = inventory->GetSlotAmount(i);
+            std::string itemLine = std::to_string(i + 1) + ". " +
+                item->GetName() + " x" + std::to_string(amount);
+            inventoryText->AddLineWithColor(itemLine,
+                MakeColorAttribute(ETextColor::WHITE, EBackgroundColor::BLACK));
+        }
+        else
+        {
+            std::string emptyLine = std::to_string(i + 1) + ". [빈 슬롯]";
+            inventoryText->AddLineWithColor(emptyLine,
+                MakeColorAttribute(ETextColor::DARK_GRAY, EBackgroundColor::BLACK));
+        }
+    }
+
+    inventoryPanel->ClearRenderers();
+    inventoryPanel->AddRenderer(0, 0, 45, 9, std::move(inventoryText));
+    inventoryPanel->Redraw();
 }
 
 void StageSelectScene::Exit()
@@ -185,66 +277,566 @@ void StageSelectScene::Render()
     // UIDrawer::Update()에서 자동 렌더링
 }
 
+std::string StageSelectScene::GetNodeIcon(ENodeType type) const
+{
+    switch (type)
+    {
+    case ENodeType::Start:  return "[★]";
+    case ENodeType::Battle: return "[ N ]";
+    case ENodeType::Elite:  return "[ E ]";
+    case ENodeType::Boss:   return "[ B ]";
+    case ENodeType::Event:  return "[ ? ]";
+    case ENodeType::Empty:  return "[ - ]";
+    case ENodeType::Exit:   return "[UP]";
+    default: return "[?]";
+    }
+}
+
+std::string StageSelectScene::GetNodeIcon(const NodeData* node) const
+{
+    if (!node) return "[?]";
+
+    if (node->Type == ENodeType::Battle)
+    {
+        if (node->EnemyType == "Elite")
+            return "[ E ]";
+        else if (node->EnemyType == "Boss")
+            return "[ B ]";
+        else
+            return "[ N ]";
+    }
+
+    switch (node->Type)
+    {
+    case ENodeType::Start:  return "[★]";
+    case ENodeType::Event:  return "[ ? ]";
+    case ENodeType::Empty:  return "[ - ]";
+    case ENodeType::Exit:   return "[UP]";
+    default:     return "[?]";
+    }
+}
+
+WORD StageSelectScene::GetNodeColor(const NodeData* node) const
+{
+    if (!node) return MakeColorAttribute(ETextColor::WHITE, EBackgroundColor::BLACK);
+
+    // 기본적으로 모든 노드는 흰색으로 표시 (선택된 노드만 강조 표시)
+    return MakeColorAttribute(ETextColor::WHITE, EBackgroundColor::BLACK);
+}
+
+void StageSelectScene::UpdateGuidePanel(Panel* guidePanel)
+{
+    if (!guidePanel) return;
+
+    auto guideText = std::make_unique<TextRenderer>();
+
+    StageManager* stageMgr = StageManager::GetInstance();
+    const StageProgress& progress = stageMgr->GetProgress();
+
+    std::string stats = "[토벌 현황] 전투: " + std::to_string(progress.TotalBattlesCompleted) + " 회, " +
+        "일반: " + std::to_string(progress.NormalMonstersKilled) + " 마리, " +
+        "엘리트: " + std::to_string(progress.EliteMonstersKilled) + " 마리";
+
+    guideText->AddLineWithColor(stats, MakeColorAttribute(ETextColor::WHITE, EBackgroundColor::BLACK));
+
+    std::string legend = "[★] 현재 위치   [N] 일반   [E] 엘리트   [B] 보스   [?] 이벤트   [-] 빈 노드   [UP] 다음 층";
+    guideText->AddLineWithColor(legend, MakeColorAttribute(ETextColor::DARK_GRAY, EBackgroundColor::BLACK));
+
+    guidePanel->ClearRenderers();
+    guidePanel->AddRenderer(2, 0, 116, 4, std::move(guideText));
+    guidePanel->Redraw();
+}
+
+void StageSelectScene::RenderStageMap(Panel* nodePanel)
+{
+    if (!nodePanel) return;
+
+    StageManager* stageMgr = StageManager::GetInstance();
+    const auto& allNodes = stageMgr->GetCurrentFloorNodes();
+    const NodeData* currentNode = stageMgr->GetCurrentNode();
+
+    if (allNodes.empty())
+    {
+        auto errorText = std::make_unique<TextRenderer>();
+        errorText->AddLineWithColor("맵 데이터를 불러올 수 없습니다.",
+            MakeColorAttribute(ETextColor::LIGHT_RED, EBackgroundColor::BLACK));
+        nodePanel->SetContentRenderer(std::move(errorText));
+        nodePanel->Redraw();
+        return;
+    }
+
+    auto mapText = std::make_unique<TextRenderer>();
+
+    const int horizontalSpacing = 20;  // 노드 간 수평 간격 (연결선 길이)
+    const int verticalSpacing = 2;     // 노드 간 수직 간격
+    const int mapHeight = 14;
+    const int mapWidth = 116;          // 패널 너비 (120 - 테두리 2칸)
+    const int nodeWidth = 7;       // 통일된 노드 너비
+
+    std::vector<std::string> mapLines(mapHeight, std::string(mapWidth, ' '));
+
+    // 맵의 실제 범위 계산
+    int minPosX = 0, maxPosX = 0;
+    int minPosY = 0, maxPosY = 0;
+
+    for (const auto& node : allNodes)
+    {
+        if (node.PosX < minPosX) minPosX = node.PosX;
+        if (node.PosX > maxPosX) maxPosX = node.PosX;
+        if (node.PosY < minPosY) minPosY = node.PosY;
+        if (node.PosY > maxPosY) maxPosY = node.PosY;
+    }
+
+    // 맵의 실제 크기 계산
+    int mapRealWidth = (maxPosX - minPosX) * horizontalSpacing + nodeWidth;
+    int mapRealHeight = (maxPosY - minPosY) * verticalSpacing + 1;
+
+    // 중앙 정렬을 위한 오프셋 계산
+    int baseX = (mapWidth - mapRealWidth) / 2;
+    int baseY = (mapHeight - mapRealHeight) / 2;
+
+    // 최소 여백 보장
+    if (baseX < 5) baseX = 5;
+    if (baseY < 2) baseY = 2;
+
+    int centerY = baseY + (mapRealHeight / 2);
+
+    struct NodePosition
+    {
+        const NodeData* node;
+        int screenX;
+        int screenY;
+        bool isCurrent;
+        bool isSelected;
+        bool isCompleted;
+    };
+
+    std::vector<NodePosition> nodePositions;
+
+    for (const auto& node : allNodes)
+    {
+        // minPosX를 기준으로 상대 위치 계산 (왼쪽 정렬 방지)
+        int screenX = baseX + ((node.PosX - minPosX) * horizontalSpacing);
+        int screenY = centerY + (node.PosY * verticalSpacing);
+
+        if (screenY >= 0 && screenY < mapHeight && screenX >= 0 && screenX + nodeWidth <= mapWidth)
+        {
+            bool isCurrent = currentNode && (node.Id == currentNode->Id);
+            bool isSelected = IsNodeSelected(node.Id);
+            bool isCompleted = stageMgr->IsNodeCompleted(node.Id);
+
+            nodePositions.push_back({ &node, screenX, screenY, isCurrent, isSelected, isCompleted });
+        }
+    }
+
+    // 연결선 그리기
+    for (const auto& nodePos : nodePositions)
+    {
+        for (const auto& connId : nodePos.node->Connections)
+        {
+            auto it = std::find_if(nodePositions.begin(), nodePositions.end(),
+                [&connId](const NodePosition& np) { return np.node->Id == connId; });
+
+            if (it != nodePositions.end())
+            {
+                int x1 = nodePos.screenX;
+                int y1 = nodePos.screenY;
+                int x2 = it->screenX;
+                int y2 = it->screenY;
+
+                int iconEnd = x1 + nodeWidth;
+
+                // 수평선
+                if (y1 == y2)
+                {
+                    int startX = iconEnd;
+                    int endX = x2;
+
+                    if (startX < endX)
+                    {
+                        for (int x = startX; x < endX && x < mapWidth; ++x)
+                        {
+                            if (mapLines[y1][x] == ' ')
+                                mapLines[y1][x] = '-';
+                            else if (mapLines[y1][x] == '|')
+                                mapLines[y1][x] = '+';
+                        }
+                    }
+                }
+                // 수직선 + 수평선
+                else
+                {
+                    int startX = iconEnd;
+                    int direction = (y2 > y1) ? 1 : -1;
+
+                    // 수직선
+                    for (int y = y1 + direction; y != y2; y += direction)
+                    {
+                        if (y >= 0 && y < mapHeight && startX < mapWidth)
+                        {
+                            if (mapLines[y][startX] == ' ')
+                                mapLines[y][startX] = '|';
+                            else if (mapLines[y][startX] == '-')
+                                mapLines[y][startX] = '+';
+                        }
+                    }
+
+                    // 수평선
+                    if (startX < x2)
+                    {
+                        for (int x = startX; x < x2 && x < mapWidth; ++x)
+                        {
+                            if (mapLines[y2][x] == ' ')
+                                mapLines[y2][x] = '-';
+                            else if (mapLines[y2][x] == '|')
+                                mapLines[y2][x] = '+';
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // 노드 아이콘 삽입
+    std::set<int> linesWithExit;
+
+    for (const auto& nodePos : nodePositions)
+    {
+        std::string icon = GetNodeIcon(nodePos.node);
+        int x = nodePos.screenX;
+        int y = nodePos.screenY;
+
+        if (y >= 0 && y < mapHeight)
+        {
+            // Exit 중복 방지
+            if (nodePos.node->Type == ENodeType::Exit)
+            {
+                if (linesWithExit.find(y) != linesWithExit.end())
+                    continue;
+                linesWithExit.insert(y);
+            }
+
+            // 모든 노드를 7자로 통일
+            std::string displayIcon;
+            if (nodePos.isSelected)
+            {
+                displayIcon = ">" + icon + "<";  // >[N]<
+            }
+            else
+            {
+                displayIcon = " " + icon + " ";  //  [N]  
+            }
+
+            if (x + displayIcon.length() <= static_cast<size_t>(mapWidth))
+            {
+                mapLines[y].replace(x, displayIcon.length(), displayIcon);
+            }
+        }
+    }
+
+    // 각 줄을 TextRenderer에 추가
+    for (const std::string& line : mapLines)
+    {
+        bool hasContent = false;
+        for (char c : line)
+        {
+            if (c != ' ')
+            {
+                hasContent = true;
+                break;
+            }
+        }
+
+        if (!hasContent)
+        {
+            mapText->AddLine(line);
+        }
+        else
+        {
+            mapText->AddLineWithColor(line,
+                MakeColorAttribute(ETextColor::WHITE, EBackgroundColor::BLACK));
+        }
+    }
+
+    nodePanel->SetContentRenderer(std::move(mapText));
+    nodePanel->Redraw();
+}
+
 void StageSelectScene::HandleInput()
 {
-    // TODO: 입력 처리 구현
-    //
-    // 구현 방법:
-    // InputManager* input = InputManager::GetInstance();
-  // if (!input->IsKeyPressed()) return;
-   //
-// int keyCode = input->GetKeyCode();
-    //
-    // if (keyCode == VK_UP) {  // ↑ 위로
-    //     _SelectedNodeIndex--;
-    //     if (_SelectedNodeIndex < 0) {
-    //    _SelectedNodeIndex = static_cast<int>(_CurrentNodes.size()) - 1;
-    //     }
-    //
-    //     // 노드 패널 업데이트 (위의 TODO 참고)
-    //     _Drawer->Render();
-    // }
-    // else if (keyCode == VK_DOWN) {  // ↓ 아래로
-    //     _SelectedNodeIndex++;
-    //     if (_SelectedNodeIndex >= static_cast<int>(_CurrentNodes.size())) {
-    //    _SelectedNodeIndex = 0;
-    //  }
-    //
-    //     // 노드 패널 업데이트
-    //     _Drawer->Render();
-    // }
-    // else if (keyCode == VK_RETURN) {  // Enter - 노드 진입
-    //     if (_SelectedNodeIndex >= 0 && _SelectedNodeIndex < _CurrentNodes.size()) {
-    //         ENodeType selectedType = _CurrentNodes[_SelectedNodeIndex].Type;
-    //
-    //    _IsActive = false;
-    //         Exit();
-    //
-    //         // 노드 타입에 따라 씬 전환
-    //       switch (selectedType) {
-    //         case ENodeType::Battle:
-    //             // BattleManager::GetInstance()->StartBattle(...);
-    //             SceneManager::GetInstance()->ChangeScene(ESceneType::Battle);
-    //           break;
-    //         case ENodeType::Shop:
-    //   SceneManager::GetInstance()->ChangeScene(ESceneType::Shop);
-    //   break;
-    //  case ENodeType::Companion:
-    // SceneManager::GetInstance()->ChangeScene(ESceneType::CompanionRecruit);
-    //          break;
-    //         case ENodeType::Boss:
-    //      // BattleManager::GetInstance()->StartBossBattle(...);
-//     SceneManager::GetInstance()->ChangeScene(ESceneType::Battle);
-    //        break;
-    //         case ENodeType::Event:
-  // // EventManager::GetInstance()->TriggerRandomEvent();
-    //     break;
-    //         }
-    //     }
-    // }
-    // else if (keyCode == VK_ESCAPE) {  // ESC - 메인 메뉴
-    //     _IsActive = false;
-    //     Exit();
-    //     SceneManager::GetInstance()->ChangeScene(ESceneType::MainMenu);
-    // }
+    InputManager* input = InputManager::GetInstance();
+    if (!input->IsKeyPressed()) return;
+
+    int keyCode = input->GetKeyCode();
+
+    StageManager* stageMgr = StageManager::GetInstance();
+
+    // ===== ESC: 메인 메뉴로 복귀 =====
+    if (keyCode == VK_ESCAPE)
+    {
+        _IsActive = false;
+        Exit();
+        SceneManager::GetInstance()->ChangeScene(ESceneType::MainMenu);
+        return;
+    }
+
+    // ===== Enter: 노드 진입 =====
+    if (keyCode == VK_RETURN)
+    {
+        if (!_SelectedNodeId.empty())
+        {
+            EnterNode(_SelectedNodeId);
+        }
+        return;
+    }
+
+    // ===== 방향키: 노드 선택 =====
+    if (_AvailableNodeIds.empty())
+    {
+        // 디버깅: 선택 가능한 노드가 없음
+        std::vector<std::string> debugLogs;
+        debugLogs.push_back("[경고] 선택 가능한 노드가 없어서 방향키 입력을 처리할 수 없습니다.");
+
+        Panel* systemPanel = _Drawer->GetPanel("System");
+        if (systemPanel)
+        {
+            UpdateSystemLog(systemPanel, debugLogs);
+        }
+        return;
+    }
+
+    int currentIndex = -1;
+    for (size_t i = 0; i < _AvailableNodeIds.size(); ++i)
+    {
+        if (_AvailableNodeIds[i] == _SelectedNodeId)
+        {
+            currentIndex = static_cast<int>(i);
+            break;
+        }
+    }
+
+    if (currentIndex == -1)
+    {
+        // 현재 선택된 노드가 목록에 없으면 첫 번째 노드 선택
+        currentIndex = 0;
+        _SelectedNodeId = _AvailableNodeIds[0];
+    }
+
+    int newIndex = currentIndex;
+
+    if (keyCode == VK_UP || keyCode == VK_LEFT)
+    {
+        newIndex--;
+        if (newIndex < 0)
+            newIndex = static_cast<int>(_AvailableNodeIds.size()) - 1;
+    }
+    else if (keyCode == VK_DOWN || keyCode == VK_RIGHT)
+    {
+        newIndex++;
+        if (newIndex >= static_cast<int>(_AvailableNodeIds.size()))
+            newIndex = 0;
+    }
+    else
+    {
+        // 방향키가 아닌 다른 키
+        return;
+    }
+
+    if (newIndex != currentIndex)
+    {
+        SelectNode(_AvailableNodeIds[newIndex]);
+    }
+}
+
+bool StageSelectScene::IsNodeSelected(const std::string& nodeId) const
+{
+    return _SelectedNodeId == nodeId;
+}
+
+void StageSelectScene::RefreshAvailableNodes()
+{
+    StageManager* stageMgr = StageManager::GetInstance();
+
+    auto availableNodes = stageMgr->GetAvailableNextNodes();
+
+    _AvailableNodeIds.clear();
+    for (const auto* node : availableNodes)
+    {
+        if (node)
+        {
+            _AvailableNodeIds.push_back(node->Id);
+        }
+    }
+
+    if (!_AvailableNodeIds.empty())
+    {
+        _SelectedNodeId = _AvailableNodeIds[0];
+
+        // 디버깅: 선택 가능한 노드 확인
+        std::vector<std::string> debugLogs;
+        debugLogs.push_back("[디버그] 선택 가능한 노드: " + std::to_string(_AvailableNodeIds.size()) + "개");
+        for (const auto& id : _AvailableNodeIds)
+        {
+            debugLogs.push_back("  - " + id);
+        }
+
+        Panel* systemPanel = _Drawer->GetPanel("System");
+        if (systemPanel)
+        {
+            UpdateSystemLog(systemPanel, debugLogs);
+        }
+    }
+    else
+    {
+        _SelectedNodeId = "";
+
+        // 디버깅: 선택 가능한 노드가 없음
+        std::vector<std::string> debugLogs;
+        debugLogs.push_back("[경고] 선택 가능한 노드가 없습니다!");
+
+        Panel* systemPanel = _Drawer->GetPanel("System");
+        if (systemPanel)
+        {
+            UpdateSystemLog(systemPanel, debugLogs);
+        }
+    }
+}
+
+void StageSelectScene::SelectNode(const std::string& nodeId)
+{
+    if (nodeId.empty()) return;
+
+    _SelectedNodeId = nodeId;
+
+// 맵 패널 강제 재렌더링
+    Panel* nodePanel = _Drawer->GetPanel("Nodes");
+    if (nodePanel)
+    {
+    nodePanel->SetDirty();  // Dirty 플래그 설정
+        RenderStageMap(nodePanel);
+    }
+    
+    // 전체 화면 재렌더링
+    _Drawer->Render();
+
+    StageManager* stageMgr = StageManager::GetInstance();
+    const NodeData* node = stageMgr->FindNodeById(nodeId);
+
+    if (node)
+    {
+    std::vector<std::string> logs;
+
+        std::string nodeTypeStr;
+      if (node->Type == ENodeType::Battle)
+    {
+  if (node->EnemyType == "Elite")
+           nodeTypeStr = "엘리트 전투";
+            else if (node->EnemyType == "Boss")
+       nodeTypeStr = "보스 전투";
+       else
+     nodeTypeStr = "일반 전투";
+        }
+        else if (node->Type == ENodeType::Event)
+  {
+            nodeTypeStr = "이벤트: " + node->EventType;
+        }
+   else if (node->Type == ENodeType::Exit)
+        {
+     nodeTypeStr = "다음 층으로";
+        }
+     else
+        {
+     nodeTypeStr = "알 수 없음";
+        }
+
+        logs.push_back("[정보] 노드 선택: " + nodeTypeStr + " (ID: " + nodeId + ")");
+        logs.push_back("");
+
+        if (stageMgr->IsNodeCompleted(nodeId))
+        {
+            logs.push_back("[경고] 이미 완료한 노드입니다.");
+    }
+  else
+        {
+ logs.push_back("[성공] Enter를 눌러 진입하세요.");
+        }
+
+        Panel* systemPanel = _Drawer->GetPanel("System");
+        if (systemPanel)
+        {
+  UpdateSystemLog(systemPanel, logs);
+        }
+    }
+}
+
+void StageSelectScene::EnterNode(const std::string& nodeId)
+{
+    if (nodeId.empty()) return;
+
+    StageManager* stageMgr = StageManager::GetInstance();
+    const NodeData* node = stageMgr->FindNodeById(nodeId);
+
+    if (!node)
+    {
+        std::vector<std::string> logs = { "[오류] 노드를 찾을 수 없습니다." };
+        Panel* systemPanel = _Drawer->GetPanel("System");
+        if (systemPanel) UpdateSystemLog(systemPanel, logs);
+        return;
+    }
+
+    if (!stageMgr->MoveToNode(nodeId))
+    {
+        std::vector<std::string> logs = { "[경고] 해당 노드로 이동할 수 없습니다." };
+        Panel* systemPanel = _Drawer->GetPanel("System");
+        if (systemPanel) UpdateSystemLog(systemPanel, logs);
+        return;
+    }
+
+    _IsActive = false;
+    Exit();
+
+    SceneManager* sceneMgr = SceneManager::GetInstance();
+
+    switch (node->Type)
+    {
+    case ENodeType::Battle:
+        if (node->EnemyType == "Boss")
+        {
+            BattleManager::GetInstance()->StartBattle(EBattleType::Boss);
+        }
+        else
+        {
+            BattleManager::GetInstance()->StartBattle(EBattleType::Normal);
+        }
+        sceneMgr->ChangeScene(ESceneType::Battle);
+        break;
+
+    case ENodeType::Event:
+        if (node->EventType == "Companion")
+        {
+            sceneMgr->ChangeScene(ESceneType::CompanionRecruit);
+        }
+        break;
+
+    case ENodeType::Exit:
+        if (stageMgr->MoveToNextFloor())
+        {
+            sceneMgr->ChangeScene(ESceneType::StageSelect);
+        }
+        else
+        {
+            sceneMgr->ChangeScene(ESceneType::Result);
+        }
+        break;
+
+    case ENodeType::Empty:
+        RefreshAvailableNodes();
+        SelectNode(_AvailableNodeIds.empty() ? "" : _AvailableNodeIds[0]);
+        _IsActive = true;
+        break;
+
+    default:
+        _IsActive = true;
+        break;
+    }
 }

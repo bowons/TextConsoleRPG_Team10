@@ -1,11 +1,11 @@
 #pragma once
 #include "../Singleton.h"
+#include "../Unit/IMonster.h"
 #include <memory>
 #include <string>
 #include <vector>
 
 class Player;
-class IMonster;
 class ICharacter;
 
 // ===== 전투 결과 구조체 =====

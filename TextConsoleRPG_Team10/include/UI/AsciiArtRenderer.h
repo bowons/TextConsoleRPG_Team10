@@ -50,6 +50,9 @@ public:
         float frameDuration = 0.5f,
         const std::string& extension = ".txt");
 
+    // JSON 파일에서 애니메이션 로드
+    bool LoadAnimationFromJson(const std::string& folderPath, const std::string& fileName);
+
     // 아트 클리어
     void Clear();
 

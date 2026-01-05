@@ -30,6 +30,8 @@ int main()
     // 1. 콘솔 인코딩 설정
     SetConsoleOutputCP(65001);
 
+    //RunUIDrawerTest();
+
     // 2. 콘솔 창 크기 고정
     SetConsoleWindowSize(150, 45);
 

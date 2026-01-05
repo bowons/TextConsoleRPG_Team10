@@ -15,7 +15,7 @@ private:
     int _MaxSlots; //최대 슬롯 수
 
     int FindEmptySlotIndex() const; //빈 슬롯 인덱스 찾기
-  int FindItemSlotIndex(IItem* item) const; //특정 아이템이 든 슬롯 인덱스 찾기
+    int FindItemSlotIndex(IItem* item) const; //특정 아이템이 든 슬롯 인덱스 찾기
 
 public:
     //생성자

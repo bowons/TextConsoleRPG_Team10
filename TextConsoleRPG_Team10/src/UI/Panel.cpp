@@ -19,11 +19,13 @@ void Panel::SetContentRenderer(std::unique_ptr<IContentRenderer> renderer)
     _RendererRegions.clear();
     
     if (renderer) {
-        // 패널 전체 영역 (테두리 고려)
-        int contentX = _HasBorder ? 1 : 0;
-        int contentY = _HasBorder ? 1 : 0;
-        int contentWidth = _HasBorder ? _Bounds.Width - 2 : _Bounds.Width;
-        int contentHeight = _HasBorder ? _Bounds.Height - 2 : _Bounds.Height;
+        // 패널 전체 영역 (테두리 무시 - AddRenderer처럼 정확한 제어)
+        // X, Y 오프셋 없음 (0, 0부터 시작)
+        // Width, Height도 테두리 제외 없음 (패널 전체 크기)
+        int contentX = 0;
+        int contentY = 0;
+        int contentWidth = _Bounds.Width;
+        int contentHeight = _Bounds.Height;
         
         AddRenderer(contentX, contentY, contentWidth, contentHeight, std::move(renderer));
     }

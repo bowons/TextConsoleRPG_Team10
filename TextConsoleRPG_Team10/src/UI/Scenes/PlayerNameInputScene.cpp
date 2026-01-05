@@ -79,16 +79,16 @@ void PlayerNameInputScene::HandleInput()
 {
     // InputManager를 통해 좌표 기반 입력 (동기/블로킹)
     // Panel 위치: (35, 25)
-    // 테두리: +1 → (36, 26)
-    // 첫 줄 (빈 줄): 26 - 7
-    // 둘째 줄 ("[...]"): 28
-    // 셋째 줄 (빈 줄): 29
-    // 넷째 줄 ("> "): 30
-    // "      > " = 공백 6칸 + "> " 2칸 → X: 36 + 6 + 2 = 44
+    // SetContentRenderer는 이제 (0, 0)부터 시작 (여백 없음)
+    // 테두리는 렌더러가 덮어쓰므로 무시
+    // 첫 줄 (빈 줄): 25
+    // 둘째 줄 ("[...]"): 26
+    // 셋째 줄 (빈 줄): 27
+    // 넷째 줄 ("> "): 28
+    // "      > " = 공백 6칸 + "> " 2칸 → X: 35 + 6 + 2 = 43
 
     // maxLength = 10: 최대 10칸 (영문 10자 또는 한글 5자)
-    // 10자 넘어가면 짤립니다.
-    _PlayerName = _Input->GetInputAt(44, 30, 10, true);
+    _PlayerName = _Input->GetInputAt(43, 29, 10, true);
 
     // 빈 이름 처리
     if (_PlayerName.empty())
@@ -137,5 +137,5 @@ void PlayerNameInputScene::ShowConfirmation()
     Exit();
 
     // BattleScene 테스트를 위해 바로 전환
-    SceneManager::GetInstance()->ChangeScene(ESceneType::StoryProgress);
+    SceneManager::GetInstance()->ChangeScene(ESceneType::StageSelect);
 }

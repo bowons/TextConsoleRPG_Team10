@@ -1,6 +1,8 @@
 #include "../../include/Manager/GameManager.h"
 #include "../../include/Manager/PrintManager.h"
 #include "../../include/Manager/SceneManager.h"
+#include "../../include/Manager/StageManager.h"
+#include "../../include/Manager/DataManager.h"
 #include "../../include/UI/UIDrawer.h"
 #include "../../include/UI/Scenes/MainMenuScene.h"
 #include "../../include/UI/Scenes/PlayerNameInputScene.h"
@@ -50,6 +52,26 @@ void GameManager::Initialize()
         "GameManager: 게임 초기화 중...",
         ELogImportance::DISPLAY
     );
+
+    // DataManager 초기화
+    if (!DataManager::GetInstance()->Initialize())
+    {
+        PrintManager::GetInstance()->PrintLogLine(
+         "DataManager 초기화 실패!",
+         ELogImportance::WARNING
+        );
+    return;
+    }
+
+    // StageManager 초기화
+    if (!StageManager::GetInstance()->Initialize())
+    {
+        PrintManager::GetInstance()->PrintLogLine(
+    "StageManager 초기화 실패!",
+      ELogImportance::WARNING
+   );
+        return;
+    }
 
     // UIDrawer 초기화
     UIDrawer* drawer = UIDrawer::GetInstance();

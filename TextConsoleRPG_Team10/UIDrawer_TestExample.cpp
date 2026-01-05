@@ -367,7 +367,7 @@ void TestScene_Colors()
     inputMgr->GetKeyCode(); // 키 소비
 }
 
-// 테스트 씬 4: AsciiArtRenderer (리소스가 있는 경우에만 표시)
+// 테스트 씬 4: AsciiArtRenderer (JSON 애니메이션)
 void TestScene_AsciiArt()
 {
     UIDrawer* drawer = UIDrawer::GetInstance();
@@ -379,49 +379,50 @@ void TestScene_AsciiArt()
     Panel* titlePanel = drawer->CreatePanel("Title", 0, 0, 106, 5);
     titlePanel->SetBorder(true, 14);
     auto titleText = std::make_unique<TextRenderer>();
-    titleText->AddLine("=== UIDrawer 테스트 예제 4: ASCII Art ===");
+    titleText->AddLine("=== UIDrawer 테스트 예제 4: ASCII Art Animation (JSON) ===");
     titleText->AddLine("");
-    titleText->AddLine("ASCII 아트를 표시하는 예제입니다. (리소스 파일 필요)");
+    titleText->AddLine("JSON 포맷 애니메이션을 표시합니다. (Resources/Animations/test.json)");
     titleText->SetTextColor(14);
     titlePanel->SetContentRenderer(std::move(titleText));
 
-    // ASCII Art 패널
+    // ASCII Art 애니메이션 패널
     Panel* artPanel = drawer->CreatePanel("Art", 8, 8, 90, 45);
     artPanel->SetBorder(true, 12);
     auto art = std::make_unique<AsciiArtRenderer>();
 
-    // 몬스터 폴더에서 아트 파일 찾기 시도
-    std::string monstersPath = DataManager::GetInstance()->GetResourcePath("Monsters");
+    // Animations 폴더에서 test.json 로드
+    std::string animationsPath = DataManager::GetInstance()->GetResourcePath("Animations");
     bool artLoaded = false;
 
-    // 일반적인 몬스터 이름 시도
-    std::vector<std::string> monsterNames = { "Goblin", "Slime", "Dragon", "Monster" };
-
-    for (const auto& name : monsterNames)
+    // test.json 파일 로드 시도
+    if (DataManager::GetInstance()->FileExists(animationsPath, "test.json"))
     {
-        std::string fileName = name + ".txt";
-        if (DataManager::GetInstance()->FileExists(monstersPath, fileName))
+        artLoaded = art->LoadAnimationFromJson(animationsPath, "test.json");
+        if (artLoaded)
         {
-            artLoaded = art->LoadFromFile(monstersPath, fileName);
-            if (artLoaded)
-            {
-                art->SetColor(12);
-                break;
-            }
+            art->SetColor(12);
+            art->SetFrameDuration(0.3f);  // 프레임당 0.3초
+            art->StartAnimation();
         }
     }
 
     if (!artLoaded)
     {
-        // 리소스가 없는 경우 기본 텍스트 표시
+        // test.json이 없는 경우 기본 텍스트 표시
         auto fallbackText = std::make_unique<TextRenderer>();
-        fallbackText->AddLine("[ASCII Art 영역]");
+        fallbackText->AddLine("[ASCII Art 애니메이션 영역]");
         fallbackText->AddLine("");
-        fallbackText->AddLine("Resources/Monsters/ 폴더에");
-        fallbackText->AddLine("ASCII 아트 파일(.txt)을 추가하면");
-        fallbackText->AddLine("여기에 표시됩니다!");
+        fallbackText->AddLine("Resources/Animations/ 폴더에");
+        fallbackText->AddLine("test.json 파일을 추가하면");
+        fallbackText->AddLine("애니메이션이 재생됩니다!");
         fallbackText->AddLine("");
-        fallbackText->AddLine("예시: Goblin.txt, Slime.txt 등");
+        fallbackText->AddLine("JSON 포맷:");
+        fallbackText->AddLine("{");
+        fallbackText->AddLine("  \"frames\": [");
+        fallbackText->AddLine("    [\"frame 1 line 1\", \"frame 1 line 2\"],");
+        fallbackText->AddLine("    [\"frame 2 line 1\", \"frame 2 line 2\"]");
+        fallbackText->AddLine("  ]");
+        fallbackText->AddLine("}");
         fallbackText->SetTextColor(7);
         artPanel->SetContentRenderer(std::move(fallbackText));
     }
@@ -434,19 +435,53 @@ void TestScene_AsciiArt()
     Panel* infoPanel = drawer->CreatePanel("Info", 0, 55, 106, 5);
     infoPanel->SetBorder(true, 7);
     auto infoText = std::make_unique<TextRenderer>();
-    infoText->AddLine("AsciiArtRenderer는 .txt 파일을 로드하여 표시합니다.");
-    infoText->AddLine("아무 키나 눌러 다음 테스트로 이동...");
+    if (artLoaded)
+    {
+        infoText->AddLine("애니메이션이 재생됩니다. (ESC: 중지, 아무 키: 다음 테스트)");
+    }
+    else
+    {
+        infoText->AddLine("test.json 파일을 찾을 수 없습니다. 아무 키나 눌러 다음 테스트로 이동...");
+    }
     infoText->SetTextColor(15);
     infoPanel->SetContentRenderer(std::move(infoText));
 
     drawer->Render();
 
-    // InputManager로 키 대기
-    while (!inputMgr->IsKeyPressed())
+    // 애니메이션 루프 (artLoaded가 true일 때만)
+    if (artLoaded)
     {
-        Sleep(16);
+        bool running = true;
+        while (running)
+        {
+            drawer->Update();  // 애니메이션 프레임 업데이트
+
+            // ESC 키 체크
+            if (inputMgr->IsKeyPressed())
+            {
+                int key = inputMgr->GetKeyCode();
+                if (key == 27)  // ESC
+                {
+                    running = false;
+                }
+                else
+                {
+                    running = false;
+                }
+            }
+
+            Sleep(16);  // ~60 FPS
+        }
     }
-    inputMgr->GetKeyCode(); // 키 소비
+    else
+    {
+        // InputManager로 키 대기
+        while (!inputMgr->IsKeyPressed())
+        {
+            Sleep(16);
+        }
+        inputMgr->GetKeyCode(); // 키 소비
+    }
 }
 
 // 테스트 씬 5: 복합 레이아웃 (실전 예제)
