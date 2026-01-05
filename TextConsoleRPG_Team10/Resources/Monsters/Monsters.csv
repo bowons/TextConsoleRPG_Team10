@@ -1,9 +1,29 @@
-﻿stage,monster
-과거의 잔영,스켈레톤
-과거의 잔영,고스트
-근위대장의 방,타락한 기사
-왜곡된 기억,트라우마의 환영
-심연의 제단,데몬
-심연의 제단,비홀더
-심연의 통로,심연의 집사
-공허의 중심,에테르노
+﻿Theme,MonsterType,MonsterName,FileName
+하수구,Normal,오염된 슬라임,Slime
+하수구,Normal,광폭한 쥐,Mouse
+하수구,Elite,거대 시궁쥐,Mouse
+폐광,Normal,고블린 정찰병,Goblin
+폐광,Normal,박쥐 떼,Bat
+폐광,Elite,고블린 대장,Goblin
+무덤,Normal,해골 병사,Skeleton
+무덤,Normal,부패한 좀비,Zombie
+무덤,Elite,스켈레톤 나이트,Skeleton
+유적,Normal,석재 가고일,Gargoyle
+유적,Normal,유적 수호자,Butler
+유적,Elite,옵시디언 골렘,Yeti
+둥지,Normal,하피,Harpy
+둥지,Normal,바실리스크,Basilisk
+둥지,Elite,하피 퀸,Harpy
+설원,Normal,설원 늑대,Wolf
+설원,Normal,예티,Yeti
+설원,Elite,화이트 팽,Wolf
+붉은 달,Normal,보이드 워커,Walker
+붉은 달,Normal,하급 데몬,Demmon
+붉은 달,Elite,블러드 하운드,Wolf
+안개,Normal,비홀더,Beholder
+안개,Normal,엘드리치 호러,Horror
+안개,Elite,카오스 아이,Chaos
+제단,Normal,공허의 망령,Slime
+제단,Normal,살아있는 조각상,Gargoyle
+제단,Elite,심연의 집사,Butler
+공허,Boss,에테르노,Boss
