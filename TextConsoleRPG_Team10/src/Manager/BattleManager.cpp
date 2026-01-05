@@ -1,4 +1,4 @@
-#include "../../include/Manager/BattleManager.h"
+﻿#include "../../include/Manager/BattleManager.h"
 #include "../../include/Manager/PrintManager.h"
 #include "../../include/Unit/NormalMonster.h"
 #include "../../include/Unit/Boss.h"
@@ -15,6 +15,8 @@
 #include <memory>
 #include <algorithm>
 #include <Windows.h>
+#include <optional>
+
 
 // ========================================
 // ===== 레거시 인터페이스 (참고용) =====
@@ -22,141 +24,148 @@
 // 과거 구현 담당자를 위한 레거시 코드
 // Scene 기반 시스템으로 전환 예정
 
-bool BattleManager::StartAutoBattle(Player* P)
-{
-    if (!P) return false;
+//bool BattleManager::StartAutoBattle(Player* P)
+//{
+//    if (!P) return false;
+//
+//    DataManager* dm = DataManager::GetInstance();
+//    auto [stage, monsterName] = dm->GetRandomStageAndMonster();
+//    if (stage.empty() || monsterName.empty()) return false;
+//
+//    auto NM = std::make_unique<NormalMonster>(P->GetLevel(), stage, monsterName);
+//    ICharacter* Target = NM.get();
+//    PrintManager::GetInstance()->PrintLogLine(NM->GetStage());
+//    PrintManager::GetInstance()->PrintLogLine(Target->GetName() + "이(가) 출현했습니다.. ");
+//
+//    while (true)
+//    {
+//        // === 플레이어 턴 ===
+//        ProcessTurn(P, Target);
+//        if (Target->IsDead())
+//        {
+//            // 플레이어 승리
+//            PrintManager::GetInstance()->PrintLogLine(P->GetName() + "이(가) " + Target->GetName() + "를 쓰러뜨렸습니다!!");
+//            CalculateReward(P, dynamic_cast<IMonster*>(Target));
+//            P->ResetBuffs();
+//            return true;
+//        }
+//
+//        // === 몬스터 턴 ===
+//        ProcessAttack(Target, P);
+//        if (P->IsDead())
+//        {
+//            PrintManager::GetInstance()->PrintLogLine(P->GetName() + "이(가) 패배했습니다...");
+//            P->ResetBuffs();
+//            return false;
+//        }
+//
+//        // === 라운드 종료 ===
+//        P->ProcessRoundEnd();
+//    }
+//}
 
-    DataManager* dm = DataManager::GetInstance();
-    auto [stage, monsterName] = dm->GetRandomStageAndMonster();
-    if (stage.empty() || monsterName.empty()) return false;
-
-    auto NM = std::make_unique<NormalMonster>(P->GetLevel(), stage, monsterName);
-    ICharacter* Target = NM.get();
-    PrintManager::GetInstance()->PrintLogLine(NM->GetStage());
-    PrintManager::GetInstance()->PrintLogLine(Target->GetName() + "이(가) 출현했습니다.. ");
-
-    while (true)
-    {
-        // === 플레이어 턴 ===
-        ProcessTurn(P, Target);
-        if (Target->IsDead())
-        {
-            // 플레이어 승리
-            PrintManager::GetInstance()->PrintLogLine(P->GetName() + "이(가) " + Target->GetName() + "를 쓰러뜨렸습니다!!");
-            CalculateReward(P, dynamic_cast<IMonster*>(Target));
-            P->ResetBuffs();
-            return true;
-        }
-
-        // === 몬스터 턴 ===
-        ProcessAttack(Target, P);
-        if (P->IsDead())
-        {
-            PrintManager::GetInstance()->PrintLogLine(P->GetName() + "이(가) 패배했습니다...");
-            P->ResetBuffs();
-            return false;
-        }
-
-        // === 라운드 종료 ===
-        P->ProcessRoundEnd();
-    }
-}
-
-bool BattleManager::StartBossBattle(Player* P)
-{
-    if (!P) return false;
-
-    std::unique_ptr<Boss> boss = std::make_unique<Boss>(P->GetLevel());
-
-    ICharacter* Target = boss.get();
-    PrintManager::GetInstance()->PrintLogLine("보스 출현");
-    PrintManager::GetInstance()->PrintLogLine(boss->GetStage());
-    PrintManager::GetInstance()->PrintLogLine(Target->GetName() + "이(가) 출현했습니다.. ");
-
-    while (true)
-    {
-        // === 플레이어 턴 ===
-        ProcessTurn(P, Target);
-        if (Target->IsDead())
-        {
-            // 플레이어 승리
-            PrintManager::GetInstance()->PrintLogLine(P->GetName() + "이(가) " + Target->GetName() + "를 쓰러뜨렸습니다!!");
-            P->ResetBuffs();
-            return true;
-        }
-
-        // === 몬스터 턴 ===
-        ProcessAttack(Target, P);
-        if (P->IsDead())
-        {
-            PrintManager::GetInstance()->PrintLogLine(P->GetName() + "이(가) 패배했습니다...");
-            P->ResetBuffs();
-            return false;
-        }
-
-        // === 라운드 종료 ===
-        P->ProcessRoundEnd();
-    }
-}
+//bool BattleManager::StartBossBattle(Player* P)
+//{
+//    if (!P) return false;
+//
+//    std::unique_ptr<Boss> boss = std::make_unique<Boss>(P->GetLevel());
+//
+//    ICharacter* Target = boss.get();
+//    PrintManager::GetInstance()->PrintLogLine("보스 출현");
+//    PrintManager::GetInstance()->PrintLogLine(boss->GetStage());
+//    PrintManager::GetInstance()->PrintLogLine(Target->GetName() + "이(가) 출현했습니다.. ");
+//
+//    while (true)
+//    {
+//        // === 플레이어 턴 ===
+//        ProcessTurn(P, Target);
+//        if (Target->IsDead())
+//        {
+//            // 플레이어 승리
+//            PrintManager::GetInstance()->PrintLogLine(P->GetName() + "이(가) " + Target->GetName() + "를 쓰러뜨렸습니다!!");
+//            P->ResetBuffs();
+//            return true;
+//        }
+//
+//        // === 몬스터 턴 ===
+//        ProcessAttack(Target, P);
+//        if (P->IsDead())
+//        {
+//            PrintManager::GetInstance()->PrintLogLine(P->GetName() + "이(가) 패배했습니다...");
+//            P->ResetBuffs();
+//            return false;
+//        }
+//
+//        // === 라운드 종료 ===
+//        P->ProcessRoundEnd();
+//    }
+//}
 
 void BattleManager::ProcessTurn(ICharacter* Atk, ICharacter* Def)
 {
     // TODO: 팀원 구현 필요 (파티 기반 전투, 직업별 우선순위 등)
-    // 현재는 레거시 코드 유지 (참고용)
+    // [Archer → Priest → Warrior → Mage]
 
-    // 자동 아이템 사용: Atk가 Player일 경우에는 인벤토리 검사
-    Player* _Player = dynamic_cast<Player*>(Atk);
-    if (_Player)
-    {
-        if (Def->GetCurrentHP() < _Player->GetTotalAtk())
-        {
-            ProcessAttack(Atk, Def);
-            return;
-        }
+    bool turnConsumed = ProcessReservedItems();
+    if (turnConsumed)
+        return; // 이 캐릭터 턴 종료
 
-        // 인벤토리 접근 (bool + 포인터)
-        Inventory* inventory = nullptr;
-        if (!_Player->TryGetInventory(inventory))
-        {
-            ProcessAttack(Atk, Def);
-            return;
-        }
+    
+    //// 현재는 레거시 코드 유지 (참고용)
 
-        // 체력이 1/4이하라면 회복 포션 사용 시도
-        if (_Player->GetCurrentHP() <= _Player->GetMaxHP() / 4)
-        {
-            int Slot = inventory->FindFirstSlotIndexOfType<HealPotion>();
-            if (Slot != -1) // 회복 포션 탐색 성공
-            {
-                PrintManager::GetInstance()->PrintLogLine(_Player->GetName() + "이(가) 위험을 감지하고 회복포션을 사용합니다.");
-                PrintManager::GetInstance()->PrintLogLine("현재 체력: " + std::to_string(_Player->GetCurrentHP()) + "/" + std::to_string(_Player->GetMaxHP()));
-                _Player->UseItem(Slot);
-                return;  // 체력 물약은 사용 후 바로 턴 종료
-            }
-        }
+    //// 자동 아이템 사용: Atk가 Player일 경우에는 인벤토리 검사
+    //Player* _Player = dynamic_cast<Player*>(Atk);
+    //if (_Player)
+    //{
+    //    if (Def->GetCurrentHP() < _Player->GetTotalAtk())
+    //    {
+    //        ProcessAttack(Atk, Def);
+    //        return;
+    //    }
 
-        // 상대 HP가 내 공격력보다 높다면 공격력 포션 사용 시도
-        if (Def->GetCurrentHP() > _Player->GetTotalAtk())
-        {
-            int Slot = inventory->FindFirstSlotIndexOfType<AttackUp>();
-            if (Slot != -1) // 공격력 포션 탐색 성공
-            {
-                PrintManager::GetInstance()->PrintLogLine(_Player->GetName() + "이(가) 전술적으로 공격력 포션을 사용합니다.");
-                PrintManager::GetInstance()->PrintLogLine("공격력: " + std::to_string(_Player->GetAtk()));
-                _Player->UseItem(Slot);
-                ProcessAttack(Atk, Def);
-                return;
-            }
-        }
+    //    // 인벤토리 접근 (bool + 포인터)
+    //    Inventory* inventory = nullptr;
+    //    if (!_Player->TryGetInventory(inventory))
+    //    {
+    //        ProcessAttack(Atk, Def);
+    //        return;
+    //    }
 
-        // 일반 공격
-        ProcessAttack(Atk, Def);
-    }
-    else
-    {
-        // Atk가 Player가 아닌 경우(몬스터 등)에는 아이템 사용 없음
-        ProcessAttack(Atk, Def);
-    }
+    //    // 체력이 1/4이하라면 회복 포션 사용 시도
+    //    if (_Player->GetCurrentHP() <= _Player->GetMaxHP() / 4)
+    //    {
+    //        int Slot = inventory->FindFirstSlotIndexOfType<HealPotion>();
+    //        if (Slot != -1) // 회복 포션 탐색 성공
+    //        {
+    //            PrintManager::GetInstance()->PrintLogLine(_Player->GetName() + "이(가) 위험을 감지하고 회복포션을 사용합니다.");
+    //            PrintManager::GetInstance()->PrintLogLine("현재 체력: " + std::to_string(_Player->GetCurrentHP()) + "/" + std::to_string(_Player->GetMaxHP()));
+    //            _Player->UseItem(Slot);
+    //            return;  // 체력 물약은 사용 후 바로 턴 종료
+    //        }
+    //    }
+
+    //    // 상대 HP가 내 공격력보다 높다면 공격력 포션 사용 시도
+    //    if (Def->GetCurrentHP() > _Player->GetTotalAtk())
+    //    {
+    //        int Slot = inventory->FindFirstSlotIndexOfType<AttackUp>();
+    //        if (Slot != -1) // 공격력 포션 탐색 성공
+    //        {
+    //            PrintManager::GetInstance()->PrintLogLine(_Player->GetName() + "이(가) 전술적으로 공격력 포션을 사용합니다.");
+    //            PrintManager::GetInstance()->PrintLogLine("공격력: " + std::to_string(_Player->GetAtk()));
+    //            _Player->UseItem(Slot);
+    //            ProcessAttack(Atk, Def);
+    //            return;
+    //        }
+    //    }
+
+    //    // 일반 공격
+    //    ProcessAttack(Atk, Def);
+    //}
+    //else
+    //{
+    //    // Atk가 Player가 아닌 경우(몬스터 등)에는 아이템 사용 없음
+    //    ProcessAttack(Atk, Def);
+    //}
 }
 
 void BattleManager::ProcessAttack(ICharacter* Atk, ICharacter* Def)
@@ -301,42 +310,130 @@ void BattleManager::CalculateReward(Player* P, IMonster* M)
 // ===== Scene 기반 신규 인터페이스 =====
 // ========================================
 
-bool BattleManager::StartBattle(EBattleType type)
+bool BattleManager::StartBattle(EBattleType type, int Floor)
 {
-    // TODO: 팀원 구현 필요
-    // 1. 이미 전투 중이면 false 반환
-  // 2. GameManager에서 메인 플레이어 가져오기
-    // 3. 플레이어 레벨 기반으로 몬스터 생성
-    //    - Normal: DataManager::GetRandomStageAndMonster() → NormalMonster 생성
- //    - Boss: Boss 생성
-  // 4. _CurrentMonster, _BattleType, _IsBattleActive, _Result 초기화
-    // 5. _CurrentRound = 0, _ItemReservations.clear() 초기화
-    // 6. 성공 시 true 반환
+    // 1. 이미 전투 중이면 실패
+    if (_IsBattleActive)
+        return false;
 
-    return false;  // TODO: 구현 후 실제 결과 반환
+    DataManager* dm = DataManager::GetInstance();
+    std::optional<MonsterSpawnData> monsterOpt;
+
+    // 2. 타입별 데이터 로드
+    switch (type)
+    {
+    case EBattleType::Normal:
+        monsterOpt = dm->GetMonster("Enemy_Normal.csv", Floor);
+        break;
+
+    case EBattleType::Elite:
+        monsterOpt = dm->GetMonster("Enemy_Elite.csv", Floor);
+        break;
+
+    case EBattleType::Boss:
+        monsterOpt = dm->GetMonster("Enemy_Boss.csv", Floor);
+        break;
+    }
+
+    // 2. 데이터 없으면 실패
+    if (!monsterOpt.has_value())
+    {
+        std::cout << "해당 층에는 몬스터가 존재하지 않습니다.\n";
+        return false;
+    }
+
+    const MonsterSpawnData& data = monsterOpt.value();
+
+    // 3. 몬스터 생성
+    if (type == EBattleType::Boss)
+    {
+        _CurrentMonster = std::make_unique<Boss>(data);
+    }
+    else
+    {
+        // ✅ Normal + Elite 공용
+        _CurrentMonster = std::make_unique<NormalMonster>(data);
+    }
+
+    // 4. 전투 상태 초기화
+    _BattleType = type;
+    _IsBattleActive = true;
+    _Result = BattleResult{};
+
+    _CurrentRound = 0;
+    _ItemReservations.clear();
+
+    return true;
 }
 
 void BattleManager::EndBattle()
 {
     // TODO: 팀원 구현 필요
     // 1. 전투 중이 아니면 즉시 반환
+    if(!_IsBattleActive)
+        return;
     // 2. GameManager에서 파티 가져오기
-// 3. 모든 파티원 버프 초기화 (ResetBuffs)
+    GameManager* gm = GameManager::GetInstance();
+    const auto& party = gm->GetParty();
+    // 3. 모든 파티원 버프 초기화 (ResetBuffs)
+    for (const auto& member : party)
+    {
+        if (member)
+            member->ResetTempStats();
+    }
     // 4. 승리 시 CalculateReward 호출
+    if (_Result.Victory)
+    {
+        Player* mainPlayer = gm->GetMainPlayer().get();
+        CalculateReward(mainPlayer, _CurrentMonster.get());
+    }
     // 5. GameManager::RemoveDeadCompanions() 호출
+    gm->RemoveDeadCompanions();
     // 6. 예약 목록 정리: 모든 예약된 아이템 CancelReservation() 호출
-    // 7. _ItemReservations.clear(), _CurrentRound = 0
-    // 8. _CurrentMonster.reset(), _BattleType = None, _IsBattleActive = false
+    for (auto& reservation : _ItemReservations)
+    {
+        if (!reservation.IsActive)
+            continue;
+
+        Player* user = reservation.User;
+        if (!user)
+            continue;
+
+        Inventory* inventory = nullptr;
+        if (!user->TryGetInventory(inventory))
+            continue;
+
+        IItem* item = inventory->GetItemAtSlot(reservation.SlotIndex);
+        if (item)
+        {
+            item->CancelReservation();
+        }
+
+        reservation.IsActive = false;
+    }
+
+    _ItemReservations.clear();
+    _CurrentRound = 0;
+    _CurrentMonster.reset();
+    _BattleType = EBattleType::None;
+    _IsBattleActive = false;
 }
 
 bool BattleManager::ProcessBattleTurn()
 {
     // TODO: 팀원 구현 필요
     // 1. 전투 중이 아니거나 몬스터가 없으면 false 반환
+    if(!_IsBattleActive || !_CurrentMonster)
+        return false;
     // 2. _CurrentRound++ (라운드 증가)
+    SetCurrentRound(_CurrentRound + 1);
     // 3. ProcessReservedItems() 호출 (예약된 아이템 자동 처리)
+    ProcessReservedItems();
     // 4. GameManager에서 메인 플레이어 가져오기
+    GameManager* gm = GameManager::GetInstance();
+    Player* mainPlayer = gm->GetMainPlayer().get();
     // 5. 플레이어 턴: ProcessTurn(Player, Monster)
+    
     // 6. 몬스터 사망 확인
     //- 사망 시: _Result.Victory = true, IsCompleted = true, 승리 메시지 출력, false 반환
     // 7. 몬스터 턴: ProcessAttack(Monster, Player)

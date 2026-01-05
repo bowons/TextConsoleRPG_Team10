@@ -1,4 +1,5 @@
-#include "../../include/Unit/NormalMonster.h"
+﻿#include "../../include/Unit/NormalMonster.h"
+#include "../../include/Item/MonsterSpawnData.h"
 #include "../../include/Item/IItem.h"
 #include "../../include/Unit/IMonster.h"
 #include "../../include/Item/HealPotion.h"
@@ -11,19 +12,49 @@
 // GameManager에 추가 후 삭제
 //static std::mt19937 gen(std::random_device{}());
 
-NormalMonster::NormalMonster(int PlayerLevel, std::string Stage, std::string Name)
+//NormalMonster::NormalMonster(int PlayerLevel, std::string Stage, std::string Name)
+//{
+//    Name = Name;
+//    _Level = PlayerLevel;
+//    _Stage = Stage;
+//
+//    std::uniform_int_distribution<> HpDist(_Level * 20, _Level * 30);
+//    _Stats._MaxHP = HpDist(gen);
+//    _Stats._CurrentHP = _Stats._MaxHP;
+//
+//    std::uniform_int_distribution<> AtkDist(_Level * 5, _Level * 10);
+//    _Stats._Atk = AtkDist(gen);
+//}
+
+NormalMonster::NormalMonster(const MonsterSpawnData& Data)
 {
-    _Name = Name;
-    _Level = PlayerLevel;
-    _Stage = Stage;
+    _Name = Data.MonsterName;
+    _Floor = Data.floor;
 
-    std::uniform_int_distribution<> HpDist(_Level * 20, _Level * 30);
-    _Stats._MaxHP = HpDist(gen);
-    _Stats._CurrentHP = _Stats._MaxHP;
+    // ===== 기본 스탯 =====
+    _Stats._MaxHP = Data.hp;
+    _Stats._CurrentHP = Data.hp;
 
-    std::uniform_int_distribution<> AtkDist(_Level * 5, _Level * 10);
-    _Stats._Atk = AtkDist(gen);
+    _Stats._MaxMP = Data.mp;
+    _Stats._CurrentMP = Data.mp;
+
+    _Stats._Atk = Data.atk;
+    _Stats._Def = Data.def;
+    _Stats._Dex = Data.dex;
+    _Stats._Luk = Data.luk;
+
+    _Stats._CriticalRate = static_cast<float>(Data.crit_rate);
+    _ExpReward = Data.exp;
+    _GoldReward = Data.gold;
+
+    // ===== 임시 스탯은 기본 0 =====
+    _Stats._TempAtk = 0;
+    _Stats._TempDef = 0;
+    _Stats._TempDex = 0;
+    _Stats._TempLuk = 0;
+    _Stats._TempCriticalRate = 0.0f;
 }
+
 
 void NormalMonster::TakeDamage(int Amount)
 {
@@ -68,8 +99,7 @@ std::tuple<int, int, std::unique_ptr<IItem>> NormalMonster::DropReward()
             DropItem = AttackUp().Clone();
         }
     }
-    
-    return {50, std::uniform_int_distribution<>(10, 20)(gen), move(DropItem)};
+    return { _ExpReward, _GoldReward, std::move(DropItem) };
 }
 
 std::string NormalMonster::GetAttackNarration() const
