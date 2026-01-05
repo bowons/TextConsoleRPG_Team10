@@ -7,6 +7,82 @@
 #include <algorithm>
 #include <fstream>
 
+// UTF-8 바이트 시퀀스를 유니코드 코드포인트로 변환
+static int DecodeUTF8CodePoint(const std::string& str, size_t index, int& outCharLen)
+{
+    unsigned char ch = static_cast<unsigned char>(str[index]);
+    outCharLen = 1;
+    int codepoint = 0;
+
+    if ((ch & 0x80) == 0) {  // 1바이트 (ASCII)
+        outCharLen = 1;
+        codepoint = ch;
+    }
+    else if ((ch & 0xE0) == 0xC0) {  // 2바이트
+        outCharLen = 2;
+        if (index + 1 < str.length()) {
+            codepoint = ((ch & 0x1F) << 6) | (str[index + 1] & 0x3F);
+        }
+    }
+    else if ((ch & 0xF0) == 0xE0) {  // 3바이트
+        outCharLen = 3;
+        if (index + 2 < str.length()) {
+            codepoint = ((ch & 0x0F) << 12) |
+                         ((str[index + 1] & 0x3F) << 6) |
+                         (str[index + 2] & 0x3F);
+        }
+    }
+    else if ((ch & 0xF8) == 0xF0) {  // 4바이트
+        outCharLen = 4;
+        if (index + 3 < str.length()) {
+            codepoint = ((ch & 0x07) << 18) |
+                         ((str[index + 1] & 0x3F) << 12) |
+                         ((str[index + 2] & 0x3F) << 6) |
+                         (str[index + 3] & 0x3F);
+        }
+    }
+
+    return codepoint;
+}
+
+// 유니코드 코드포인트의 시각적 너비 계산
+static int GetCodePointVisualWidth(int codepoint)
+{
+    // ASCII: 1칸
+    if (codepoint < 0x80)
+        return 1;
+
+    // 점자 패턴 (U+2800 ~ U+28FF): 1칸
+    if (codepoint >= 0x2800 && codepoint <= 0x28FF)
+        return 1;
+
+    // Box Drawing Characters (U+2500 ~ U+257F): 1칸
+    if (codepoint >= 0x2500 && codepoint <= 0x257F)
+        return 1;
+
+    // Block Elements (U+2580 ~ U+259F): 1칸
+    if (codepoint >= 0x2580 && codepoint <= 0x259F)
+        return 1;
+
+    // 한글 음절 (U+AC00 ~ U+D7A3): 2칸
+    if (codepoint >= 0xAC00 && codepoint <= 0xD7A3)
+        return 2;
+
+    // 한글 자모: 2칸
+    if ((codepoint >= 0x1100 && codepoint <= 0x11FF) ||
+        (codepoint >= 0x3130 && codepoint <= 0x318F))
+        return 2;
+
+    // 한자 및 CJK: 2칸
+    if ((codepoint >= 0x4E00 && codepoint <= 0x9FFF) ||
+        (codepoint >= 0x3400 && codepoint <= 0x4DBF) ||
+        (codepoint >= 0xF900 && codepoint <= 0xFAFF))
+        return 2;
+
+    // 기타: 1칸
+    return 1;
+}
+
 bool AsciiArtRenderer::LoadFromFile(const std::string& folderPath, const std::string& fileName)
 {
     _LastFilePath = folderPath + "/" + fileName;  // 경로 저장
@@ -128,16 +204,16 @@ bool AsciiArtRenderer::LoadAnimationFromJson(const std::string& folderPath, cons
     size_t framesPos = jsonContent.find("\"frames\"");
     if (framesPos == std::string::npos) {
         _LastError = "JSON format error: 'frames' not found";
-    _HasError = true;
+        _HasError = true;
         PrintManager::GetInstance()->PrintLogLine(_LastError, ELogImportance::WARNING);
- return false;
+        return false;
     }
 
     // frames 배열 시작 찾기
     size_t colonPos = jsonContent.find(':', framesPos);
     if (colonPos == std::string::npos) {
         _LastError = "JSON format error: colon after 'frames' not found";
-  _HasError = true;
+        _HasError = true;
         PrintManager::GetInstance()->PrintLogLine(_LastError, ELogImportance::WARNING);
         return false;
     }
@@ -157,53 +233,53 @@ bool AsciiArtRenderer::LoadAnimationFromJson(const std::string& folderPath, cons
     while (pos < jsonContent.length()) {
         // 공백 건너뛰기
         while (pos < jsonContent.length() &&
- (jsonContent[pos] == ' ' || jsonContent[pos] == '\n' ||
-    jsonContent[pos] == '\r' || jsonContent[pos] == '\t')) {
-  pos++;
+            (jsonContent[pos] == ' ' || jsonContent[pos] == '\n' ||
+                jsonContent[pos] == '\r' || jsonContent[pos] == '\t')) {
+            pos++;
         }
 
         if (pos >= jsonContent.length()) break;
 
-    // 배열 끝 확인
-   if (jsonContent[pos] == ']') {
-        break;
+        // 배열 끝 확인
+        if (jsonContent[pos] == ']') {
+            break;
         }
 
         // 콤마 건너뛰기
-  if (jsonContent[pos] == ',') {
+        if (jsonContent[pos] == ',') {
             pos++;
- continue;
+            continue;
         }
 
-  // 문자열 시작 " 찾기
+        // 문자열 시작 " 찾기
         if (jsonContent[pos] != '"') {
-    pos++;
-         continue;
-  }
+            pos++;
+            continue;
+        }
 
-      size_t stringStart = pos + 1;
+        size_t stringStart = pos + 1;
 
-  // 문자열 끝 " 찾기 (이스케이프 처리)
+        // 문자열 끝 " 찾기 (이스케이프 처리)
         pos++;
         while (pos < jsonContent.length()) {
-  if (jsonContent[pos] == '\\' && pos + 1 < jsonContent.length()) {
-    pos += 2; // 이스케이프 문자 건너뛰기
-       continue;
-         }
-   if (jsonContent[pos] == '"') {
-     break;
-     }
-  pos++;
-      }
-
-        if (pos >= jsonContent.length()) {
-          _LastError = "JSON format error: unterminated string";
-            _HasError = true;
-            PrintManager::GetInstance()->PrintLogLine(_LastError, ELogImportance::WARNING);
-    return false;
+            if (jsonContent[pos] == '\\' && pos + 1 < jsonContent.length()) {
+                pos += 2; // 이스케이프 문자 건너뛰기
+                continue;
+            }
+            if (jsonContent[pos] == '"') {
+                break;
+            }
+            pos++;
         }
 
-     size_t stringEnd = pos;
+        if (pos >= jsonContent.length()) {
+            _LastError = "JSON format error: unterminated string";
+            _HasError = true;
+            PrintManager::GetInstance()->PrintLogLine(_LastError, ELogImportance::WARNING);
+            return false;
+        }
+
+        size_t stringEnd = pos;
 
         // 프레임 문자열 추출
         std::string frameString = jsonContent.substr(stringStart, stringEnd - stringStart);
@@ -211,75 +287,75 @@ bool AsciiArtRenderer::LoadAnimationFromJson(const std::string& folderPath, cons
         // 이스케이프 문자 처리
         std::string processedString;
         for (size_t i = 0; i < frameString.length(); ++i) {
-  if (frameString[i] == '\\' && i + 1 < frameString.length()) {
+            if (frameString[i] == '\\' && i + 1 < frameString.length()) {
                 if (frameString[i + 1] == 'n') {
-      processedString += '\n';
-    i++;
-           }
-    else if (frameString[i + 1] == '\\') {
-         processedString += '\\';
- i++;
+                    processedString += '\n';
+                    i++;
                 }
-     else if (frameString[i + 1] == '"') {
- processedString += '"';
-      i++;
-      }
-    else if (frameString[i + 1] == 't') {
-  processedString += '\t';
-             i++;
-   }
-            else if (frameString[i + 1] == 'r') {
-         processedString += '\r';
-         i++;
-   }
-     else {
-        processedString += frameString[i];
-  }
+                else if (frameString[i + 1] == '\\') {
+                    processedString += '\\';
+                    i++;
+                }
+                else if (frameString[i + 1] == '"') {
+                    processedString += '"';
+                    i++;
+                }
+                else if (frameString[i + 1] == 't') {
+                    processedString += '\t';
+                    i++;
+                }
+                else if (frameString[i + 1] == 'r') {
+                    processedString += '\r';
+                    i++;
+                }
+                else {
+                    processedString += frameString[i];
+                }
             }
-   else {
-   processedString += frameString[i];
+            else {
+                processedString += frameString[i];
             }
         }
 
         // 문자열을 개행 문자로 분리
-     std::vector<std::string> frameLines;
+        std::vector<std::string> frameLines;
         std::istringstream stream(processedString);
-  std::string line;
+        std::string line;
         while (std::getline(stream, line)) {
-     // \r 제거
- if (!line.empty() && line.back() == '\r') {
-    line.pop_back();
-    }
+            // \r 제거
+            if (!line.empty() && line.back() == '\r') {
+                line.pop_back();
+            }
             frameLines.push_back(line);
         }
 
         if (!frameLines.empty()) {
-    _AnimationFrames.push_back(frameLines);
-      frameCount++;
+            _AnimationFrames.push_back(frameLines);
+            frameCount++;
             PrintManager::GetInstance()->PrintLogLine(
-          "Frame " + std::to_string(frameCount) + " loaded with " +
-       std::to_string(frameLines.size()) + " lines",
-      ELogImportance::DISPLAY);
+                "Frame " + std::to_string(frameCount) + " loaded with " +
+                std::to_string(frameLines.size()) + " lines",
+                ELogImportance::DISPLAY);
         }
 
         pos++;
     }
 
     if (_AnimationFrames.empty()) {
-      _LastError = "No frames loaded from JSON";
+        _LastError = "No frames loaded from JSON";
         _HasError = true;
         PrintManager::GetInstance()->PrintLogLine(_LastError, ELogImportance::WARNING);
-     return false;
+        return false;
     }
 
     _CurrentFrame = 0;
     _IsAnimating = true;
     _IsDirty = true;
- _HasError = false;
+    _HasError = false;
     _LastError.clear();
 
     PrintManager::GetInstance()->PrintLogLine(
-     "Successfully loaded " + std::to_string(_AnimationFrames.size()) + " frames from " + fileName,
+        "Successfully loaded " + std::to_string(_AnimationFrames.size()) + " frames from " + fileName,
         ELogImportance::DISPLAY);
 
     return true;
@@ -332,7 +408,7 @@ void AsciiArtRenderer::RenderFrame(ScreenBuffer& buffer, const PanelBounds& boun
 
     if (contentWidth <= 0 || contentHeight <= 0) return;
 
-    // 아트 크기 검증 - 실제 화면 너비 계산 (UTF-8 고려)
+    // 아트 크기 검증 - 실제 화면 너비 계산 (UTF-8 코드포인트 기반)
     int artHeight = static_cast<int>(frame.size());
     int artWidth = 0;
 
@@ -342,25 +418,9 @@ void AsciiArtRenderer::RenderFrame(ScreenBuffer& buffer, const PanelBounds& boun
         size_t i = 0;
 
         while (i < line.length()) {
-            unsigned char ch = static_cast<unsigned char>(line[i]);
             int charLen = 1;
-            int visualWidth = 1;
-
-            // UTF-8 문자 너비 계산
-            if (ch >= 0x80) {
-                if ((ch & 0xF0) == 0xE0) {
-                    charLen = 3;  // 한글, Box Drawing 등 (3바이트)
-                    visualWidth = 2;
-                }
-                else if ((ch & 0xE0) == 0xC0) {
-                    charLen = 2;  // 기타 유니코드
-                    visualWidth = 2;
-                }
-                else if ((ch & 0xF8) == 0xF0) {
-                    charLen = 4;  // 이모지 등
-                    visualWidth = 2;
-                }
-            }
+            int codepoint = DecodeUTF8CodePoint(line, i, charLen);
+            int visualWidth = GetCodePointVisualWidth(codepoint);
 
             lineVisualWidth += visualWidth;
             i += charLen;

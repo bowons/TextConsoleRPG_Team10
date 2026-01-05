@@ -5,7 +5,7 @@
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
     </Filter>
     <Filter Include="Header Files\Common">
-   <UniqueIdentifier>{00000000-1111-2222-3333-444444444444}</UniqueIdentifier>
+      <UniqueIdentifier>{00000000-1111-2222-3333-444444444444}</UniqueIdentifier>
     </Filter>
     <Filter Include="Header Files\Item">
       <UniqueIdentifier>{A1B1C1D1-E1F1-11D1-AAAA-00A0C913D1F8}</UniqueIdentifier>
@@ -23,16 +23,16 @@
       <UniqueIdentifier>{11111111-2222-3333-4444-555555555555}</UniqueIdentifier>
     </Filter>
     <Filter Include="Header Files\UI\Scenes">
-  <UniqueIdentifier>{AAAAAAAA-BBBB-CCCC-DDDD-EEEEEEEEEEEE}</UniqueIdentifier>
+      <UniqueIdentifier>{AAAAAAAA-BBBB-CCCC-DDDD-EEEEEEEEEEEE}</UniqueIdentifier>
     </Filter>
     <Filter Include="Header Files\Data">
-    <UniqueIdentifier>{DDDDDDDD-EEEE-FFFF-0000-111111111111}</UniqueIdentifier>
+      <UniqueIdentifier>{DDDDDDDD-EEEE-FFFF-0000-111111111111}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source Files">
       <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source Files\Item">
-   <UniqueIdentifier>{D4B4C4D4-E4F4-44D4-DDDD-00A0C913D1F8}</UniqueIdentifier>
+      <UniqueIdentifier>{D4B4C4D4-E4F4-44D4-DDDD-00A0C913D1F8}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source Files\Unit">
       <UniqueIdentifier>{E5B5C5D5-E5F5-55D5-EEEE-00A0C913D1F8}</UniqueIdentifier>
@@ -77,7 +77,7 @@
       <Filter>Header Files\Item</Filter>
     </ClInclude>
     <ClInclude Include="include\Item\Inventory.h">
-    <Filter>Header Files\Item</Filter>
+      <Filter>Header Files\Item</Filter>
     </ClInclude>
     <ClInclude Include="include\Item\ItemSlot.h">
       <Filter>Header Files\Item</Filter>
@@ -93,7 +93,7 @@
       <Filter>Header Files\Unit</Filter>
     </ClInclude>
     <ClInclude Include="include\Unit\IMonster.h">
-    <Filter>Header Files\Unit</Filter>
+      <Filter>Header Files\Unit</Filter>
     </ClInclude>
     <ClInclude Include="include\Unit\NormalMonster.h">
       <Filter>Header Files\Unit</Filter>
@@ -108,23 +108,23 @@
     <ClInclude Include="include\Manager\BattleManager.h">
       <Filter>Header Files\Manager</Filter>
     </ClInclude>
- <ClInclude Include="include\Manager\GameManager.h">
+    <ClInclude Include="include\Manager\GameManager.h">
       <Filter>Header Files\Manager</Filter>
-</ClInclude>
+    </ClInclude>
     <ClInclude Include="include\Manager\InputManager.h">
       <Filter>Header Files\Manager</Filter>
     </ClInclude>
     <ClInclude Include="include\Manager\PrintManager.h">
-  <Filter>Header Files\Manager</Filter>
+      <Filter>Header Files\Manager</Filter>
     </ClInclude>
     <ClInclude Include="include\Manager\ShopManager.h">
       <Filter>Header Files\Manager</Filter>
     </ClInclude>
     <ClInclude Include="include\Manager\DataManager.h">
-  <Filter>Header Files\Manager</Filter>
+      <Filter>Header Files\Manager</Filter>
     </ClInclude>
     <ClInclude Include="include\Manager\SoundPlayer.h">
-    <Filter>Header Files\Manager</Filter>
+      <Filter>Header Files\Manager</Filter>
     </ClInclude>
     <ClInclude Include="include\Manager\SceneManager.h">
       <Filter>Header Files\Manager</Filter>
@@ -137,11 +137,11 @@
       <Filter>Header Files\Factory</Filter>
     </ClInclude>
     <ClInclude Include="include\Factory\ItemFactory.h">
-  <Filter>Header Files\Factory</Filter>
+      <Filter>Header Files\Factory</Filter>
     </ClInclude>
     <!-- UI Headers -->
     <ClInclude Include="include\UI\ScreenBuffer.h">
-    <Filter>Header Files\UI</Filter>
+      <Filter>Header Files\UI</Filter>
     </ClInclude>
     <ClInclude Include="include\UI\Panel.h">
       <Filter>Header Files\UI</Filter>
@@ -150,15 +150,15 @@
       <Filter>Header Files\UI</Filter>
     </ClInclude>
     <ClInclude Include="include\UI\IContentRenderer.h">
-   <Filter>Header Files\UI</Filter>
+      <Filter>Header Files\UI</Filter>
     </ClInclude>
     <ClInclude Include="include\UI\TextRenderer.h">
       <Filter>Header Files\UI</Filter>
- </ClInclude>
-<ClInclude Include="include\UI\StatRenderer.h">
+    </ClInclude>
+    <ClInclude Include="include\UI\StatRenderer.h">
       <Filter>Header Files\UI</Filter>
     </ClInclude>
- <ClInclude Include="include\UI\AsciiArtRenderer.h">
+    <ClInclude Include="include\UI\AsciiArtRenderer.h">
       <Filter>Header Files\UI</Filter>
     </ClInclude>
     <ClInclude Include="include\UI\UIScene.h">
@@ -169,8 +169,8 @@
     </ClInclude>
     <!-- UI Scene Headers -->
     <ClInclude Include="include\UI\Scenes\MainMenuScene.h">
-    <Filter>Header Files\UI\Scenes</Filter>
-  </ClInclude>
+      <Filter>Header Files\UI\Scenes</Filter>
+    </ClInclude>
     <ClInclude Include="include\UI\Scenes\PlayerNameInputScene.h">
       <Filter>Header Files\UI\Scenes</Filter>
     </ClInclude>
@@ -179,11 +179,11 @@
     </ClInclude>
     <ClInclude Include="include\UI\Scenes\StoryProgressScene.h">
       <Filter>Header Files\UI\Scenes</Filter>
-  </ClInclude>
-    <ClInclude Include="include\UI\Scenes\StageSelectScene.h">
-    <Filter>Header Files\UI\Scenes</Filter>
     </ClInclude>
-<ClInclude Include="include\UI\Scenes\BattleScene.h">
+    <ClInclude Include="include\UI\Scenes\StageSelectScene.h">
+      <Filter>Header Files\UI\Scenes</Filter>
+    </ClInclude>
+    <ClInclude Include="include\UI\Scenes\BattleScene.h">
       <Filter>Header Files\UI\Scenes</Filter>
     </ClInclude>
     <ClInclude Include="include\UI\Scenes\ShopScene.h">
@@ -195,6 +195,11 @@
     <ClInclude Include="include\UI\Scenes\ResultScene.h">
       <Filter>Header Files\UI\Scenes</Filter>
     </ClInclude>
+    <ClInclude Include="include\Item\FairyEssence.h" />
+    <ClInclude Include="include\Item\ShieldDefense.h" />
+    <ClInclude Include="include\Item\FocusRune.h" />
+    <ClInclude Include="include\Item\LuckyCharm.h" />
+    <ClInclude Include="include\Item\TitanAwakening.h" />
   </ItemGroup>
   <ItemGroup>
     <!-- Item Sources -->
@@ -210,7 +215,7 @@
     <ClCompile Include="src\Item\ItemSlot.cpp">
       <Filter>Source Files\Item</Filter>
     </ClCompile>
-  <!-- Unit Sources -->
+    <!-- Unit Sources -->
     <ClCompile Include="src\Unit\NormalMonster.cpp">
       <Filter>Source Files\Unit</Filter>
     </ClCompile>
@@ -234,7 +239,7 @@
       <Filter>Source Files\Manager</Filter>
     </ClCompile>
     <ClCompile Include="src\Manager\ShopManager.cpp">
-   <Filter>Source Files\Manager</Filter>
+      <Filter>Source Files\Manager</Filter>
     </ClCompile>
     <ClCompile Include="src\Manager\DataManager.cpp">
       <Filter>Source Files\Manager</Filter>
@@ -254,29 +259,29 @@
     </ClCompile>
     <!-- UI Sources -->
     <ClCompile Include="src\UI\ScreenBuffer.cpp">
- <Filter>Source Files\UI</Filter>
+      <Filter>Source Files\UI</Filter>
     </ClCompile>
     <ClCompile Include="src\UI\Panel.cpp">
       <Filter>Source Files\UI</Filter>
     </ClCompile>
     <ClCompile Include="src\UI\UIDrawer.cpp">
       <Filter>Source Files\UI</Filter>
-  </ClCompile>
+    </ClCompile>
     <ClCompile Include="src\UI\TextRenderer.cpp">
       <Filter>Source Files\UI</Filter>
     </ClCompile>
-<ClCompile Include="src\UI\StatRenderer.cpp">
+    <ClCompile Include="src\UI\StatRenderer.cpp">
       <Filter>Source Files\UI</Filter>
-  </ClCompile>
+    </ClCompile>
     <ClCompile Include="src\UI\AsciiArtRenderer.cpp">
       <Filter>Source Files\UI</Filter>
     </ClCompile>
     <ClCompile Include="src\UI\UIScene.cpp">
-   <Filter>Source Files\UI</Filter>
+      <Filter>Source Files\UI</Filter>
     </ClCompile>
     <ClCompile Include="src\UI\InputBridge.cpp">
       <Filter>Source Files\UI</Filter>
-  </ClCompile>
+    </ClCompile>
     <!-- UI Scene Sources -->
     <ClCompile Include="src\UI\Scenes\MainMenuScene.cpp">
       <Filter>Source Files\UI\Scenes</Filter>
@@ -298,7 +303,7 @@
     </ClCompile>
     <ClCompile Include="src\UI\Scenes\ShopScene.cpp">
       <Filter>Source Files\UI\Scenes</Filter>
-  </ClCompile>
+    </ClCompile>
     <ClCompile Include="src\UI\Scenes\CompanionRecruitScene.cpp">
       <Filter>Source Files\UI\Scenes</Filter>
     </ClCompile>
@@ -309,9 +314,14 @@
     <ClCompile Include="Main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-  <ClCompile Include="UIDrawer_TestExample.cpp">
+    <ClCompile Include="UIDrawer_TestExample.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\Item\FairyEssence.cpp" />
+    <ClCompile Include="src\Item\ShieldDefense.cpp" />
+    <ClCompile Include="src\Item\FocusRune.cpp" />
+    <ClCompile Include="src\Item\LuckyCharm.cpp" />
+    <ClCompile Include="src\Item\TitanAwakening.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="UIDrawer_Flowchart.md" />

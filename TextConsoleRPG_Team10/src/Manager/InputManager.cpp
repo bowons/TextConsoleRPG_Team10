@@ -260,7 +260,16 @@ int InputManager::GetKeyCode()
         return 0;  // 키 입력 없음
     }
 
-    return _getch();  // 키 코드 반환 및 버퍼에서 제거
+    int keyCode = _getch();
+
+    // 확장 키 처리 (방향키 등)
+    // 224 (0xE0) 또는 0 (0x00)이면 두 번째 바이트를 읽어야 함
+    if (keyCode == 224 || keyCode == 0)
+    {
+        keyCode = _getch();  // 실제 키 코드 읽기
+    }
+
+    return keyCode;
 }
 
 // 특정 키가 눌렸는지 확인 및 소비 (논블로킹)

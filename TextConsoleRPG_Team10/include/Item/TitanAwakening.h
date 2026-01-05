@@ -1,17 +1,18 @@
 #pragma once
 #include "IItem.h"
 
-//플레이어 체력 회복 아이템
-class HealPotion : public IItem
+// 플레이어 공격력 + 방어력 증가 아이템
+class TitanAwakening : public IItem
 {
 public:
-    //생성자
-    //체력 회복 아이템 설정 (이름, 금액, 회복 수치, 보유 가능 개수)
-    HealPotion() : IItem("HP회복 포션", 50, 50, 5) {};
+    // 생성자
+    // 공격력 + 방어력 증가 아이템 설정 (이름, 금액, 증가 수치, 보유 가능 개수)
+    // EffectAmount는 ATK와 DEF 모두에 적용됨
+    TitanAwakening() : IItem("타이탄의 각성제", 350, 5, 5) {};
 
     void ApplyEffect(Player& Player) override;
 
-    // 동일한 타입의 새 HealPotion 인스턴스 생성
+ // 동일한 타입의 새 TitanAwakening 인스턴스 생성
     std::unique_ptr<IItem> Clone() const override;
     
     // 아이템 사용 가능 여부 판단

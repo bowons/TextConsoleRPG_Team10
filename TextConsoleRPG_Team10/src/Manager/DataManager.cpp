@@ -196,51 +196,51 @@ std::vector<std::vector<std::string>> DataManager::LoadCSVFile(const std::string
                     while (i < n)
                     {
                         if (line[i] == '"')
-                        {
-                            if (i + 1 < n && line[i + 1] == '"')
-                            {
-                                field.push_back('"');
-                                i += 2;
-                            }
-                            else
-                            {
-                                ++i;
-                                break;
-                            }
-                        }
-                        else
-                        {
-                            field.push_back(line[i++]);
-                        }
-                    }
-                    while (i < n && line[i] != ',') ++i;
-                    if (i < n && line[i] == ',') ++i;
-                }
-                else
-                {
-                    while (i < n && line[i] != ',')
-                    {
-                        field.push_back(line[i++]);
-                    }
-                    if (i < n && line[i] == ',') ++i;
-                }
-
-                trim(field);
-                row.push_back(field);
+            {
+              if (i + 1 < n && line[i + 1] == '"')
+              {
+                field.push_back('"');
+                i += 2;
+              }
+              else
+              {
+                ++i;
+                break;
+              }
             }
-
-            if (!line.empty() && line.back() == ',')
-                row.push_back(std::string());
-
-            result.push_back(std::move(row));
+            else
+            {
+              field.push_back(line[i++]);
+            }
+          }
+          while (i < n && line[i] != ',') ++i;
+          if (i < n && line[i] == ',') ++i;
         }
-    }
-    catch (const std::exception& ex)
-    {
-        SafeLog("DataManager::LoadCSVFile exception: " + std::string(ex.what()));
-    }
+        else
+        {
+          while (i < n && line[i] != ',')
+          {
+            field.push_back(line[i++]);
+          }
+          if (i < n && line[i] == ',') ++i;
+        }
 
-    return result;
+        trim(field);
+        row.push_back(field);
+      }
+
+      if (!line.empty() && line.back() == ',')
+        row.push_back(std::string());
+
+      result.push_back(std::move(row));
+    }
+  }
+  catch (const std::exception& ex)
+  {
+    SafeLog("DataManager::LoadCSVFile exception: " + std::string(ex.what()));
+  }
+
+  return result;
 }
 
 bool DataManager::SaveTextFile(const std::string& folderPath, const std::string& fileName, const std::string& data)
@@ -364,6 +364,7 @@ std::vector<ItemData> DataManager::LoadItemData(const std::string& fileName)
             return result;
         }
 
+        // CSV 형식: ItemID,Name,Description,Price,EffectAmount,MaxCount,Stock,AsciiFile
         for (size_t i = 1; i < csv.size(); ++i)
         {
             const auto& row = csv[i];
@@ -371,7 +372,7 @@ std::vector<ItemData> DataManager::LoadItemData(const std::string& fileName)
             if (row.empty() || (row.size() == 1 && row[0].empty()))
                 continue;
 
-            if (row.size() < 6)
+            if (row.size() < 8)
             {
                 SafeLog("DataManager::LoadItemData - Invalid row at line " + std::to_string(i) + ": insufficient columns");
                 continue;
@@ -380,12 +381,14 @@ std::vector<ItemData> DataManager::LoadItemData(const std::string& fileName)
             try
             {
                 ItemData data;
-                data.ItemType = row[0];
+                data.ItemID = row[0];
                 data.Name = row[1];
-                data.Price = std::stoi(row[2]);
-                data.EffectAmount = std::stoi(row[3]);
-                data.MaxCount = std::stoi(row[4]);
-                data.Stock = std::stoi(row[5]);
+                data.Description = row[2];
+                data.Price = std::stoi(row[3]);
+                data.EffectAmount = std::stoi(row[4]);
+                data.MaxCount = std::stoi(row[5]);
+                data.Stock = std::stoi(row[6]);
+                data.AsciiFile = row[7];
 
                 result.push_back(data);
             }

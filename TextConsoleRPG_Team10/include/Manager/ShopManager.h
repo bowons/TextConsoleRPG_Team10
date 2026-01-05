@@ -4,6 +4,7 @@
 #include <memory>
 #include <string>
 #include <tuple>
+#include <map>
 
 class IItem;
 class Player;
@@ -12,13 +13,16 @@ class ItemFactory;
 struct ItemStock {
     std::unique_ptr<IItem> StoredItem;
     int _StockCount;
+    std::string AsciiFile;// 아이템 이미지 경로
 };
 
 // 상점 아이템 정보 (UI 표시용)
 struct ShopItemInfo {
     std::string name;
+    std::string description;
     int price;
     int stock;
+    std::string asciiFile;  // 아이템 이미지 경로
 };
 
 // 거래 결과 반환 타입
@@ -34,6 +38,7 @@ class ShopManager : public Singleton<ShopManager>
 private:
     std::vector<ItemStock> _SellList;  // 판매 목록
     std::unique_ptr<ItemFactory> _ItemFactory;
+    std::map<std::string, std::string> _ItemDescriptions;  // 아이템 ID -> 설명 매핑
 
 protected:
     ShopManager();
@@ -43,9 +48,9 @@ protected:
     ShopManager& operator=(const ShopManager&) = delete;
 
 public:
-    // 판매 리스트 초기화 (CSV에서 로드)
+// 판매 리스트 초기화 (CSV에서 로드)
     // 반환: 성공 시 true, 실패 시 false
-    bool ReopenShop(const std::string& csvFileName = "Items.csv");
+ bool ReopenShop(const std::string& csvFileName = "Items.csv");
 
     // 판매 목록 정보 반환 (UI에서 표시)
     std::vector<ShopItemInfo> GetShopItems() const;
@@ -60,4 +65,7 @@ public:
 
     // 판매 목록 크기 반환
     size_t GetSellListSize() const { return _SellList.size(); }
+    
+    // 특정 인덱스의 아이템 이미지 경로 반환
+    std::string GetItemAsciiFile(int idx) const;
 };

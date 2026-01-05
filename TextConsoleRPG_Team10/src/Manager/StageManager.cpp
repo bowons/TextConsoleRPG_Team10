@@ -25,8 +25,12 @@ bool StageManager::Initialize()
             return false;
         }
 
+        // 진행 상태 초기화
+        _Progress.CurrentFloor = 1; // 여기 변경
+        _Progress.CurrentNodeId = "";
+
         // 1층 노드 로드
-        _CurrentFloorNodes = DataManager::GetInstance()->LoadStageNodes(1);
+        _CurrentFloorNodes = DataManager::GetInstance()->LoadStageNodes(_Progress.CurrentFloor);
 
         if (_CurrentFloorNodes.empty())
         {
@@ -38,11 +42,7 @@ bool StageManager::Initialize()
         }
 
         // ===== 랜덤 몬스터 타입 배정 =====
-        AssignRandomMonsterTypes(1);
-
-        // 진행 상태 초기화
-        _Progress.CurrentFloor = 1;
-        _Progress.CurrentNodeId = "";
+        AssignRandomMonsterTypes(_Progress.CurrentFloor);
 
         // 시작 노드 찾기
         for (const auto& node : _CurrentFloorNodes)
@@ -88,10 +88,10 @@ void StageManager::StartNewGame()
     _Progress.CurrentFloor = 1;
 
     // 1층 노드 로드
-    _CurrentFloorNodes = DataManager::GetInstance()->LoadStageNodes(1);
+    _CurrentFloorNodes = DataManager::GetInstance()->LoadStageNodes(_Progress.CurrentFloor);
 
     // ===== 랜덤 몬스터 타입 배정 =====
-    AssignRandomMonsterTypes(1);
+    AssignRandomMonsterTypes(_Progress.CurrentFloor);
 
     // 시작 노드 찾기
     for (const auto& node : _CurrentFloorNodes)

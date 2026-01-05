@@ -8,7 +8,11 @@
 #include "../../../include/Manager/GameManager.h"
 #include "../../../include/Manager/ShopManager.h"
 #include "../../../include/Manager/DataManager.h"
+#include "../../../include/Manager/StageManager.h"
 #include "../../../include/Common/TextColor.h"
+#include "../../../include/Unit/Player.h"
+#include "../../../include/Item/Inventory.h"
+#include "../../../include/Item/IItem.h"
 
 ShopScene::ShopScene()
     : UIScene("Shop")
@@ -36,190 +40,91 @@ void ShopScene::Enter()
     // 패널 레이아웃 (150x45 화면 기준)
     // =============================================================================
 
-    // ===== 상점 타이틀 패널 (상단) =====
-    Panel* titlePanel = _Drawer->CreatePanel("Title", 10, 2, 130, 6);
+    // ===== 타이틀 패널 (상단) - Stage와 공통 =====
+    Panel* titlePanel = _Drawer->CreatePanel("Title", 2, 1, 120, 5);
     titlePanel->SetBorder(true, ETextColor::LIGHT_YELLOW);
 
     auto titleText = std::make_unique<TextRenderer>();
-    titleText->AddLine("");
-    titleText->AddLine("");
-    titleText->AddLineWithColor("          [상점 문구]",
-        MakeColorAttribute(ETextColor::LIGHT_YELLOW, EBackgroundColor::BLACK));
+    titleText->AddLineWithColor("[ 에테르 환영거울 - 상점 통신중... ]",
+        MakeColorAttribute(ETextColor::BLACK, EBackgroundColor::WHITE));
 
-    titlePanel->SetContentRenderer(std::move(titleText));
+    titlePanel->AddRenderer(40, 1, 100, 3, std::move(titleText));
     titlePanel->Redraw();
 
-    // ===== 상점 배경 & NPC 이미지 패널 (좌측) =====
-    Panel* imagePanel = _Drawer->CreatePanel("ShopImage", 10, 10, 50, 45);
-    imagePanel->SetBorder(true, ETextColor::CYAN);
+    // ===== 안내 패널 (상단 중앙) =====
+    Panel* guidePanel = _Drawer->CreatePanel("Guide", 2, 6, 120, 5);
+    guidePanel->SetBorder(true, ETextColor::YELLOW);
+
+    UpdateGuidePanel(guidePanel);
+
+    // ===== 아이템 이미지 패널 (중앙 좌측) =====
+    Panel* shopImagePanel = _Drawer->CreatePanel("ShopImage", 2, 11, 50, 23);
+    shopImagePanel->SetBorder(true, ETextColor::CYAN);
 
     auto imageText = std::make_unique<TextRenderer>();
-    imageText->AddLine("");
-    imageText->AddLine("");
-    imageText->AddLine("");
-    imageText->AddLine("");
-    imageText->AddLine("");
-    imageText->AddLine("    [상점 배경 & NPC 이미지]");
-    imageText->AddLine("");
-    imageText->SetTextColor(MakeColorAttribute(ETextColor::DARK_GRAY, EBackgroundColor::BLACK));
+    std::string uiPath = DataManager::GetInstance()->GetResourcePath("UI");
 
-    imagePanel->SetContentRenderer(std::move(imageText));
-    imagePanel->Redraw();
+    imageText->AddLine("");
+    imageText->AddLine("");
+    imageText->AddLine("");
+    imageText->AddLine("");
+    imageText->AddLineWithColor("    [아이템 이미지]",
+        MakeColorAttribute(ETextColor::CYAN, EBackgroundColor::BLACK));
+    shopImagePanel->SetContentRenderer(std::move(imageText));
+    shopImagePanel->Redraw();
 
-    // TODO: 여기에서 상점 이미지 조정
-    // 상점 배경과 NPC 이미지를 표시합니다.
-    //
-    // 구현 방법:
-    // Panel* imagePanel = _Drawer->GetPanel("ShopImage");
-    // auto artRenderer = std::make_unique<AsciiArtRenderer>();
-    // std::string uiPath = DataManager::GetInstance()->GetResourcePath("UI");
-    //
-    // if (artRenderer->LoadFromFile(uiPath, "Shop.txt")) {
-    //     artRenderer->SetAlignment(ArtAlignment::CENTER);
-    //     artRenderer->SetColor(ETextColor::LIGHT_YELLOW);
-    //     imagePanel->SetContentRenderer(std::move(artRenderer));
-    //     imagePanel->Redraw();
-    // }
+    // ===== 상품 목록 패널 (중앙 우측) =====
+    Panel* itemListPanel = _Drawer->CreatePanel("ItemList", 54, 11, 68, 23);
+    itemListPanel->SetBorder(true, ETextColor::GREEN);
 
-    // ===== 상품 목록 패널 (우측 상단, 3개) =====
-    for (int i = 0; i < 3; ++i)
+    UpdateItemListPanel(itemListPanel);
+
+    // ===== 타워 패널 (우측) - Stage와 공통 =====
+    Panel* towerPanel = _Drawer->CreatePanel("Tower", 122, 1, 30, 30);
+    auto towerArt = std::make_unique<AsciiArtRenderer>();
+
+    bool towerLoaded = towerArt->LoadFromFile(uiPath, "Tower.txt");
+
+    if (towerLoaded)
     {
-        int yPos = 10 + (i * 15);
-        Panel* itemPanel = _Drawer->CreatePanel("Item" + std::to_string(i + 1), 63, yPos, 42, 14);
-        itemPanel->SetBorder(true, ETextColor::GREEN);
-
-        auto itemText = std::make_unique<TextRenderer>();
-        itemText->AddLine("");
-        itemText->AddLineWithColor("  아이템 이미지",
-            MakeColorAttribute(ETextColor::CYAN, EBackgroundColor::BLACK));
-        itemText->AddLine("");
-        itemText->AddLine("  아이템 이미지 | 아이템 비용");
-        itemText->AddLine("");
-        itemText->AddLine("  설명 및 효과");
-        itemText->AddLine("");
-
-        itemPanel->SetContentRenderer(std::move(itemText));
-        itemPanel->Redraw();
+        towerArt->SetAlignment(ArtAlignment::CENTER);
+        towerArt->SetColor(ETextColor::WHITE);
+        towerPanel->SetContentRenderer(std::move(towerArt));
+    }
+    else
+    {
+        auto errorText = std::make_unique<TextRenderer>();
+        errorText->AddLine("");
+        errorText->AddLine("");
+        errorText->AddLineWithColor("[ Tower.txt not found ]",
+            MakeColorAttribute(ETextColor::LIGHT_RED, EBackgroundColor::BLACK));
+        errorText->AddLine("");
+        towerPanel->SetContentRenderer(std::move(errorText));
     }
 
-    // TODO: 상품 목록 동적 업데이트
-    // ShopManager에서 판매 중인 상품 목록을 가져와 표시합니다.
-    //
-    // 구현 방법:
-    // auto shopItems = ShopManager::GetInstance()->GetShopItems();
-    //
-    // for (size_t i = 0; i < 3 && i < shopItems.size(); ++i) {
-    //     std::string panelID = "Item" + std::to_string(i + 1);
-    //     Panel* itemPanel = _Drawer->GetPanel(panelID);
-    //
-    //     auto itemText = std::make_unique<TextRenderer>();
-    //     itemText->AddLine("");
-//
-    //     // 선택된 아이템 하이라이트
-    //if (_IsBuyMode && i == _SelectedItemIndex) {
-    //     itemText->AddLineWithColor("  > " + shopItems[i].name,
-    //       MakeColorAttribute(ETextColor::LIGHT_YELLOW, ...));
-    //  } else {
-    //         itemText->AddLine("    " + shopItems[i].name);
-    //     }
-    //
-    //itemText->AddLine("  가격: " + std::to_string(shopItems[i].price) + " G");
-    //     itemText->AddLine("  재고: " + std::to_string(shopItems[i].stock));
-  // itemText->AddLine("");
-    //
-    //     itemPanel->SetContentRenderer(std::move(itemText));
-    //     itemPanel->Redraw();
-    // }
+    // Tower 화살표 렌더링
+    StageManager* stageMgr = StageManager::GetInstance();
+    const StageFloorData* floorInfo = stageMgr->GetCurrentFloorInfo();
+    if (floorInfo)
+    {
+        UpdateTowerArrow(towerPanel, floorInfo->Floor);
+    }
 
-    // ===== 플레이어 정보 패널 (우측 상단) =====
-    Panel* playerPanel = _Drawer->CreatePanel("PlayerInfo", 108, 10, 32, 15);
-    playerPanel->SetBorder(true, ETextColor::MAGENTA);
+    // ===== 시스템 로그 패널 (하단 좌측) - Stage와 공통 =====
+    Panel* systemPanel = _Drawer->CreatePanel("System", 2, 34, 100, 11);
+    systemPanel->SetBorder(true, ETextColor::WHITE);
 
-    auto playerText = std::make_unique<TextRenderer>();
-    playerText->AddLine("");
-    playerText->AddLineWithColor("  [탭]",
-        MakeColorAttribute(ETextColor::LIGHT_CYAN, EBackgroundColor::BLACK));
-    playerText->AddLine("");
-    playerText->AddLine("  = 탭 형식");
-    playerText->AddLine("");
+    std::vector<std::string> initialLogs = {
+        "[상점 주인] 어서오게 용사. 통신에는 이상 없네, 원하는 물건을 골라보게.",
+        "",
+    };
+    UpdateSystemLog(systemPanel, initialLogs);
 
-    playerPanel->SetContentRenderer(std::move(playerText));
-    playerPanel->Redraw();
+    // ===== 인벤토리 패널 (하단 우측) - Stage와 공통 =====
+    Panel* inventoryPanel = _Drawer->CreatePanel("Inventory", 102, 34, 47, 11);
+    inventoryPanel->SetBorder(true, ETextColor::WHITE);
 
-    // TODO: 플레이어 정보 동적 업데이트
-  // 현재 소지 골드 등을 표시합니다.
-    //
-    // 구현 방법:
-    // auto player = GameManager::GetInstance()->GetMainPlayer();
-    // Panel* playerPanel = _Drawer->GetPanel("PlayerInfo");
-    //
-    // auto playerText = std::make_unique<TextRenderer>();
-    // playerText->AddLine("");
-    // playerText->AddLineWithColor("  [플레이어 정보]",
-    //     MakeColorAttribute(ETextColor::LIGHT_CYAN, ...));
-    // playerText->AddLine("");
-    // playerText->AddLine("  소지금: " + std::to_string(player->GetGold()) + " G");
-    // playerText->AddLine("");
-    //
-    // playerPanel->SetContentRenderer(std::move(playerText));
-    // playerPanel->Redraw();
-
-    // ===== 시스템 로그 패널 (하단 좌측) =====
-    Panel* logPanel = _Drawer->CreatePanel("SystemLog", 10, 56, 90, 9);
-    logPanel->SetBorder(true, ETextColor::LIGHT_CYAN);
-
-    auto logText = std::make_unique<TextRenderer>();
-    logText->AddLine("");
-    logText->AddLineWithColor("  [ 시스템 로그 출력 창 ]",
-        MakeColorAttribute(ETextColor::LIGHT_CYAN, EBackgroundColor::BLACK));
-    logText->AddLine("");
-
-    logPanel->SetContentRenderer(std::move(logText));
-    logPanel->Redraw();
-
-    // TODO: 거래 로그 표시
-    // 구매/판매 결과를 로그로 출력합니다.
-    //
-    // 구현 방법:
-  // Panel* logPanel = _Drawer->GetPanel("SystemLog");
-    // auto logText = std::make_unique<TextRenderer>();
-    //
-    // logText->SetAutoScroll(true);
-    // logText->AddLine("상점에 오신 것을 환영합니다!");
-  // logText->AddLine("");
-    //
-    // // 거래 후:
-    // // auto [success, message, goldChange, itemName] = ShopManager::GetInstance()->BuyItem(...);
-    // // if (success) {
-    // //   logText->AddLineWithColor("구매 성공: " + itemName, 
-    // // MakeColorAttribute(ETextColor::LIGHT_GREEN, ...));
- // // } else {
-    // //   logText->AddLineWithColor("구매 실패: " + message,
-    // //   MakeColorAttribute(ETextColor::LIGHT_RED, ...));
-    // // }
-    //
-    // logPanel->SetContentRenderer(std::move(logText));
-    // logPanel->Redraw();
-
- // ===== 인벤토리 & 커맨드 패널 (하단 우측) =====
-    Panel* commandPanel = _Drawer->CreatePanel("Command", 103, 56, 37, 9);
-    commandPanel->SetBorder(true, ETextColor::WHITE);
-
-    auto commandText = std::make_unique<TextRenderer>();
-    commandText->AddLine("");
-    commandText->AddLineWithColor("  인벤토리 & 커맨드",
-        MakeColorAttribute(ETextColor::LIGHT_YELLOW, EBackgroundColor::BLACK));
-    commandText->AddLine("");
-    commandText->AddLine("  [↑/↓] 선택");
-    commandText->AddLine("  [Enter] 구매");
-    commandText->AddLine("  [Tab] 구매/판매 전환");
-    commandText->AddLine("  [ESC] 나가기");
-
-    commandPanel->SetContentRenderer(std::move(commandText));
-    commandPanel->Redraw();
-
-    // TODO: 커맨드 동적 업데이트
-    // 구매/판매 모드에 따라 다른 안내 표시
+    UpdateInventoryPanel(inventoryPanel);
 
     _Drawer->Render();
 }
@@ -244,76 +149,477 @@ void ShopScene::Render()
     // UIDrawer::Update()에서 자동 렌더링
 }
 
+void ShopScene::UpdateSystemLog(Panel* systemPanel, const std::vector<std::string>& messages)
+{
+    if (!systemPanel) return;
+
+    auto logText = std::make_unique<TextRenderer>();
+    logText->AddLineWithColor("[ 시스템 로그 ]",
+        MakeColorAttribute(ETextColor::LIGHT_YELLOW, EBackgroundColor::BLACK));
+
+    int maxLines = 8;
+    int messageSize = static_cast<int>(messages.size());
+    int displayCount = (messageSize < maxLines) ? messageSize : maxLines;
+
+    for (int i = 0; i < displayCount; ++i)
+    {
+        if (messages[i].empty())
+        {
+            logText->AddLine("");
+            continue;
+        }
+
+        WORD color;
+        if (messages[i].find("[디버그]") != std::string::npos)
+            color = MakeColorAttribute(ETextColor::DARK_GRAY, EBackgroundColor::BLACK);
+        else if (messages[i].find("[경고]") != std::string::npos || messages[i].find("[오류]") != std::string::npos)
+            color = MakeColorAttribute(ETextColor::LIGHT_RED, EBackgroundColor::BLACK);
+        else if (messages[i].find("[성공]") != std::string::npos)
+            color = MakeColorAttribute(ETextColor::LIGHT_GREEN, EBackgroundColor::BLACK);
+        else if (messages[i].find("[정보]") != std::string::npos || messages[i].find("[안내]") != std::string::npos)
+            color = MakeColorAttribute(ETextColor::LIGHT_CYAN, EBackgroundColor::BLACK);
+        else
+            color = MakeColorAttribute(ETextColor::WHITE, EBackgroundColor::BLACK);
+
+        logText->AddLineWithColor(messages[i], color);
+    }
+
+    systemPanel->ClearRenderers();
+    systemPanel->AddRenderer(0, 0, 98, 9, std::move(logText));
+    systemPanel->Redraw();
+}
+
+void ShopScene::UpdateInventoryPanel(Panel* inventoryPanel)
+{
+    if (!inventoryPanel) return;
+
+    auto inventoryText = std::make_unique<TextRenderer>();
+
+    Player* player = GameManager::GetInstance()->GetMainPlayer().get();
+
+    if (!player)
+    {
+        inventoryText->AddLineWithColor("[ 인벤토리 ]",
+            MakeColorAttribute(ETextColor::LIGHT_YELLOW, EBackgroundColor::BLACK));
+        inventoryText->AddLineWithColor("플레이어 정보를 불러올 수 없습니다.",
+            MakeColorAttribute(ETextColor::LIGHT_RED, EBackgroundColor::BLACK));
+
+        inventoryPanel->ClearRenderers();
+        inventoryPanel->AddRenderer(0, 0, 45, 9, std::move(inventoryText));
+        inventoryPanel->Redraw();
+        return;
+    }
+
+    // 골드 표시
+    std::string goldInfo = "[ 소지금: " + std::to_string(player->GetGold()) + " G ]";
+    inventoryText->AddLineWithColor(goldInfo,
+        MakeColorAttribute(ETextColor::LIGHT_YELLOW, EBackgroundColor::BLACK));
+
+    Inventory* inventory = nullptr;
+    if (!player->TryGetInventory(inventory) || !inventory)
+    {
+        inventoryText->AddLine("");
+        inventoryText->AddLineWithColor("인벤토리가 비활성화되어 있습니다.",
+            MakeColorAttribute(ETextColor::DARK_GRAY, EBackgroundColor::BLACK));
+
+        inventoryPanel->ClearRenderers();
+        inventoryPanel->AddRenderer(0, 0, 45, 9, std::move(inventoryText));
+        inventoryPanel->Redraw();
+        return;
+    }
+
+    int usedSlots = 0;
+    const int maxSlots = 5;
+    for (int i = 0; i < maxSlots; ++i)
+    {
+        if (inventory->GetItemAtSlot(i) != nullptr)
+            usedSlots++;
+    }
+
+    std::string header = "[ 인벤토리 (" + std::to_string(usedSlots) + "/" + std::to_string(maxSlots) + ") ]";
+    inventoryText->AddLineWithColor(header,
+        MakeColorAttribute(ETextColor::LIGHT_CYAN, EBackgroundColor::BLACK));
+
+    for (int i = 0; i < maxSlots; ++i)
+    {
+        IItem* item = inventory->GetItemAtSlot(i);
+        if (item)
+        {
+            int amount = inventory->GetSlotAmount(i);
+            std::string itemLine = std::to_string(i + 1) + ". " +
+                item->GetName() + " x" + std::to_string(amount);
+
+            // 판매 모드에서 선택된 슬롯 하이라이트
+            if (!_IsBuyMode && i == _PlayerInventorySlot)
+            {
+                inventoryText->AddLineWithColor("> " + itemLine,
+                    MakeColorAttribute(ETextColor::LIGHT_YELLOW, EBackgroundColor::BLACK));
+            }
+            else
+            {
+                inventoryText->AddLineWithColor(itemLine,
+                    MakeColorAttribute(ETextColor::WHITE, EBackgroundColor::BLACK));
+            }
+        }
+        else
+        {
+            std::string emptyLine = std::to_string(i + 1) + ". [빈 슬롯]";
+
+            if (!_IsBuyMode && i == _PlayerInventorySlot)
+            {
+                inventoryText->AddLineWithColor("> " + emptyLine,
+                    MakeColorAttribute(ETextColor::DARK_GRAY, EBackgroundColor::BLACK));
+            }
+            else
+            {
+                inventoryText->AddLineWithColor(emptyLine,
+                    MakeColorAttribute(ETextColor::DARK_GRAY, EBackgroundColor::BLACK));
+            }
+        }
+    }
+
+    inventoryPanel->ClearRenderers();
+    inventoryPanel->AddRenderer(0, 0, 45, 9, std::move(inventoryText));
+    inventoryPanel->Redraw();
+}
+
+void ShopScene::UpdateTowerArrow(Panel* towerPanel, int currentFloor)
+{
+    auto arrowRenderer = std::make_unique<TextRenderer>();
+
+    const int towerHeight = 25;
+    const int maxFloor = 10;
+    const int topMargin = 6;
+    const int bottomMargin = 0;
+    const int usableHeight = towerHeight - topMargin - bottomMargin;
+
+    int arrowLine = topMargin + ((maxFloor - currentFloor) * usableHeight / maxFloor);
+
+    for (int i = 0; i < arrowLine; ++i)
+    {
+        arrowRenderer->AddLine("");
+    }
+
+    arrowRenderer->AddLineWithColor("*----►",
+        MakeColorAttribute(ETextColor::LIGHT_YELLOW, EBackgroundColor::BLACK));
+
+    towerPanel->AddRenderer(0, 0, 5, towerHeight, std::move(arrowRenderer));
+    towerPanel->Redraw();
+}
+
+void ShopScene::UpdateGuidePanel(Panel* guidePanel)
+{
+    if (!guidePanel) return;
+
+    auto guideText = std::make_unique<TextRenderer>();
+
+    std::string controls = "[↑/↓] 선택   [Enter] 구매/판매   [Tab] 모드 전환   [ESC] 스테이지로 복귀";
+    guideText->AddLineWithColor(controls,
+        MakeColorAttribute(ETextColor::WHITE, EBackgroundColor::BLACK));
+
+    std::string info = "구매 모드: 상점 아이템 선택 | 판매 모드: 인벤토리 아이템 선택 (판매가 = 구매가의 50%)";
+    guideText->AddLineWithColor(info,
+        MakeColorAttribute(ETextColor::DARK_GRAY, EBackgroundColor::BLACK));
+
+    guidePanel->ClearRenderers();
+    guidePanel->AddRenderer(2, 0, 116, 4, std::move(guideText));
+    guidePanel->Redraw();
+}
+
+void ShopScene::UpdateItemListPanel(Panel* itemListPanel)
+{
+    if (!itemListPanel) return;
+
+    auto itemText = std::make_unique<TextRenderer>();
+
+    // 모드 표시
+    if (_IsBuyMode)
+    {
+        itemText->AddLineWithColor("[ 구매 모드 ]",
+            MakeColorAttribute(ETextColor::LIGHT_GREEN, EBackgroundColor::BLACK));
+    }
+    else
+    {
+        itemText->AddLineWithColor("[ 판매 모드 ]",
+            MakeColorAttribute(ETextColor::LIGHT_MAGENTA, EBackgroundColor::BLACK));
+    }
+
+    itemText->AddLine("");
+
+    if (_IsBuyMode)
+    {
+        // 구매 모드: 상점 아이템 목록 표시
+        auto shopItems = ShopManager::GetInstance()->GetShopItems();
+
+        if (shopItems.empty())
+        {
+            itemText->AddLineWithColor("판매 중인 상품이 없습니다.",
+                MakeColorAttribute(ETextColor::DARK_GRAY, EBackgroundColor::BLACK));
+        }
+        else
+        {
+            for (size_t i = 0; i < shopItems.size(); ++i)
+            {
+                std::string itemLine = std::to_string(i + 1) + ". " + shopItems[i].name +
+                    " - " + std::to_string(shopItems[i].price) + " G";
+
+                if (shopItems[i].stock > 0)
+                {
+                    itemLine += " (재고: " + std::to_string(shopItems[i].stock) + ")";
+                }
+                else
+                {
+                    itemLine += " [품절]";
+                }
+
+                if (i == static_cast<size_t>(_SelectedItemIndex))
+                {
+                    itemText->AddLineWithColor("> " + itemLine,
+                        MakeColorAttribute(ETextColor::LIGHT_YELLOW, EBackgroundColor::BLACK));
+
+                    // 선택된 아이템의 이미지 업데이트
+                    UpdateItemImage(static_cast<int>(i));
+                }
+                else
+                {
+                    WORD color = (shopItems[i].stock > 0) ?
+                        MakeColorAttribute(ETextColor::WHITE, EBackgroundColor::BLACK) :
+                        MakeColorAttribute(ETextColor::DARK_GRAY, EBackgroundColor::BLACK);
+                    itemText->AddLineWithColor(itemLine, color);
+                }
+            }
+        }
+    }
+    else
+    {
+        // 판매 모드: 인벤토리 아이템 표시 안내
+        itemText->AddLineWithColor("우측 인벤토리에서",
+            MakeColorAttribute(ETextColor::LIGHT_CYAN, EBackgroundColor::BLACK));
+        itemText->AddLineWithColor("판매할 아이템을 선택하세요.",
+            MakeColorAttribute(ETextColor::LIGHT_CYAN, EBackgroundColor::BLACK));
+        itemText->AddLine("");
+        itemText->AddLineWithColor("판매 가격은 구매 가격의 60%입니다.",
+            MakeColorAttribute(ETextColor::DARK_GRAY, EBackgroundColor::BLACK));
+    }
+
+    itemListPanel->ClearRenderers();
+    itemListPanel->AddRenderer(0, 0, 64, 23, std::move(itemText));
+    itemListPanel->Redraw();
+}
+
+void ShopScene::UpdateItemImage(int itemIndex)
+{
+    Panel* imagePanel = _Drawer->GetPanel("ShopImage");
+    if (!imagePanel) return;
+
+    std::string asciiFile = ShopManager::GetInstance()->GetItemAsciiFile(itemIndex);
+
+    if (asciiFile.empty())
+    {
+        // 이미지 파일이 없으면 기본 텍스트 표시
+        auto defaultText = std::make_unique<TextRenderer>();
+        defaultText->AddLine("");
+        defaultText->AddLine("");
+        defaultText->AddLine("");
+        defaultText->AddLine("");
+        defaultText->AddLineWithColor("    [아이템 이미지]",
+            MakeColorAttribute(ETextColor::CYAN, EBackgroundColor::BLACK));
+        imagePanel->SetContentRenderer(std::move(defaultText));
+    }
+    else
+    {
+        // 아스키 아트 로드 시도
+        std::string uiPath = DataManager::GetInstance()->GetResourcePath("UI");
+        auto artRenderer = std::make_unique<AsciiArtRenderer>();
+
+        if (artRenderer->LoadFromFile(uiPath, asciiFile))
+        {
+            artRenderer->SetAlignment(ArtAlignment::CENTER);
+            artRenderer->SetColor(ETextColor::LIGHT_YELLOW);
+            imagePanel->SetContentRenderer(std::move(artRenderer));
+        }
+        else
+        {
+            // 로드 실패 시 기본 텍스트
+            auto errorText = std::make_unique<TextRenderer>();
+            errorText->AddLine("");
+            errorText->AddLine("");
+            errorText->AddLine("");
+            errorText->AddLineWithColor("    [이미지 로드 실패]",
+                MakeColorAttribute(ETextColor::LIGHT_RED, EBackgroundColor::BLACK));
+            errorText->AddLine("");
+            errorText->AddLineWithColor("    " + asciiFile,
+                MakeColorAttribute(ETextColor::DARK_GRAY, EBackgroundColor::BLACK));
+            imagePanel->SetContentRenderer(std::move(errorText));
+        }
+    }
+
+    imagePanel->Redraw();
+}
+
 void ShopScene::HandleInput()
 {
-    // TODO: 입력 처리 구현
-    //
-    // 구현 방법:
-    // InputManager* input = InputManager::GetInstance();
-    // if (!input->IsKeyPressed()) return;
-    //
-    // int keyCode = input->GetKeyCode();
-    //
-    // if (keyCode == VK_UP) {  // ↑ 위로
-    //     if (_IsBuyMode) {
- //       _SelectedItemIndex--;
-    //  if (_SelectedItemIndex < 0) {
-    //   _SelectedItemIndex = ShopManager::GetInstance()->GetSellListSize() - 1;
-    //         }
- //     } else {
-  //         // 판매 모드: 인벤토리 선택
-    //       _PlayerInventorySlot--;
-    //     if (_PlayerInventorySlot < 0) _PlayerInventorySlot = 9;  // 인벤토리 최대 슬롯
-    //     }
-//     // 상품 목록 패널 업데이트 (위의 TODO 참고)
- //     _Drawer->Render();
-    // }
-    // else if (keyCode == VK_DOWN) {  // ↓ 아래로
-    //     if (_IsBuyMode) {
-    //       _SelectedItemIndex++;
-    //      if (_SelectedItemIndex >= ShopManager::GetInstance()->GetSellListSize()) {
-    //             _SelectedItemIndex = 0;
-    //         }
-    // } else {
-    //     _PlayerInventorySlot++;
-    //         if (_PlayerInventorySlot > 9) _PlayerInventorySlot = 0;
-    //     }
-    //     // 상품 목록 패널 업데이트
-    //     _Drawer->Render();
-    // }
-    // else if (keyCode == VK_RETURN) {  // Enter - 구매/판매
-    //     auto player = GameManager::GetInstance()->GetMainPlayer();
-    //
-    //     if (_IsBuyMode) {
-    // // 구매 처리
-    //         auto [success, message, goldChange, itemName] = 
-    //    ShopManager::GetInstance()->BuyItem(player.get(), _SelectedItemIndex);
-    //
-    //         // 로그 패널에 결과 표시 (위의 TODO 참고)
-    //         // 상품 목록 패널 업데이트 (재고 변경)
-    //  // 플레이어 정보 패널 업데이트 (골드 변경)
-    //     }
-    //     else {
-    //         // 판매 처리
-    //         auto [success, message, goldChange, itemName] = 
-    //             ShopManager::GetInstance()->SellItem(player.get(), _PlayerInventorySlot);
-    //
-//     // 로그 패널에 결과 표시
-  //         // 플레이어 정보 패널 업데이트
-    //     }
-    //
-    //   _Drawer->Render();
-    // }
-    // else if (keyCode == VK_TAB) {  // Tab - 구매/판매 전환
-    //     _IsBuyMode = !_IsBuyMode;
-//     _SelectedItemIndex = 0;
-    //     _PlayerInventorySlot = 0;
-    //
-    //     // 모드 전환 시 UI 업데이트
-    //     // 커맨드 패널 업데이트 (안내 문구 변경)
-    //     _Drawer->Render();
-    // }
-    // else if (keyCode == VK_ESCAPE) {  // ESC - 상점 나가기
-    //     SceneManager::GetInstance()->ChangeScene(ESceneType::StageSelect);
-    // }
+    InputManager* input = InputManager::GetInstance();
+    if (!input->IsKeyPressed()) return;
+
+    int keyCode = input->GetKeyCode();
+
+    // ===== ESC: 상점 나가기 =====
+    if (keyCode == VK_ESCAPE)
+    {
+        _IsActive = false;
+        Exit();
+        SceneManager::GetInstance()->ChangeScene(ESceneType::StageSelect);
+        return;
+    }
+
+    // ===== Tab: 구매/판매 모드 전환 =====
+    if (keyCode == VK_TAB)
+    {
+        _IsBuyMode = !_IsBuyMode;
+        _SelectedItemIndex = 0;
+        _PlayerInventorySlot = 0;
+
+        Panel* itemListPanel = _Drawer->GetPanel("ItemList");
+        Panel* inventoryPanel = _Drawer->GetPanel("Inventory");
+
+        UpdateItemListPanel(itemListPanel);
+        UpdateInventoryPanel(inventoryPanel);
+
+        std::vector<std::string> logs;
+        if (_IsBuyMode)
+        {
+            logs.push_back("[안내] 구매 모드로 전환되었습니다.");
+        }
+        else
+        {
+            logs.push_back("[안내] 판매 모드로 전환되었습니다.");
+        }
+
+        Panel* systemPanel = _Drawer->GetPanel("System");
+        UpdateSystemLog(systemPanel, logs);
+
+        _Drawer->Render();
+        return;
+    }
+
+    // ===== 방향키: 위 =====
+    if (keyCode == 72)  // VK_UP
+    {
+        if (_IsBuyMode)
+        {
+            _SelectedItemIndex--;
+            if (_SelectedItemIndex < 0)
+            {
+                _SelectedItemIndex = static_cast<int>(ShopManager::GetInstance()->GetSellListSize()) - 1;
+            }
+
+            Panel* itemListPanel = _Drawer->GetPanel("ItemList");
+            UpdateItemListPanel(itemListPanel);
+        }
+        else
+        {
+            _PlayerInventorySlot--;
+            if (_PlayerInventorySlot < 0)
+            {
+                _PlayerInventorySlot = 4;  // 인벤토리 최대 슬롯 (5개: 0~4)
+            }
+
+            Panel* inventoryPanel = _Drawer->GetPanel("Inventory");
+            UpdateInventoryPanel(inventoryPanel);
+        }
+
+        _Drawer->Render();
+        return;
+    }
+
+    // ===== 방향키: 아래 =====
+    if (keyCode == 80)  // VK_DOWN
+    {
+        if (_IsBuyMode)
+        {
+            _SelectedItemIndex++;
+            if (_SelectedItemIndex >= static_cast<int>(ShopManager::GetInstance()->GetSellListSize()))
+            {
+                _SelectedItemIndex = 0;
+            }
+
+            Panel* itemListPanel = _Drawer->GetPanel("ItemList");
+            UpdateItemListPanel(itemListPanel);
+        }
+        else
+        {
+            _PlayerInventorySlot++;
+            if (_PlayerInventorySlot > 4)
+            {
+                _PlayerInventorySlot = 0;
+            }
+
+            Panel* inventoryPanel = _Drawer->GetPanel("Inventory");
+            UpdateInventoryPanel(inventoryPanel);
+        }
+
+        _Drawer->Render();
+        return;
+    }
+
+    // ===== Enter: 구매/판매 실행 =====
+    if (keyCode == VK_RETURN)
+    {
+        auto player = GameManager::GetInstance()->GetMainPlayer();
+        if (!player)
+        {
+            std::vector<std::string> logs = { "[오류] 플레이어 정보를 불러올 수 없습니다." };
+            Panel* systemPanel = _Drawer->GetPanel("System");
+            UpdateSystemLog(systemPanel, logs);
+            return;
+        }
+
+        std::vector<std::string> logs;
+
+        if (_IsBuyMode)
+        {
+            // 구매 처리
+            auto [success, message, goldChange, itemName] =
+                ShopManager::GetInstance()->BuyItem(player.get(), _SelectedItemIndex);
+
+            if (success)
+            {
+                logs.push_back("[성공] 구매 완료: " + itemName);
+                logs.push_back("[정보] 소지금 변동: " + std::to_string(goldChange) + " G");
+            }
+            else
+            {
+                logs.push_back("[경고] 구매 실패: " + message);
+            }
+
+            Panel* itemListPanel = _Drawer->GetPanel("ItemList");
+            UpdateItemListPanel(itemListPanel);
+        }
+        else
+        {
+            // 판매 처리
+            auto [success, message, goldChange, itemName] =
+                ShopManager::GetInstance()->SellItem(player.get(), _PlayerInventorySlot);
+
+            if (success)
+            {
+                logs.push_back("[성공] 판매 완료: " + itemName);
+                logs.push_back("[정보] 소지금 변동: +" + std::to_string(goldChange) + " G");
+            }
+            else
+            {
+                logs.push_back("[경고] 판매 실패: " + message);
+            }
+        }
+
+        Panel* systemPanel = _Drawer->GetPanel("System");
+        Panel* inventoryPanel = _Drawer->GetPanel("Inventory");
+
+        UpdateSystemLog(systemPanel, logs);
+        UpdateInventoryPanel(inventoryPanel);
+
+        _Drawer->Render();
+        return;
+    }
 }

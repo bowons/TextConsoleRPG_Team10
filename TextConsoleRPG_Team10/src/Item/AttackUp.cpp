@@ -21,14 +21,12 @@ bool AttackUp::CanUse(const Player& player, int currentRound) const
         return false;
     }
     
-    // 예약 후 경과한 턴 수 계산
+    // 전투 시작 후 1턴 경과 시 사용 가능
     int turnsSinceReserved = currentRound - GetReservedRound();
-  
-    // 예약 후 1턴 경과 시 사용 가능
-  return turnsSinceReserved >= 1;
+    return turnsSinceReserved >= 1;
 }
 
 std::string AttackUp::GetUseConditionDescription() const
 {
-    return "예약 후 1턴 경과";
+    return "전투 시작 후 1턴 경과";
 }

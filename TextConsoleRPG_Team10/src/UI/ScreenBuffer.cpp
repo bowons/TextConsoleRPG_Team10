@@ -2,11 +2,72 @@
 #include <iostream>
 #include <algorithm>
 
+// UTF-8 바이트 시퀀스를 유니코드 코드포인트로 변환
+static int DecodeUTF8CodePoint(const char* str, int byteCount)
+{
+	if (!str || byteCount <= 0) return 0;
+
+    unsigned char ch = static_cast<unsigned char>(str[0]);
+
+    if (byteCount == 1) {
+        return ch;  // ASCII
+    }
+    else if (byteCount == 2) {
+     return ((ch & 0x1F) << 6) | (str[1] & 0x3F);
+    }
+    else if (byteCount == 3) {
+   return ((ch & 0x0F) << 12) | ((str[1] & 0x3F) << 6) | (str[2] & 0x3F);
+    }
+    else if (byteCount == 4) {
+        return ((ch & 0x07) << 18) | ((str[1] & 0x3F) << 12) | ((str[2] & 0x3F) << 6) | (str[3] & 0x3F);
+    }
+
+    return 0;
+}
+
+// 유니코드 코드포인트의 시각적 너비 계산
+static int GetCodePointVisualWidth(int codepoint)
+{
+    // ASCII 및 기본 라틴 문자: 1칸
+    if (codepoint < 0x80)
+        return 1;
+
+    // 점자 패턴 (U+2800 ~ U+28FF): 1칸
+    if (codepoint >= 0x2800 && codepoint <= 0x28FF)
+        return 1;
+
+ // Box Drawing Characters (U+2500 ~ U+257F): 1칸
+    if (codepoint >= 0x2500 && codepoint <= 0x257F)
+        return 1;
+
+    // Block Elements (U+2580 ~ U+259F): 1칸
+    if (codepoint >= 0x2580 && codepoint <= 0x259F)
+        return 1;
+
+    // 한글 음절 (U+AC00 ~ U+D7A3): 2칸
+    if (codepoint >= 0xAC00 && codepoint <= 0xD7A3)
+        return 2;
+
+    // 한글 자모 (U+1100 ~ U+11FF, U+3130 ~ U+318F): 2칸
+    if ((codepoint >= 0x1100 && codepoint <= 0x11FF) ||
+        (codepoint >= 0x3130 && codepoint <= 0x318F))
+   return 2;
+
+    // 한자 및 동아시아 문자 (CJK): 2칸
+    if ((codepoint >= 0x4E00 && codepoint <= 0x9FFF) ||  // CJK Unified Ideographs
+        (codepoint >= 0x3400 && codepoint <= 0x4DBF) ||  // CJK Extension A
+        (codepoint >= 0xF900 && codepoint <= 0xFAFF))    // CJK Compatibility Ideographs
+        return 2;
+
+  // 기타: 기본적으로 1칸
+    return 1;
+}
+
 ScreenBuffer::ScreenBuffer(int width, int height)
     : _Width(width), _Height(height)
 {
     _Buffer.resize(_Height);
-    for (auto& row : _Buffer) {
+for (auto& row : _Buffer) {
         row.resize(_Width);
     }
 }
@@ -15,7 +76,7 @@ void ScreenBuffer::Clear()
 {
     for (auto& row : _Buffer) {
         for (auto& cell : row) {
-            cell = CharCell(' ');
+        cell = CharCell(' ');
         }
     }
 }
@@ -26,36 +87,37 @@ int ScreenBuffer::ParseUTF8Char(const char* str, int& byteCount, int& visualWidt
         byteCount = 0;
         visualWidth = 0;
         return -1;
-    }
+  }
 
     unsigned char ch = static_cast<unsigned char>(str[0]);
 
-    // UTF-8 첫 바이트 분석
+    // UTF-8 바이트 수만 먼저 결정
     if (ch < 0x80) {
         // ASCII (1바이트)
         byteCount = 1;
-        visualWidth = 1;
     }
     else if ((ch & 0xE0) == 0xC0) {
         // 2바이트 문자
         byteCount = 2;
-        visualWidth = 2;
     }
     else if ((ch & 0xF0) == 0xE0) {
-        // 3바이트 문자 (한글 등)
+        // 3바이트 문자 (한글, 점자 등)
         byteCount = 3;
-        visualWidth = 2;
     }
     else if ((ch & 0xF8) == 0xF0) {
         // 4바이트 문자 (이모지 등)
         byteCount = 4;
-        visualWidth = 2;
     }
     else {
         // 잘못된 UTF-8
-        byteCount = 1;
+  byteCount = 1;
         visualWidth = 1;
+        return -1;
     }
+
+    // 코드포인트로 변환 후 시각적 너비 계산
+  int codepoint = DecodeUTF8CodePoint(str, byteCount);
+    visualWidth = GetCodePointVisualWidth(codepoint);
 
     return 0;
 }
@@ -64,10 +126,9 @@ int ScreenBuffer::WriteChar(int x, int y, const char* utf8Char, int byteCount, W
 {
     if (x < 0 || y < 0 || y >= _Height) return 0;
 
-    int visualWidth = 1;
-    if (byteCount == 3 || byteCount == 2) {
-        visualWidth = 2;  // 한글 등 멀티바이트
-    }
+    // 시각적 너비 계산 (코드포인트 기반)
+    int codepoint = DecodeUTF8CodePoint(utf8Char, byteCount);
+    int visualWidth = GetCodePointVisualWidth(codepoint);
 
     // 영역 밖이면 무시
     if (x + visualWidth > _Width) return 0;
@@ -75,16 +136,16 @@ int ScreenBuffer::WriteChar(int x, int y, const char* utf8Char, int byteCount, W
     CharCell& cell = _Buffer[y][x];
     for (int i = 0; i < byteCount && i < 4; ++i) {
         cell.Bytes[i] = utf8Char[i];
-    }
+ }
     cell.ByteCount = byteCount;
     cell.VisualWidth = visualWidth;
     cell.Attribute = attribute;
 
-    // 한글인 경우 다음 칸은 빈칸으로 표시 (2칸 차지)
+    // 2칸을 차지하는 문자인 경우 다음 칸은 빈칸으로 표시
     if (visualWidth == 2 && x + 1 < _Width) {
         CharCell& nextCell = _Buffer[y][x + 1];
         nextCell.Bytes[0] = '\0';  // 마커: 이전 칸에 속함
-        nextCell.ByteCount = 0;
+nextCell.ByteCount = 0;
         nextCell.VisualWidth = 0;
         nextCell.Attribute = attribute;
     }
@@ -101,20 +162,20 @@ int ScreenBuffer::WriteString(int x, int y, const std::string& text, WORD attrib
     size_t i = 0;
 
     while (i < text.length() && currentX < _Width) {
-        int byteCount = 1;
-        int visualWidth = 1;
+      int byteCount = 1;
+ int visualWidth = 1;
 
-        ParseUTF8Char(&text[i], byteCount, visualWidth);
+   ParseUTF8Char(&text[i], byteCount, visualWidth);
 
-        // 개행 처리
+    // 개행 처리
         if (text[i] == '\n') {
             break;  // 자동 개행 없음
         }
 
-        // 쓸 공간 확인
+      // 쓸 공간 확인
         if (currentX + visualWidth > _Width) {
-            break;
-        }
+break;
+   }
 
         int written = WriteChar(currentX, y, &text[i], byteCount, attribute);
         currentX += written;
@@ -122,17 +183,17 @@ int ScreenBuffer::WriteString(int x, int y, const std::string& text, WORD attrib
         charCount++;
     }
 
-    return charCount;
+ return charCount;
 }
 
 void ScreenBuffer::FillRect(int x, int y, int width, int height, char fillChar, WORD attribute)
 {
     for (int row = y; row < y + height && row < _Height; ++row) {
         for (int col = x; col < x + width && col < _Width; ++col) {
-            if (row >= 0 && col >= 0) {
-                WriteChar(col, row, &fillChar, 1, attribute);
-            }
-        }
+          if (row >= 0 && col >= 0) {
+   WriteChar(col, row, &fillChar, 1, attribute);
+          }
+    }
     }
 }
 
@@ -174,7 +235,7 @@ void ScreenBuffer::Render()
     HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 
     // 커서 숨기기
-    CONSOLE_CURSOR_INFO cursorInfo;
+  CONSOLE_CURSOR_INFO cursorInfo;
     GetConsoleCursorInfo(hConsole, &cursorInfo);
     bool wasCursorVisible = cursorInfo.bVisible;
     if (wasCursorVisible) {
@@ -186,49 +247,57 @@ void ScreenBuffer::Render()
     std::vector<CHAR_INFO> consoleBuffer(_Width * _Height);
 
     for (int y = 0; y < _Height; ++y) {
-        for (int x = 0; x < _Width; ++x) {
-            const CharCell& cell = _Buffer[y][x];
-            CHAR_INFO& charInfo = consoleBuffer[y * _Width + x];
+ for (int x = 0; x < _Width; ++x) {
+          const CharCell& cell = _Buffer[y][x];
+     CHAR_INFO& charInfo = consoleBuffer[y * _Width + x];
 
             // 문자 설정
-            if (cell.ByteCount == 1 && cell.Bytes[0] != '\0') {
-                // ASCII
-                charInfo.Char.UnicodeChar = static_cast<wchar_t>(cell.Bytes[0]);
-                charInfo.Attributes = cell.Attribute;
-            }
-            else if (cell.ByteCount > 1 && cell.Bytes[0] != '\0') {
-                // UTF-8 -> UTF-16 변환 (한글 등)
-                std::string utf8Str(cell.Bytes, cell.ByteCount);
-                int wideLen = MultiByteToWideChar(CP_UTF8, 0, utf8Str.c_str(), -1, NULL, 0);
-                wchar_t wideChar = L' ';
+      if (cell.ByteCount == 1 && cell.Bytes[0] != '\0') {
+       // ASCII
+        charInfo.Char.UnicodeChar = static_cast<wchar_t>(cell.Bytes[0]);
+ charInfo.Attributes = cell.Attribute;
+  }
+   else if (cell.ByteCount > 1 && cell.Bytes[0] != '\0') {
+     // UTF-8 -> UTF-16 변환 (한글, 점자 등)
+        std::string utf8Str(cell.Bytes, cell.ByteCount);
+       int wideLen = MultiByteToWideChar(CP_UTF8, 0, utf8Str.c_str(), -1, NULL, 0);
+       wchar_t wideChar = L' ';
 
-                if (wideLen > 0) {
-                    std::wstring wideStr(wideLen, 0);
-                    MultiByteToWideChar(CP_UTF8, 0, utf8Str.c_str(), -1, &wideStr[0], wideLen);
-                    wideChar = wideStr[0];
-                }
+    if (wideLen > 0) {
+          std::wstring wideStr(wideLen, 0);
+    MultiByteToWideChar(CP_UTF8, 0, utf8Str.c_str(), -1, &wideStr[0], wideLen);
+   wideChar = wideStr[0];
+     }
 
-                charInfo.Char.UnicodeChar = wideChar;
-                charInfo.Attributes = cell.Attribute | COMMON_LVB_LEADING_BYTE;
+       charInfo.Char.UnicodeChar = wideChar;
 
-                // 다음 칸 처리 (Trailing Byte)
-                if (x + 1 < _Width) {
-                    x++;  // 다음 칸으로 이동
-                    CHAR_INFO& nextCharInfo = consoleBuffer[y * _Width + x];
-                    nextCharInfo.Char.UnicodeChar = wideChar;
-                    nextCharInfo.Attributes = cell.Attribute | COMMON_LVB_TRAILING_BYTE;
-                }
-            }
-            else if (cell.Bytes[0] == '\0') {
-                // 이미 처리된 한글의 두 번째 칸
-            // 위에서 x++로 건너뛰므로 여기 도달하지 않음
-                charInfo.Char.UnicodeChar = L' ';
-                charInfo.Attributes = cell.Attribute;
-            }
+       // VisualWidth를 확인하여 2칸 문자만 특수 처리
+   if (cell.VisualWidth == 2) {
+        charInfo.Attributes = cell.Attribute | COMMON_LVB_LEADING_BYTE;
+
+       // 다음 칸 처리 (Trailing Byte)
+     if (x + 1 < _Width) {
+       x++;  // 다음 칸으로 이동
+   CHAR_INFO& nextCharInfo = consoleBuffer[y * _Width + x];
+       nextCharInfo.Char.UnicodeChar = wideChar;
+   nextCharInfo.Attributes = cell.Attribute | COMMON_LVB_TRAILING_BYTE;
+     }
+           }
+        else {
+// 1칸 문자 (점자 등)는 일반 속성만
+         charInfo.Attributes = cell.Attribute;
+    }
+         }
+     else if (cell.Bytes[0] == '\0') {
+    // 이미 처리된 한글의 두 번째 칸
+              // 위에서 x++로 건너뛰므로 여기 도달하지 않음
+ charInfo.Char.UnicodeChar = L' ';
+ charInfo.Attributes = cell.Attribute;
+         }
             else {
-                charInfo.Char.UnicodeChar = L' ';
-                charInfo.Attributes = cell.Attribute;
-            }
+     charInfo.Char.UnicodeChar = L' ';
+       charInfo.Attributes = cell.Attribute;
+  }
         }
     }
 
@@ -242,7 +311,7 @@ void ScreenBuffer::Render()
 
     // 커서 복원
     if (wasCursorVisible) {
-        cursorInfo.bVisible = TRUE;
+     cursorInfo.bVisible = TRUE;
         SetConsoleCursorInfo(hConsole, &cursorInfo);
     }
 }
@@ -258,7 +327,7 @@ CharCell& ScreenBuffer::GetCell(int x, int y)
 
 const CharCell& ScreenBuffer::GetCell(int x, int y) const
 {
-    static CharCell dummy;
+ static CharCell dummy;
     if (x < 0 || x >= _Width || y < 0 || y >= _Height) {
         return dummy;
     }

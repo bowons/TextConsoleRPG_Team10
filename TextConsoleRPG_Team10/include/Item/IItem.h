@@ -62,6 +62,11 @@ public:
     int GetMaxCount() const { return _MaxCount; } //아이템 최대 스택 수 반환
     std::string GetName() const { return _ItemName; } //아이템 이름 반환
     int GetPrice() const { return _Price; } //아이템 가격 반환
+    int GetEffectAmount() const { return _EffectAmount; } //아이템 효과 수치 반환
 
-    void SetPrice(int price) { _Price = price; } // 아이템 Price 설정 Setter
+    // ===== Setter 함수들 (CSV 데이터 적용용) =====
+    void SetPrice(int price) { _Price = price; }
+    void SetName(const std::string& name) { _ItemName = name; }
+    void SetEffectAmount(int amount) { _EffectAmount = amount; }
+    void SetMaxCount(int count) { _MaxCount = count; }
 };

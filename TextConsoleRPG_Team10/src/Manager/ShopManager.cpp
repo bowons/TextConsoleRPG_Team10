@@ -3,8 +3,9 @@
 #include "../../include/Factory/ItemFactory.h"
 #include "../../include/Item/ItemData.h"
 #include "../../include/Item/HealPotion.h"
-#include "../../include/Item/AttackUp.h"
+#include "../../include/Item/FairyEssence.h"
 #include "../../include/Unit/Player.h"
+#include "../../include/Item/Inventory.h"
 #include "../../include/Config.h"
 #include <memory>
 
@@ -18,6 +19,7 @@ ShopManager::ShopManager()
 bool ShopManager::ReopenShop(const std::string& csvFileName)
 {
     _SellList.clear();
+    _ItemDescriptions.clear();
 
     // CSV에서 아이템 데이터 로드
     auto itemDataList = DataManager::GetInstance()->LoadItemData(csvFileName);
@@ -25,20 +27,20 @@ bool ShopManager::ReopenShop(const std::string& csvFileName)
     if (itemDataList.empty())
     {
         // 기본 아이템으로 상점 구성
-        _SellList.push_back({ std::make_unique<HealPotion>(), 10 });
-        _SellList.push_back({ std::make_unique<AttackUp>(), 5 });
+        _SellList.push_back({ std::make_unique<HealPotion>(), 8, "Items/Potion.txt" });
+        _SellList.push_back({ std::make_unique<FairyEssence>(), 8, "Items/Potion.txt" });
         return false;  // 로드 실패
     }
 
     // CSV 데이터 기반으로 상점 재고 구성
     for (const auto& data : itemDataList)
     {
-        // Factory::Create 사용
-        auto item = _ItemFactory->Create(data.ItemType);
+        // CreateFromData 사용 - CSV 데이터 기반 아이템 생성
+        auto item = _ItemFactory->CreateFromData(data);
         if (item)
         {
-            item->SetPrice(data.Price);
-            _SellList.push_back({ std::move(item), data.Stock });
+            _SellList.push_back({ std::move(item), data.Stock, data.AsciiFile });
+            _ItemDescriptions[data.ItemID] = data.Description;
         }
     }
 
@@ -57,11 +59,26 @@ std::vector<ShopItemInfo> ShopManager::GetShopItems() const
         info.name = stock.StoredItem->GetName();
         info.price = stock.StoredItem->GetPrice();
         info.stock = stock._StockCount;
+        info.asciiFile = stock.AsciiFile;
+
+        // 설명 찾기 (ItemID를 키로 사용, 없으면 빈 문자열)
+        auto it = _ItemDescriptions.find(stock.StoredItem->GetName());
+        info.description = (it != _ItemDescriptions.end()) ? it->second : "";
 
         items.push_back(info);
     }
 
     return items;
+}
+
+std::string ShopManager::GetItemAsciiFile(int idx) const
+{
+    if (idx < 0 || idx >= static_cast<int>(_SellList.size()))
+    {
+        return "";
+    }
+
+    return _SellList[idx].AsciiFile;
 }
 
 TransactionResult ShopManager::BuyItem(Player* player, int idx)

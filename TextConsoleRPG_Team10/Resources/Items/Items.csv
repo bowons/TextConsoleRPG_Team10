@@ -1,8 +1,8 @@
-item_id,name,desc,price,monster_drop_rate,shop_appear_rate,ascii_file
-HealPotion,HP회복 포션,HP +50,50,0.30,0.20,Items/Potion.txt
-FairyEssence,요정의 정수,MP +40,60,0.25,0.20,Items/Potion.txt
-ShieldDefense,광휘의 방패,DEF +15,180,0.15,0.20,Items/Potion.txt
-AttackUp,드워프의 맥주,ATK +10,220,0.10,0.10,Items/Potion.txt
-FocusRune,집중의 룬,DEX +20,250,0.08,0.10,Items/Potion.txt
-LuckyCharm,행운의 부적,LUK +10,300,0.07,0.10,Items/Potion.txt
-TitanAwakening,타이탄의 각성제,ATK +5 DEF +5,350,0.05,0.10,Items/Potion.txt
+ItemID,Name,Description,Price,EffectAmount,MaxCount,Stock,AsciiFile
+HealPotion,HP회복 포션,HP +50,50,50,5,8,Items/Potion.txt
+FairyEssence,요정의 정수,MP +40,60,40,5,8,Items/Potion.txt
+ShieldDefense,광휘의 방패,DEF +15,180,15,5,3,Items/Potion.txt
+AttackUp,드워프의 맥주,ATK +10,220,10,5,5,Items/Potion.txt
+FocusRune,집중의 룬,DEX +20,250,20,5,3,Items/Potion.txt
+LuckyCharm,행운의 부적,LUK +10,300,10,5,3,Items/Potion.txt
+TitanAwakening,타이탄의 각성제,ATK +5 DEF +5,350,5,5,2,Items/Potion.txt

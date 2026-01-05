@@ -95,10 +95,10 @@ void StageSelectScene::Enter()
     controlPanel->SetBorder(true, ETextColor::LIGHT_CYAN);
 
     auto controlText = std::make_unique<TextRenderer>();
-    controlText->AddLineWithColor("  [진입 방식 및 키 설명]   [←/→/↑/↓] 선택   [Enter] 진입   [ESC] 메인 메뉴",
+    controlText->AddLineWithColor("  [진입 방식 및 키 설명]   [←/→/↑/↓] 선택   [Enter] 진입   [Space] 상점   [ESC] 메인 메뉴",
         MakeColorAttribute(ETextColor::WHITE, EBackgroundColor::BLACK));
 
-    controlPanel->AddRenderer(20, 0, 100, 3, std::move(controlText));
+    controlPanel->AddRenderer(10, 0, 100, 3, std::move(controlText));
     controlPanel->Redraw();
 
     // ===== 인벤토리 & 시스템 로그 패널 (하단 우측) =====
@@ -107,8 +107,8 @@ void StageSelectScene::Enter()
 
     std::vector<std::string> initialLogs = {
         "[디버그] StageSelectScene 진입",
-     "",
-  "[정보] 다음 스테이지를 선택하세요.",
+        "",
+        "[정보] 다음 스테이지를 선택하세요.",
         "[성공] 게임을 시작합니다."
     };
     UpdateSystemLog(systemPanel, initialLogs);
@@ -367,9 +367,9 @@ void StageSelectScene::RenderStageMap(Panel* nodePanel)
 
     auto mapText = std::make_unique<TextRenderer>();
 
-    const int horizontalSpacing = 20;  // 노드 간 수평 간격 (연결선 길이)
+    const int horizontalSpacing = 15;  // 노드 간 수평 간격 (연결선 길이)
     const int verticalSpacing = 2;     // 노드 간 수직 간격
-    const int mapHeight = 14;
+    const int mapHeight = 18;
     const int mapWidth = 116;          // 패널 너비 (120 - 테두리 2칸)
     const int nodeWidth = 7;       // 통일된 노드 너비
 
@@ -445,6 +445,7 @@ void StageSelectScene::RenderStageMap(Panel* nodePanel)
                 int y2 = it->screenY;
 
                 int iconEnd = x1 + nodeWidth;
+                int iconCenter = x1 + (nodeWidth / 2);  // 노드 중앙 위치
 
                 // 수평선
                 if (y1 == y2)
@@ -466,25 +467,27 @@ void StageSelectScene::RenderStageMap(Panel* nodePanel)
                 // 수직선 + 수평선
                 else
                 {
-                    int startX = iconEnd;
                     int direction = (y2 > y1) ? 1 : -1;
 
-                    // 수직선
+                    // 수직선 (노드 중앙에서 시작)
                     for (int y = y1 + direction; y != y2; y += direction)
                     {
-                        if (y >= 0 && y < mapHeight && startX < mapWidth)
+                        if (y >= 0 && y < mapHeight && iconCenter < mapWidth)
                         {
-                            if (mapLines[y][startX] == ' ')
-                                mapLines[y][startX] = '|';
-                            else if (mapLines[y][startX] == '-')
-                                mapLines[y][startX] = '+';
+                            if (mapLines[y][iconCenter] == ' ')
+                                mapLines[y][iconCenter] = '|';
+                            else if (mapLines[y][iconCenter] == '-')
+                                mapLines[y][iconCenter] = '+';
                         }
                     }
 
-                    // 수평선
-                    if (startX < x2)
+                    // 수평선 (수직선 끝에서 목표 노드까지)
+                    int horizontalStartX = iconCenter;
+                    int horizontalEndX = x2;
+
+                    if (horizontalStartX < horizontalEndX)
                     {
-                        for (int x = startX; x < x2 && x < mapWidth; ++x)
+                        for (int x = horizontalStartX; x < horizontalEndX && x < mapWidth; ++x)
                         {
                             if (mapLines[y2][x] == ' ')
                                 mapLines[y2][x] = '-';
@@ -580,7 +583,23 @@ void StageSelectScene::HandleInput()
         return;
     }
 
-    // ===== Enter: 노드 진입 =====
+    // ===== Space: 상점으로 이동 =====
+    if (keyCode == VK_SPACE)
+    {
+        std::vector<std::string> logs = {
+      "[정보] 상점으로 이동합니다.",
+       "[안내] ESC를 눌러 다시 돌아올 수 있습니다."
+        };
+        Panel* systemPanel = _Drawer->GetPanel("System");
+        if (systemPanel) UpdateSystemLog(systemPanel, logs);
+
+        _IsActive = false;
+        Exit();
+        SceneManager::GetInstance()->ChangeScene(ESceneType::Shop);
+        return;
+    }
+
+    // ===== Enter: 노드 진입=====
     if (keyCode == VK_RETURN)
     {
         if (!_SelectedNodeId.empty())
@@ -624,13 +643,15 @@ void StageSelectScene::HandleInput()
 
     int newIndex = currentIndex;
 
-    if (keyCode == VK_UP || keyCode == VK_LEFT)
+    // 방향키 코드 (확장 키의 두 번째 바이트)
+    // VK_UP = 72, VK_DOWN = 80, VK_LEFT = 75, VK_RIGHT = 77
+    if (keyCode == 72 || keyCode == 75)  // UP 또는 LEFT
     {
         newIndex--;
         if (newIndex < 0)
             newIndex = static_cast<int>(_AvailableNodeIds.size()) - 1;
     }
-    else if (keyCode == VK_DOWN || keyCode == VK_RIGHT)
+    else if (keyCode == 80 || keyCode == 77)  // DOWN 또는 RIGHT
     {
         newIndex++;
         if (newIndex >= static_cast<int>(_AvailableNodeIds.size()))
@@ -708,14 +729,14 @@ void StageSelectScene::SelectNode(const std::string& nodeId)
 
     _SelectedNodeId = nodeId;
 
-// 맵 패널 강제 재렌더링
+    // 맵 패널 강제 재렌더링
     Panel* nodePanel = _Drawer->GetPanel("Nodes");
     if (nodePanel)
     {
-    nodePanel->SetDirty();  // Dirty 플래그 설정
+        nodePanel->SetDirty();  // Dirty 플래그 설정
         RenderStageMap(nodePanel);
     }
-    
+
     // 전체 화면 재렌더링
     _Drawer->Render();
 
@@ -724,29 +745,27 @@ void StageSelectScene::SelectNode(const std::string& nodeId)
 
     if (node)
     {
-    std::vector<std::string> logs;
+        std::vector<std::string> logs;
 
         std::string nodeTypeStr;
-      if (node->Type == ENodeType::Battle)
-    {
-  if (node->EnemyType == "Elite")
-           nodeTypeStr = "엘리트 전투";
-            else if (node->EnemyType == "Boss")
-       nodeTypeStr = "보스 전투";
-       else
-     nodeTypeStr = "일반 전투";
+        if (node->Type == ENodeType::Battle)
+        {
+            if (node->EnemyType == "Boss")
+                nodeTypeStr = "보스 전투";
+            else
+                nodeTypeStr = "일반 전투";
         }
         else if (node->Type == ENodeType::Event)
-  {
+        {
             nodeTypeStr = "이벤트: " + node->EventType;
         }
-   else if (node->Type == ENodeType::Exit)
+        else if (node->Type == ENodeType::Exit)
         {
-     nodeTypeStr = "다음 층으로";
+            nodeTypeStr = "다음 층으로";
         }
-     else
+        else
         {
-     nodeTypeStr = "알 수 없음";
+            nodeTypeStr = "알 수 없음";
         }
 
         logs.push_back("[정보] 노드 선택: " + nodeTypeStr + " (ID: " + nodeId + ")");
@@ -755,16 +774,16 @@ void StageSelectScene::SelectNode(const std::string& nodeId)
         if (stageMgr->IsNodeCompleted(nodeId))
         {
             logs.push_back("[경고] 이미 완료한 노드입니다.");
-    }
-  else
+        }
+        else
         {
- logs.push_back("[성공] Enter를 눌러 진입하세요.");
+            logs.push_back("[성공] Enter를 눌러 진입하세요.");
         }
 
         Panel* systemPanel = _Drawer->GetPanel("System");
         if (systemPanel)
         {
-  UpdateSystemLog(systemPanel, logs);
+            UpdateSystemLog(systemPanel, logs);
         }
     }
 }
