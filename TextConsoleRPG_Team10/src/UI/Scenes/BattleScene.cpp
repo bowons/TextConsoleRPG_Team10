@@ -7,6 +7,7 @@
 #include "../../../include/Manager/SceneManager.h"
 #include "../../../include/Manager/GameManager.h"
 #include "../../../include/Common/TextColor.h"
+#include "../../../include/Unit/Player.h"
 
 BattleScene::BattleScene()
     : UIScene("Battle")
@@ -22,148 +23,174 @@ BattleScene::~BattleScene()
 {
 }
 
-void BattleScene::Enter()
-{
-    _Drawer->ClearScreen();
-    _Drawer->RemoveAllPanels();
-    _Drawer->Activate();
-    _IsActive = true;
+void BattleScene::Enter() {
+  _Drawer->ClearScreen();
+  _Drawer->RemoveAllPanels();
+  _Drawer->Activate();
+  _IsActive = true;
 
-    // =============================================================================
-    // 패널 레이아웃 (150x45 화면 기준)
-    // =============================================================================
+  // =============================================================================
+  // 패널 레이아웃 (150x45 화면 기준)
+  // =============================================================================
 
-    // ===== 전투 정보 패널 (상단) =====
-    Panel* infoPanel = _Drawer->CreatePanel("BattleInfo", 10, 1, 130, 6);
-    infoPanel->SetBorder(true, ETextColor::CYAN);
+  // ===== 스테이지 정보 & 몬스터 HP 패널 (상단) =====
+  Panel* infoPanel = _Drawer->CreatePanel("BattleInfo", 0, 0, 150, 5);
+  infoPanel->SetBorder(true, ETextColor::WHITE);
 
-    auto infoText = std::make_unique<TextRenderer>();
-    infoText->AddLine("");
-    infoText->AddLineWithColor("        [스테이지 명] - [몬스터 이름]",
-        MakeColorAttribute(ETextColor::LIGHT_YELLOW, EBackgroundColor::BLACK));
-    infoText->AddLineWithColor("   남은 HP/총 HP",
+  auto infoText = std::make_unique<TextRenderer>();
+  infoText->AddLineWithColor(
+      "                           [스테이지 명] - 몬스터 이름 (남은 HP/총 HP)",
+      MakeColorAttribute(ETextColor::WHITE, EBackgroundColor::BLACK));
+  infoPanel->SetContentRenderer(std::move(infoText));
+  infoPanel->Redraw();
+
+  // ===== 캐릭터 아스키 아트 패널 (왼쪽, 4명 2x2 배치) =====
+  int charArtStartX = 0;
+  int charArtStartY = 5;
+  int charArtWidth = 24;
+  int charArtHeight = 12;  
+
+  for (int i = 0; i < 4; ++i) {
+    int row = i / 2;  // 0, 0, 1, 1
+    int col = i % 2;  // 0, 1, 0, 1
+    int xPos = charArtStartX + col * charArtWidth;
+    int yPos = charArtStartY + row * charArtHeight;
+
+    std::string panelName = "CharArt" + std::to_string(i);
+
+    Panel* charArtPanel =
+        _Drawer->CreatePanel(panelName, xPos, yPos, charArtWidth, charArtHeight);
+    charArtPanel->SetBorder(true, ETextColor::WHITE);
+
+    auto charArtText = std::make_unique<TextRenderer>();
+    charArtText->AddLine("");
+    charArtText->AddLine("");
+    charArtText->AddLine("     [캐릭터");
+    charArtText->AddLine("      아트 " + std::to_string(i) + "]");
+    charArtText->SetTextColor(
         MakeColorAttribute(ETextColor::WHITE, EBackgroundColor::BLACK));
-    infoText->AddLine("");
+    charArtPanel->SetContentRenderer(std::move(charArtText));
+    charArtPanel->Redraw();
+  }
 
-    infoPanel->SetContentRenderer(std::move(infoText));
-    infoPanel->Redraw();
+  // ===== 아군 파티 패널 (상단, 4명 가로 배치) =====
+  // 왼쪽부터 메인 플레이어, 용병 1, 용병 2, 용병 3 순서
+  auto party = GameManager::GetInstance()->GetParty();
 
-    // TODO: 전투 정보 동적 업데이트
-    // BattleManager 또는 GameManager에서 현재 전투 정보를 가져와 표시합니다.
+  int partyStartX = 2;
+  int partyStartY = 29;
+  int partyHeight = 7;
+  int partyWidth = 36;
 
-    // ===== 아군 파티 패널 (왼쪽 4개) =====
-    Panel* party1 = _Drawer->CreatePanel("Party1", 10, 8, 25, 15);
-    party1->SetBorder(true, ETextColor::GREEN);
-    auto party1Text = std::make_unique<TextRenderer>();
-    party1Text->AddLine("");
-    party1Text->AddLine("   플레이 파티 1");
-    party1Text->AddLine("");
-    party1->SetContentRenderer(std::move(party1Text));
-    party1->Redraw();
+  for (int i = 0; i <= 3; ++i)  
+  {
+    int xPos = partyStartX + i * (partyWidth + 1);
+    std::string panelName = "Party" + std::to_string(i);
 
-    Panel* party2 = _Drawer->CreatePanel("Party2", 38, 8, 25, 15);
-    party2->SetBorder(true, ETextColor::GREEN);
-    auto party2Text = std::make_unique<TextRenderer>();
-    party2Text->AddLine("");
-    party2Text->AddLine("   플레이 파티 2");
-    party2Text->AddLine("");
-    party2->SetContentRenderer(std::move(party2Text));
-    party2->Redraw();
+    Panel* partyPanel =
+        _Drawer->CreatePanel(panelName, xPos, partyStartY, partyWidth, partyHeight);
+    partyPanel->SetBorder(true, ETextColor::WHITE);
 
-    Panel* party3 = _Drawer->CreatePanel("Party3", 10, 24, 25, 15);
-    party3->SetBorder(true, ETextColor::GREEN);
-    auto party3Text = std::make_unique<TextRenderer>();
-    party3Text->AddLine("");
-    party3Text->AddLine("   플레이 파티 3");
-    party3Text->AddLine("");
-    party3->SetContentRenderer(std::move(party3Text));
-    party3->Redraw();
+    auto partyText = std::make_unique<TextRenderer>();
+    partyText->AddLine("");
 
-    Panel* party4 = _Drawer->CreatePanel("Party4", 38, 24, 25, 15);
-    party4->SetBorder(true, ETextColor::GREEN);
-    auto party4Text = std::make_unique<TextRenderer>();
-    party4Text->AddLine("");
-    party4Text->AddLine("   플레이 파티 4");
-    party4Text->AddLine("");
-    party4->SetContentRenderer(std::move(party4Text));
-    party4->Redraw();
+    if (i < party.size() && party[i]) {
+      std::string name = party[i]->GetName();
+      std::string className = "전사";  // TODO: 직업 추가
+      int hp = party[i]->GetCurrentHP();
+      int maxHp = party[i]->GetMaxHP();
+      int atk = party[i]->GetAtk();
+      int def = party[i]->GetDef();
 
-    // TODO: 아군 파티 정보 동적 업데이트
-    // GameManager::GetInstance()->GetParty()로 파티원 정보를 가져와 표시합니다.
-
-    // ===== 애니메이션 영역 (중앙) =====
-    Panel* animPanel = _Drawer->CreatePanel("Animation", 66, 8, 50, 31);
-    animPanel->SetBorder(true, ETextColor::YELLOW);
-    auto animText = std::make_unique<TextRenderer>();
-    animText->AddLine("");
-    animText->AddLine("");
-    animText->AddLine("    [애니메이션 아스키아트");
-    animText->AddLine("       재생 영역]");
-    animText->AddLine("");
-    animText->SetTextColor(MakeColorAttribute(ETextColor::DARK_GRAY, EBackgroundColor::BLACK));
-    animPanel->SetContentRenderer(std::move(animText));
-    animPanel->Redraw();
-
-    // TODO: 여기에서 전투 애니메이션 재생
-
-    // ===== 적 이미지 패널 (오른쪽) =====
-    Panel* enemyPanel = _Drawer->CreatePanel("Enemy", 119, 8, 21, 31);
-    enemyPanel->SetBorder(true, ETextColor::RED);
-    auto enemyText = std::make_unique<TextRenderer>();
-    enemyText->AddLine("");
-    enemyText->AddLine("");
-    enemyText->AddLine("  [몬스터");
-    enemyText->AddLine("   이미지]");
-    enemyText->AddLine("");
-    enemyText->SetTextColor(MakeColorAttribute(ETextColor::DARK_GRAY, EBackgroundColor::BLACK));
-    enemyPanel->SetContentRenderer(std::move(enemyText));
-    enemyPanel->Redraw();
-
-    // TODO: 적 이미지 동적 업데이트
-
-    // ===== 파티원 정보 패널 (하단 4개) =====
-    for (int i = 0; i < 4; ++i)
-    {
-        int xPos = 10 + (i * 32);
-        Panel* memberPanel = _Drawer->CreatePanel("Member" + std::to_string(i + 1), xPos, 40, 30, 4);
-        memberPanel->SetBorder(true, ETextColor::CYAN);
-        auto memberText = std::make_unique<TextRenderer>();
-        memberText->AddLine("");
-        memberText->AddLine("  이름 : 유저 | 직업 : 전사");
-        memberText->AddLine("  HP 100/200  ATK / DEF");
-        memberPanel->SetContentRenderer(std::move(memberText));
-        memberPanel->Redraw();
+      partyText->AddLine(" 이름:" + name + " | 직업:" + className);
+      partyText->AddLine(" HP:" + std::to_string(hp) + "/" + std::to_string(maxHp) +
+                         " | ATK:" + std::to_string(atk) + " DEF:" + std::to_string(def));
+      partyText->AddLine("");
+    } else {
+      partyText->AddLine(" 빈 슬롯");
+      partyText->AddLine("");
     }
 
-    // TODO: 파티원 상세 정보 동적 업데이트
+    partyPanel->SetContentRenderer(std::move(partyText));
+    partyPanel->Redraw();
+  }
 
-      // ===== 시스템 로그 패널 (하단 중앙) =====
-    Panel* logPanel = _Drawer->CreatePanel("SystemLog", 10, 45, 90, 10);
-    logPanel->SetBorder(true, ETextColor::LIGHT_CYAN);
-    auto logText = std::make_unique<TextRenderer>();
-    logText->AddLine("");
-    logText->AddLineWithColor("  [ 시스템 로그 출력 창 ]",
-        MakeColorAttribute(ETextColor::LIGHT_CYAN, EBackgroundColor::BLACK));
-    logText->AddLine("");
-    logPanel->SetContentRenderer(std::move(logText));
-    logPanel->Redraw();
+  // ===== 애니메이션 영역 (중앙) =====
+  Panel* animPanel = _Drawer->CreatePanel("Animation", 48, 5, 62, 24);
+  animPanel->SetBorder(true, ETextColor::WHITE);
+  auto animText = std::make_unique<TextRenderer>();
+  animText->AddLine("");
+  animText->AddLine("");
+  animText->AddLine("");
+  animText->AddLine("  [애니메이션 아스키아트 재생 영역]");
+  animText->AddLine("");
+  animText->SetTextColor(
+      MakeColorAttribute(ETextColor::WHITE, EBackgroundColor::BLACK));
+  animPanel->SetContentRenderer(std::move(animText));
+  animPanel->Redraw();
 
-    // TODO: 시스템 로그 동적 업데이트
+  // ===== 몬스터 이미지 패널 (오른쪽) =====
+  Panel* enemyPanel = _Drawer->CreatePanel("Enemy", 110, 8, 40, 17);
+  enemyPanel->SetBorder(true, ETextColor::WHITE);
 
-    // ===== 인벤토리 & 커맨드 패널 (하단 우측) =====
-    Panel* commandPanel = _Drawer->CreatePanel("Command", 103, 45, 37, 10);
-    commandPanel->SetBorder(true, ETextColor::WHITE);
-    auto commandText = std::make_unique<TextRenderer>();
-    commandText->AddLine("");
-    commandText->AddLineWithColor("  인벤토리 & 커맨드",
-        MakeColorAttribute(ETextColor::LIGHT_YELLOW, EBackgroundColor::BLACK));
-    commandText->AddLine("");
-    commandPanel->SetContentRenderer(std::move(commandText));
-    commandPanel->Redraw();
+  // TODO: Monsters.csv에서 몬스터 정보 읽어서 표시
+  // TODO: Resources/Monsters/{FileName}.txt에서 아스키 아트 로드
+  auto enemyText = std::make_unique<TextRenderer>();
+  enemyText->AddLine("");
+  enemyText->AddLine("");
+  enemyText->AddLine("");
+  enemyText->AddLine("           [몬스터 이미지]");
+  enemyText->AddLine("");
+  enemyText->AddLine("      (Resources/Monsters/*.txt)");
+  enemyText->SetTextColor(
+      MakeColorAttribute(ETextColor::WHITE, EBackgroundColor::BLACK));
+  enemyPanel->SetContentRenderer(std::move(enemyText));
+  enemyPanel->Redraw();
 
-    // TODO: 인벤토리 & 커맨드 동적 업데이트
+  // ===== 시스템 로그 패널 (하단 좌측-중앙), 내부 우측에 커맨드 통합 =====
+  Panel* logPanel = _Drawer->CreatePanel("SystemLog", 0, 36, 113, 9);
+  logPanel->SetBorder(true, ETextColor::WHITE);
 
-    _Drawer->Render();
+  // 좌측 영역: 시스템 로그 (1 ~ 74)
+  auto logText = std::make_unique<TextRenderer>();
+  logText->AddLine("");
+  logText->AddLineWithColor(
+      "  [ 시스템 로그 출력 창 ]",
+      MakeColorAttribute(ETextColor::WHITE, EBackgroundColor::BLACK));
+  logText->AddLine("");
+  logText->AddLine("  전투가 시작되었습니다!");
+  logPanel->AddRenderer(1, 0, 74, 10, std::move(logText));
+
+  // 우측 영역: 커맨드 (75 ~ 111)
+  auto commandText = std::make_unique<TextRenderer>();
+  commandText->AddLine("");
+  commandText->AddLineWithColor(
+      "  [ 커맨드 ]",
+      MakeColorAttribute(ETextColor::WHITE, EBackgroundColor::BLACK));
+  commandText->AddLine("");
+  commandText->AddLine("  [1] 공격");
+  commandText->AddLine("  [2] 스킬");
+  commandText->AddLine("  [3] 아이템");
+  commandText->AddLine("  [ESC] 도망");
+  logPanel->AddRenderer(75, 0, 37, 10, std::move(commandText));
+
+  logPanel->Redraw();
+
+  // ===== 인벤토리 패널 (하단 우측) =====
+  Panel* inventoryCommandPanel = _Drawer->CreatePanel("Command", 113, 36, 37, 9);
+  inventoryCommandPanel->SetBorder(true, ETextColor::WHITE);
+  auto inventoryCommandText = std::make_unique<TextRenderer>();
+  inventoryCommandText->AddLine("");
+  inventoryCommandText->AddLineWithColor(
+      "  인벤토리",
+      MakeColorAttribute(ETextColor::WHITE, EBackgroundColor::BLACK));
+  inventoryCommandText->AddLine("");
+  inventoryCommandText->AddLine("  아이템 사용");
+  inventoryCommandText->AddLine("  정보 확인");
+  inventoryCommandPanel->SetContentRenderer(std::move(inventoryCommandText));
+  inventoryCommandPanel->Redraw();
+
+  _Drawer->Render();
 }
 
 void BattleScene::Exit()

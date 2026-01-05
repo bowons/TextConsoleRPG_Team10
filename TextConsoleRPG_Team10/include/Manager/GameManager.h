@@ -83,4 +83,7 @@ public:
     // ===== Getter/Setter =====
     inline bool IsRunning() const { return _IsRunning; }
     inline bool IsGameOver() const { return _IsGameOver; }
+
+	// 배틀 테스트
+    void StartBattleTest();
 };

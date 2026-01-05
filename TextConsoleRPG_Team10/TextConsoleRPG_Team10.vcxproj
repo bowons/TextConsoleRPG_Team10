@@ -134,6 +134,7 @@
   <ItemGroup>
     <!-- Core -->
     <ClInclude Include="include\Config.h" />
+    <ClInclude Include="include\Data\ClassData.h" />
     <ClInclude Include="include\Data\StageData.h" />
     <ClInclude Include="include\Item\FairyEssence.h" />
     <ClInclude Include="include\Item\FocusRune.h" />

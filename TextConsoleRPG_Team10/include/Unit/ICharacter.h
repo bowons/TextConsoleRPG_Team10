@@ -14,6 +14,7 @@ struct CharacterStats {
   int _Luk = 0;  // 운 (치명타율에 영향)
 
   float _CriticalRate = 0.05f;  // 치명타 확률 (기본 5%)
+  float HealEfficiency = 1.0f;  // 회복 효율 (기본 100%)
 
   // ===== 임시 버프/디버프 =====
   int _TempAtk = 0;                // 임시 공격력 보정

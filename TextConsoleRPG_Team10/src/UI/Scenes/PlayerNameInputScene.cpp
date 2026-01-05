@@ -28,26 +28,26 @@ void PlayerNameInputScene::Enter()
 
     // 중앙 안내 패널
     Panel* infoPanel = _Drawer->CreatePanel("Info", 35, 15, 80, 8);
-    infoPanel->SetBorder(true, ETextColor::LIGHT_CYAN);
+    infoPanel->SetBorder(true, ETextColor::WHITE);
 
     auto infoText = std::make_unique<TextRenderer>();
     infoText->AddLine("");
     infoText->AddLine("       [유저 이름 입력 관련 안내 문구]");
     infoText->AddLine("");
     infoText->AddLine("       당신의 이름을 입력해주세요 (최대 10자)");
-    infoText->SetTextColor(static_cast<WORD>(ETextColor::LIGHT_CYAN));
+    infoText->SetTextColor(static_cast<WORD>(ETextColor::WHITE));
     infoPanel->SetContentRenderer(std::move(infoText));
 
     // 플레이어 이름 입력 영역
     Panel* inputPanel = _Drawer->CreatePanel("Input", 35, 25, 80, 8);
-    inputPanel->SetBorder(true, ETextColor::LIGHT_GREEN);
+    inputPanel->SetBorder(true, ETextColor::WHITE);
 
     auto inputText = std::make_unique<TextRenderer>();
     inputText->AddLine("");
     inputText->AddLine("      [플레이어 이름 입력 관련 영역]");
     inputText->AddLine("");
     inputText->AddLine("      > ");
-    inputText->SetTextColor(static_cast<WORD>(ETextColor::LIGHT_GREEN));
+    inputText->SetTextColor(static_cast<WORD>(ETextColor::WHITE));
     inputPanel->SetContentRenderer(std::move(inputText));
 
     _Drawer->Render();
@@ -107,14 +107,14 @@ void PlayerNameInputScene::ShowConfirmation()
 
     // 확인 패널
     Panel* confirmPanel = _Drawer->CreatePanel("Confirm", 35, 18, 80, 10);
-    confirmPanel->SetBorder(true, ETextColor::LIGHT_YELLOW);
+    confirmPanel->SetBorder(true, ETextColor::WHITE);
 
     auto confirmText = std::make_unique<TextRenderer>();
     confirmText->AddLine("");
     confirmText->AddLine("     모험가 " + _PlayerName + "의 여정이 시작됩니다...");
     confirmText->AddLine("");
     confirmText->AddLine("     [아무 키나 눌러 계속...]");
-    confirmText->SetTextColor(static_cast<WORD>(ETextColor::LIGHT_YELLOW));
+    confirmText->SetTextColor(static_cast<WORD>(ETextColor::WHITE));
     confirmPanel->SetContentRenderer(std::move(confirmText));
 
     _Drawer->Render();
@@ -136,6 +136,6 @@ void PlayerNameInputScene::ShowConfirmation()
     _IsActive = false;
     Exit();
 
-    // BattleScene 테스트를 위해 바로 전환
-    SceneManager::GetInstance()->ChangeScene(ESceneType::StageSelect);
+    // CharacterSelect 씬 전환
+    SceneManager::GetInstance()->ChangeScene(ESceneType::CharacterSelect);
 }

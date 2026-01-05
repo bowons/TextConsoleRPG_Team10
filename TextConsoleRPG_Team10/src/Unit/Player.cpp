@@ -34,23 +34,27 @@ Player::Player(const std::string& Name, bool enableInventory)
     _CriticalRateBuffRoundsRemaining = 0;
 }
 
-void Player::TakeDamage(const int Amount)
-{
+int Player::TakeDamage(ICharacter* Target, const int Amount) {
   _Stats._CurrentHP -= Amount;
-  if (_Stats._CurrentHP < 0)
-    {
-	  _Stats._CurrentHP = 0;
-    }
+  if (_Stats._CurrentHP < 0) {
+    _Stats._CurrentHP = 0;
+  }
+  return Amount;  // 실제로 받은 데미지 반환
 }
 
-void Player::Attack(ICharacter* Target) const
-{
-    if (!Target)
-        return;
+std::tuple<std::string, int> Player::Attack(ICharacter* Target) const {
+  if (!Target) {
+    return std::make_tuple("", 0);  // 타겟이 없으면 빈 문자열과 0 반환
+  }
 
-    // 버프 포함한 총 공격력로 공격
-    int TotalDamage = _Stats._Atk + _Stats._TempAtk;
-    Target->TakeDamage(TotalDamage);
+  // 버프 포함한 총 공격력로 공격
+  int TotalDamage = _Stats._Atk + _Stats._TempAtk;
+  int ActualDamage = Target->TakeDamage(
+      const_cast<ICharacter*>(static_cast<const ICharacter*>(this)),
+      TotalDamage);
+
+  return std::make_tuple("일반 공격",
+                         ActualDamage);  // 스킬명과 실제 데미지 반환
 }
 
 std::string Player::GetAttackNarration() const

@@ -200,6 +200,9 @@
     <ClInclude Include="include\Item\FocusRune.h" />
     <ClInclude Include="include\Item\LuckyCharm.h" />
     <ClInclude Include="include\Item\TitanAwakening.h" />
+    <ClInclude Include="include\Data\ClassData.h">
+      <Filter>Header Files\Data</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <!-- Item Sources -->
