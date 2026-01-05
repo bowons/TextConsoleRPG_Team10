@@ -5,6 +5,7 @@
 #include "../../../include/Manager/SceneManager.h"
 #include "../../../include/Manager/InputManager.h"
 #include "../../../include/Manager/PrintManager.h"
+#include "../../../include/Manager/GameManager.h"
 #include "../../../include/Common/TextColor.h"
 #include "../../../include/Unit/Player.h"
 #include <Windows.h>
@@ -96,10 +97,8 @@ void PlayerNameInputScene::HandleInput()
 
 void PlayerNameInputScene::ShowConfirmation()
 {
-    // 기존 패널 제거
     _Drawer->RemoveAllPanels();
 
-    // 확인 패널
     Panel* confirmPanel = _Drawer->CreatePanel("Confirm", 35, 18, 80, 10);
     confirmPanel->SetBorder(true, ETextColor::WHITE);
 
@@ -113,30 +112,20 @@ void PlayerNameInputScene::ShowConfirmation()
 
     _Drawer->Render();
 
-    // 입력 핸들 가져오기
     HANDLE hInput = GetStdHandle(STD_INPUT_HANDLE);
-
-    // 입력 버퍼 플러시 (이전 입력 제거)
     FlushConsoleInputBuffer(hInput);
 
-    // ReadConsoleW를 사용한 키 입력 대기 (일관성 유지)
     wchar_t wbuffer[2] = { 0 };
     DWORD charactersRead = 0;
     ReadConsoleW(hInput, wbuffer, 1, &charactersRead, NULL);
 
-    // 입력 버퍼 플러시 (다음 Scene을 위해)
     FlushConsoleInputBuffer(hInput);
 
-    // 플레이어 생성 (인벤토리 활성화)
-    Player* newPlayer = new Player(_PlayerName, true);  // ← enableInventory = true
-    SceneManager::GetInstance()->SetPlayer(newPlayer);
+    GameManager::GetInstance()->CreateMainPlayer(_PlayerName);
 
-    PrintManager::GetInstance()->PrintLogLine("플레이어 '" + _PlayerName + "' 생성 완료", ELogImportance::DISPLAY);
-
-    // 다음 씬으로 전환
     _IsActive = false;
     Exit();
 
-    // CharacterSelect 씬 전환
-    SceneManager::GetInstance()->ChangeScene(ESceneType::CharacterSelect);
+    // BattleScene 테스트를 위해 바로 전환
+    SceneManager::GetInstance()->ChangeScene(ESceneType::StageSelect);
 }

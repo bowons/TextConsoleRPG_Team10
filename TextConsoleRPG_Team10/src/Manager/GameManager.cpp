@@ -169,55 +169,93 @@ void GameManager::EndGame()
     _IsRunning = false;
 }
 
+// ===== 게임 재시작 =====
+void GameManager::RestartGame()
+{
+    PrintManager::GetInstance()->PrintLogLine(
+        "게임을 재시작합니다...",
+        ELogImportance::DISPLAY
+    );
+
+    ClearParty();
+
+    StageManager* stageMgr = StageManager::GetInstance();
+    if (stageMgr && stageMgr->IsInitialized())
+    {
+        stageMgr->StartNewGame();
+    }
+
+    _IsGameOver = false;
+    _IsRunning = true;
+
+    UIDrawer* drawer = UIDrawer::GetInstance();
+    drawer->ClearScreen();
+    drawer->RemoveAllPanels();
+
+    PrintManager::GetInstance()->PrintLogLine(
+        "새로운 여정을 시작합니다!",
+        ELogImportance::DISPLAY
+    );
+
+    SceneManager::GetInstance()->ChangeScene(ESceneType::PlayerNameInput);
+}
+
+void GameManager::CreateMainPlayer(const std::string& name)
+{
+    _MainPlayer = std::make_shared<Player>(name, true);
+    _Party.clear();
+    _Party.push_back(_MainPlayer);
+}
+
 // ===== 배틀 테스트 (임시) =====
 void GameManager::StartBattleTest()
 {
-  _IsGameOver = false;
-  _IsRunning = true;
+    _IsGameOver = false;
+    _IsRunning = true;
 
-  PrintManager::GetInstance()->PrintLogLine(
-	  "배틀 테스트 모드 시작...",
-	  ELogImportance::DISPLAY);
-  PrintManager::GetInstance()->EndLine();
+    PrintManager::GetInstance()->PrintLogLine(
+        "배틀 테스트 모드 시작...",
+        ELogImportance::DISPLAY);
+    PrintManager::GetInstance()->EndLine();
 
-  // 임시 파티 생성 (메인 플레이어 + 용병 3명)
-  auto mainPlayer = std::make_shared<Player>("플레이어", true);
-  auto companion1 = std::make_shared<Player>("용병 A", false);
-  auto companion2 = std::make_shared<Player>("용병 B", false);
-  auto companion3 = std::make_shared<Player>("용병 C", false);
+    // 임시 파티 생성 (메인 플레이어 + 용병 3명)
+    auto mainPlayer = std::make_shared<Player>("플레이어", true);
+    auto companion1 = std::make_shared<Player>("용병 A", false);
+    auto companion2 = std::make_shared<Player>("용병 B", false);
+    auto companion3 = std::make_shared<Player>("용병 C", false);
 
-  _Party.clear();
-  _Party.push_back(mainPlayer);
-  _Party.push_back(companion1);
-  _Party.push_back(companion2);
-  _Party.push_back(companion3);
+    _Party.clear();
+    _Party.push_back(mainPlayer);
+    _Party.push_back(companion1);
+    _Party.push_back(companion2);
+    _Party.push_back(companion3);
 
-  SceneManager* sm = SceneManager::GetInstance();
-  UIDrawer* drawer = UIDrawer::GetInstance();
+    SceneManager* sm = SceneManager::GetInstance();
+    UIDrawer* drawer = UIDrawer::GetInstance();
 
-  // 배틀 씬으로 바로 전환
-  sm->ChangeScene(ESceneType::Battle);
+    // 배틀 씬으로 바로 전환
+    sm->ChangeScene(ESceneType::Battle);
 
-  // ===== 메인 게임 루프 =====
-  while (_IsRunning && !_IsGameOver) {
-    // 씬 업데이트
-    sm->Update();
+    // ===== 메인 게임 루프 =====
+    while (_IsRunning && !_IsGameOver) {
+        // 씬 업데이트
+        sm->Update();
 
-    // 씬 렌더링
-    sm->Render();
+        // 씬 렌더링
+        sm->Render();
 
-    // ESC 키로 종료 가능 (테스트용)
-    if (GetAsyncKeyState(VK_ESCAPE) & 0x8000) {
-      Sleep(150);
-      EndGame();
+        // ESC 키로 종료 가능 (테스트용)
+        if (GetAsyncKeyState(VK_ESCAPE) & 0x8000) {
+            Sleep(150);
+            EndGame();
+        }
     }
-  }
 
-  // 게임 종료 메시지
-  PrintManager::GetInstance()->EndLine();
-  PrintManager::GetInstance()->PrintLogLine("전투 테스트를 종료합니다.",
-                                            ELogImportance::DISPLAY);
+    // 게임 종료 메시지
+    PrintManager::GetInstance()->EndLine();
+    PrintManager::GetInstance()->PrintLogLine("전투 테스트를 종료합니다.",
+        ELogImportance::DISPLAY);
 
-  // UIDrawer 정리
-  drawer->Shutdown();
+    // UIDrawer 정리
+    drawer->Shutdown();
 }

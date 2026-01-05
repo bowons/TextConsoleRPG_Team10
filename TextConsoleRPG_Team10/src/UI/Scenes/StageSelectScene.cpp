@@ -153,6 +153,9 @@ void StageSelectScene::UpdateSystemLog(Panel* systemPanel, const std::vector<std
 {
     if (!systemPanel) return;
 
+    systemPanel->ClearRenderers();
+    systemPanel->SetDirty();
+
     auto logText = std::make_unique<TextRenderer>();
     logText->AddLineWithColor("[ 시스템 로그 ]",
         MakeColorAttribute(ETextColor::LIGHT_YELLOW, EBackgroundColor::BLACK));
@@ -236,7 +239,7 @@ usedSlots++;
 
     std::string header = "[ 인벤토리 (" + std::to_string(usedSlots) + "/" + std::to_string(maxSlots) + ") ]";
     inventoryText->AddLineWithColor(header,
-  MakeColorAttribute(ETextColor::LIGHT_YELLOW, EBackgroundColor::BLACK));
+  MakeColorAttribute(ETextColor::LIGHT_CYAN, EBackgroundColor::BLACK));
 
     for (int i = 0; i < maxSlots; ++i)
     {
@@ -626,7 +629,7 @@ void StageSelectScene::HandleInput()
         Panel* systemPanel = _Drawer->GetPanel("System");
         if (systemPanel)
         {
-            UpdateSystemLog(systemPanel, debugLogs);
+            UpdateSystemLog(systemPanel, _SystemLogs);
         }
         return;
     }
@@ -643,22 +646,19 @@ void StageSelectScene::HandleInput()
 
     if (currentIndex == -1)
     {
-        // 현재 선택된 노드가 목록에 없으면 첫 번째 노드 선택
         currentIndex = 0;
         _SelectedNodeId = _AvailableNodeIds[0];
     }
 
     int newIndex = currentIndex;
 
-    // 방향키 코드 (확장 키의 두 번째 바이트)
-    // VK_UP = 72, VK_DOWN = 80, VK_LEFT = 75, VK_RIGHT = 77
-    if (keyCode == 72 || keyCode == 75)  // UP 또는 LEFT
+    if (keyCode == 72 || keyCode == 75)
     {
         newIndex--;
         if (newIndex < 0)
             newIndex = static_cast<int>(_AvailableNodeIds.size()) - 1;
     }
-    else if (keyCode == 80 || keyCode == 77)  // DOWN 또는 RIGHT
+    else if (keyCode == 80 || keyCode == 77)
     {
         newIndex++;
         if (newIndex >= static_cast<int>(_AvailableNodeIds.size()))
@@ -666,7 +666,6 @@ void StageSelectScene::HandleInput()
     }
     else
     {
-        // 방향키가 아닌 다른 키
         return;
     }
 

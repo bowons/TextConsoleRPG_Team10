@@ -85,6 +85,8 @@ public:
     inline bool IsRunning() const { return _IsRunning; }
     inline bool IsGameOver() const { return _IsGameOver; }
 
-	// 배틀 테스트
+    // 메인 플레이어 생성
+    void CreateMainPlayer(const std::string& name);
+    // 배틀 테스트
     void StartBattleTest();
 };
