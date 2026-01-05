@@ -35,6 +35,10 @@ void StageSelectScene::Enter()
     _IsActive = true;
     _SelectedNodeIndex = 0;
 
+    // 입력 버퍼 완전히 클리어 (이전 Scene의 입력 잔여물 제거)
+    HANDLE hInput = GetStdHandle(STD_INPUT_HANDLE);
+    FlushConsoleInputBuffer(hInput);
+
     StageManager* stageMgr = StageManager::GetInstance();
     const StageFloorData* floorInfo = stageMgr->GetCurrentFloorInfo();
 
@@ -43,7 +47,7 @@ void StageSelectScene::Enter()
 
     // ===== 타이틀 패널 (상단) =====
     Panel* titlePanel = _Drawer->CreatePanel("Title", 2, 1, 120, 5);
-    titlePanel->SetBorder(true, ETextColor::LIGHT_YELLOW);
+    titlePanel->SetBorder(true, ETextColor::WHITE);
 
     auto titleText = std::make_unique<TextRenderer>();
     std::string title = "[  " + std::to_string(floorInfo->Floor) + "층 - " + floorInfo->Description + "  ]";
@@ -55,7 +59,7 @@ void StageSelectScene::Enter()
 
     // ===== 진행 안내 패널 (상단 중앙) =====
     Panel* guidePanel = _Drawer->CreatePanel("Guide", 2, 6, 120, 5);
-    guidePanel->SetBorder(true, ETextColor::YELLOW);
+    guidePanel->SetBorder(true, ETextColor::WHITE);
 
     UpdateGuidePanel(guidePanel);
 
@@ -92,7 +96,7 @@ void StageSelectScene::Enter()
 
     // ===== 진입 방식 및 키 설명 (하단) =====
     Panel* controlPanel = _Drawer->CreatePanel("Control", 2, 31, 120, 3);
-    controlPanel->SetBorder(true, ETextColor::LIGHT_CYAN);
+    controlPanel->SetBorder(true, ETextColor::WHITE);
 
     auto controlText = std::make_unique<TextRenderer>();
     controlText->AddLineWithColor("  [진입 방식 및 키 설명]   [←/→/↑/↓] 선택   [Enter] 진입   [Space] 상점   [ESC] 메인 메뉴",
@@ -196,7 +200,7 @@ void StageSelectScene::UpdateInventoryPanel(Panel* inventoryPanel)
     if (!player)
     {
         inventoryText->AddLineWithColor("[ 인벤토리 ]",
-            MakeColorAttribute(ETextColor::LIGHT_YELLOW, EBackgroundColor::BLACK));
+      MakeColorAttribute(ETextColor::LIGHT_YELLOW, EBackgroundColor::BLACK));
         inventoryText->AddLineWithColor("플레이어 정보를 불러올 수 없습니다.",
             MakeColorAttribute(ETextColor::LIGHT_RED, EBackgroundColor::BLACK));
 
@@ -206,17 +210,19 @@ void StageSelectScene::UpdateInventoryPanel(Panel* inventoryPanel)
         return;
     }
 
+    std::string goldInfo = "[ 소지금: " + std::to_string(player->GetGold()) + " G ]";
+    inventoryText->AddLineWithColor(goldInfo,
+    MakeColorAttribute(ETextColor::LIGHT_YELLOW, EBackgroundColor::BLACK));
+
     Inventory* inventory = nullptr;
     if (!player->TryGetInventory(inventory) || !inventory)
     {
-        inventoryText->AddLineWithColor("[ 인벤토리 ]",
-            MakeColorAttribute(ETextColor::LIGHT_YELLOW, EBackgroundColor::BLACK));
         inventoryText->AddLineWithColor("인벤토리가 비활성화되어 있습니다.",
             MakeColorAttribute(ETextColor::DARK_GRAY, EBackgroundColor::BLACK));
 
         inventoryPanel->ClearRenderers();
-        inventoryPanel->AddRenderer(0, 0, 45, 9, std::move(inventoryText));
-        inventoryPanel->Redraw();
+    inventoryPanel->AddRenderer(0, 0, 45, 9, std::move(inventoryText));
+      inventoryPanel->Redraw();
         return;
     }
 
@@ -225,29 +231,29 @@ void StageSelectScene::UpdateInventoryPanel(Panel* inventoryPanel)
     for (int i = 0; i < maxSlots; ++i)
     {
         if (inventory->GetItemAtSlot(i) != nullptr)
-            usedSlots++;
+usedSlots++;
     }
 
     std::string header = "[ 인벤토리 (" + std::to_string(usedSlots) + "/" + std::to_string(maxSlots) + ") ]";
     inventoryText->AddLineWithColor(header,
-        MakeColorAttribute(ETextColor::LIGHT_YELLOW, EBackgroundColor::BLACK));
+  MakeColorAttribute(ETextColor::LIGHT_YELLOW, EBackgroundColor::BLACK));
 
     for (int i = 0; i < maxSlots; ++i)
     {
         IItem* item = inventory->GetItemAtSlot(i);
         if (item)
         {
-            int amount = inventory->GetSlotAmount(i);
+      int amount = inventory->GetSlotAmount(i);
             std::string itemLine = std::to_string(i + 1) + ". " +
-                item->GetName() + " x" + std::to_string(amount);
+ item->GetName() + " x" + std::to_string(amount);
             inventoryText->AddLineWithColor(itemLine,
                 MakeColorAttribute(ETextColor::WHITE, EBackgroundColor::BLACK));
-        }
+     }
         else
-        {
+   {
             std::string emptyLine = std::to_string(i + 1) + ". [빈 슬롯]";
             inventoryText->AddLineWithColor(emptyLine,
-                MakeColorAttribute(ETextColor::DARK_GRAY, EBackgroundColor::BLACK));
+    MakeColorAttribute(ETextColor::DARK_GRAY, EBackgroundColor::BLACK));
         }
     }
 
@@ -572,14 +578,15 @@ void StageSelectScene::HandleInput()
 
     int keyCode = input->GetKeyCode();
 
+    if (keyCode == 0 || keyCode < 0) return;
+
     StageManager* stageMgr = StageManager::GetInstance();
 
-    // ===== ESC: 메인 메뉴로 복귀 =====
     if (keyCode == VK_ESCAPE)
     {
         _IsActive = false;
         Exit();
-        SceneManager::GetInstance()->ChangeScene(ESceneType::MainMenu);
+        GameManager::GetInstance()->RestartGame();
         return;
     }
 
@@ -587,7 +594,7 @@ void StageSelectScene::HandleInput()
     if (keyCode == VK_SPACE)
     {
         std::vector<std::string> logs = {
-      "[정보] 상점으로 이동합니다.",
+       "[정보] 상점으로 이동합니다.",
        "[안내] ESC를 눌러 다시 돌아올 수 있습니다."
         };
         Panel* systemPanel = _Drawer->GetPanel("System");

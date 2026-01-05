@@ -195,11 +195,6 @@
     <ClInclude Include="include\UI\Scenes\ResultScene.h">
       <Filter>Header Files\UI\Scenes</Filter>
     </ClInclude>
-    <ClInclude Include="include\Item\FairyEssence.h" />
-    <ClInclude Include="include\Item\ShieldDefense.h" />
-    <ClInclude Include="include\Item\FocusRune.h" />
-    <ClInclude Include="include\Item\LuckyCharm.h" />
-    <ClInclude Include="include\Item\TitanAwakening.h" />
   </ItemGroup>
   <ItemGroup>
     <!-- Item Sources -->
@@ -215,6 +210,21 @@
     <ClCompile Include="src\Item\ItemSlot.cpp">
       <Filter>Source Files\Item</Filter>
     </ClCompile>
+    <ClInclude Include="include\Item\FairyEssence.h">
+      <Filter>Header Files\Item</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Item\ShieldDefense.h">
+      <Filter>Header Files\Item</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Item\FocusRune.h">
+      <Filter>Header Files\Item</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Item\LuckyCharm.h">
+      <Filter>Header Files\Item</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Item\TitanAwakening.h">
+      <Filter>Header Files\Item</Filter>
+    </ClInclude>
     <!-- Unit Sources -->
     <ClCompile Include="src\Unit\NormalMonster.cpp">
       <Filter>Source Files\Unit</Filter>
@@ -317,11 +327,21 @@
     <ClCompile Include="UIDrawer_TestExample.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Item\FairyEssence.cpp" />
-    <ClCompile Include="src\Item\ShieldDefense.cpp" />
-    <ClCompile Include="src\Item\FocusRune.cpp" />
-    <ClCompile Include="src\Item\LuckyCharm.cpp" />
-    <ClCompile Include="src\Item\TitanAwakening.cpp" />
+    <ClCompile Include="src\Item\FairyEssence.cpp">
+      <Filter>Source Files\Item</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Item\ShieldDefense.cpp">
+      <Filter>Source Files\Item</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Item\FocusRune.cpp">
+      <Filter>Source Files\Item</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Item\LuckyCharm.cpp">
+      <Filter>Source Files\Item</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Item\TitanAwakening.cpp">
+      <Filter>Source Files\Item</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="UIDrawer_Flowchart.md" />

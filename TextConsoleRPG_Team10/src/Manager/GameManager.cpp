@@ -22,7 +22,7 @@ void GameManager::RemoveDeadCompanions()
 {
     // 메인 플레이어(0번)는 제외하고 동료들만 검사 - 메인 플레이어 죽으면 게임 끝남!
     if (_Party.size() <= 1) return;  // 메인 플레이어만 있으면 스킵
-    
+
     auto it = _Party.begin() + 1;  // 1번 인덱스부터 시작 (0번은 메인 플레이어)
     while (it != _Party.end())
     {
@@ -57,19 +57,19 @@ void GameManager::Initialize()
     if (!DataManager::GetInstance()->Initialize())
     {
         PrintManager::GetInstance()->PrintLogLine(
-         "DataManager 초기화 실패!",
-         ELogImportance::WARNING
+            "DataManager 초기화 실패!",
+            ELogImportance::WARNING
         );
-    return;
+        return;
     }
 
     // StageManager 초기화
     if (!StageManager::GetInstance()->Initialize())
     {
         PrintManager::GetInstance()->PrintLogLine(
-    "StageManager 초기화 실패!",
-      ELogImportance::WARNING
-   );
+            "StageManager 초기화 실패!",
+            ELogImportance::WARNING
+        );
         return;
     }
 
@@ -167,4 +167,43 @@ void GameManager::EndGame()
 {
     _IsGameOver = true;
     _IsRunning = false;
+}
+
+// ===== 게임 재시작 =====
+void GameManager::RestartGame()
+{
+    PrintManager::GetInstance()->PrintLogLine(
+        "게임을 재시작합니다...",
+        ELogImportance::DISPLAY
+    );
+
+    // 1. 파티 초기화 (플레이어 삭제)
+    ClearParty();
+
+    // 2. SceneManager의 플레이어 참조 제거
+    SceneManager::GetInstance()->SetPlayer(nullptr);
+
+    // 3. StageManager 초기화 (진행 상황 리셋)
+    StageManager* stageMgr = StageManager::GetInstance();
+    if (stageMgr && stageMgr->IsInitialized())
+    {
+        stageMgr->StartNewGame();  // 1층, 시작 노드로 리셋
+    }
+
+    // 4. 게임 상태 플래그 초기화
+    _IsGameOver = false;
+    _IsRunning = true;
+
+    // 5. UI 화면 클리어
+    UIDrawer* drawer = UIDrawer::GetInstance();
+    drawer->ClearScreen();
+    drawer->RemoveAllPanels();
+
+    // 6. Main Scene으로 이동 (새 게임 시작)
+    PrintManager::GetInstance()->PrintLogLine(
+        "새로운 여정을 시작합니다!",
+        ELogImportance::DISPLAY
+    );
+
+    SceneManager::GetInstance()->ChangeScene(ESceneType::MainMenu);
 }

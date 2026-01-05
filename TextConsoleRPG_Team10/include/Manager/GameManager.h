@@ -28,6 +28,7 @@ public:
     void Initialize();   // 씬 등록
     void StartGame();    // 메인 루프 시작
     void EndGame();  // 게임 종료
+    void RestartGame();  // 게임 재시작 (모든 데이터 초기화)
 
 
     // ===== 파티 관리 =====

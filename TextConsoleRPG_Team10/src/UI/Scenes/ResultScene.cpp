@@ -10,7 +10,7 @@
 #include "../../../include/Common/TextColor.h"
 
 ResultScene::ResultScene()
-: UIScene("Result")
+    : UIScene("Result")
     , _ResultType(EResultType::Victory)
     , _InputComplete(false)
 {
@@ -39,7 +39,7 @@ void ResultScene::Enter()
     auto titleText = std::make_unique<TextRenderer>();
     titleText->AddLine("");
     titleText->AddLine("");
-    
+
     if (_ResultType == EResultType::Victory)
     {
         titleText->AddLineWithColor("          [전투 승리/실패 문구] - You Win!",
@@ -47,12 +47,12 @@ void ResultScene::Enter()
     }
     else
     {
-    titleText->AddLineWithColor("     [전투 승리/실패 문구] - You Lose..",
-       MakeColorAttribute(ETextColor::LIGHT_RED, EBackgroundColor::BLACK));
+        titleText->AddLineWithColor("     [전투 승리/실패 문구] - You Lose..",
+            MakeColorAttribute(ETextColor::LIGHT_RED, EBackgroundColor::BLACK));
     }
 
     titlePanel->SetContentRenderer(std::move(titleText));
-titlePanel->Redraw();
+    titlePanel->Redraw();
 
     // TODO: 결과 타입에 따라 타이틀 동적 변경
   // _ResultType == EResultType::Victory 이면 승리 메시지
@@ -107,7 +107,7 @@ titlePanel->Redraw();
     auto rewardText = std::make_unique<TextRenderer>();
     rewardText->AddLine("");
     rewardText->AddLineWithColor("  [보상]",
-   MakeColorAttribute(ETextColor::LIGHT_YELLOW, EBackgroundColor::BLACK));
+        MakeColorAttribute(ETextColor::LIGHT_YELLOW, EBackgroundColor::BLACK));
     rewardText->AddLine("");
     rewardText->AddLineWithColor("  = 한 정산",
         MakeColorAttribute(ETextColor::CYAN, EBackgroundColor::BLACK));
@@ -115,22 +115,22 @@ titlePanel->Redraw();
 
     if (_ResultType == EResultType::Victory)
     {
-     // 승리 시 보상 표시
+        // 승리 시 보상 표시
         rewardText->AddLine("  • 골드: +0 G");
         rewardText->AddLine("  • 경험치: +0 EXP");
         rewardText->AddLine("  • 아이템 획득:");
- rewardText->AddLine("    - 아이템 이름");
+        rewardText->AddLine("    - 아이템 이름");
         rewardText->AddLine("");
         rewardText->AddLine("  • 레벨업!");
         rewardText->AddLine("    Lv.1 → Lv.2");
     }
-  else
+    else
     {
         // 패배 시 메시지
         rewardText->AddLineWithColor("  전투에서 패배했습니다.",
-  MakeColorAttribute(ETextColor::LIGHT_RED, EBackgroundColor::BLACK));
+            MakeColorAttribute(ETextColor::LIGHT_RED, EBackgroundColor::BLACK));
         rewardText->AddLine("");
-    rewardText->AddLine("  보상을 받을 수 없습니다.");
+        rewardText->AddLine("  보상을 받을 수 없습니다.");
     }
 
     rewardPanel->SetContentRenderer(std::move(rewardText));
@@ -211,7 +211,7 @@ titlePanel->Redraw();
     logPanel->SetBorder(true, ETextColor::LIGHT_CYAN);
 
     auto logText = std::make_unique<TextRenderer>();
-logText->AddLine("");
+    logText->AddLine("");
     logText->AddLineWithColor("  [ 시스템 로그 출력 창 ]",
         MakeColorAttribute(ETextColor::LIGHT_CYAN, EBackgroundColor::BLACK));
     logText->AddLine("");
@@ -231,23 +231,23 @@ logText->AddLine("");
     commandText->AddLineWithColor("  인벤토리 & 커맨드",
         MakeColorAttribute(ETextColor::LIGHT_YELLOW, EBackgroundColor::BLACK));
     commandText->AddLine("");
-    
+
     if (_ResultType == EResultType::Victory)
-{
+    {
         commandText->AddLine("  [Enter] 다음 스테이지");
         commandText->AddLine("  [ESC] 메인 메뉴");
     }
     else
     {
         // 패배 시 - 로그라이크이므로 재도전 없음
-      commandText->AddLineWithColor("  게임 오버",
+        commandText->AddLineWithColor("  게임 오버",
             MakeColorAttribute(ETextColor::LIGHT_RED, EBackgroundColor::BLACK));
-   commandText->AddLine("");
+        commandText->AddLine("");
         commandText->AddLine("  [Enter] 메인 메뉴");
     }
 
     commandPanel->SetContentRenderer(std::move(commandText));
-commandPanel->Redraw();
+    commandPanel->Redraw();
 
     // TODO: 커맨드 동적 업데이트
     // 승리 시: 다음 스테이지 진행
@@ -267,7 +267,7 @@ void ResultScene::Update()
     if (_IsActive)
     {
         _Drawer->Update();
-   HandleInput();
+        HandleInput();
     }
 }
 
@@ -278,31 +278,27 @@ void ResultScene::Render()
 
 void ResultScene::HandleInput()
 {
-    // TODO: 입력 처리 구현
-    //
-    // 구현 방법:
-    // InputManager* input = InputManager::GetInstance();
-    // if (!input->IsKeyPressed()) return;
-    //
-    // int keyCode = input->GetKeyCode();
-    //
-    // if (keyCode == VK_RETURN || keyCode == VK_SPACE) {
-    //     // 승리 시: 다음 스테이지로 진행
-    //     if (_ResultType == EResultType::Victory) {
-    //         SceneManager::GetInstance()->ChangeScene(ESceneType::StageSelect);
-    //     }
-    //     // 패배 시: 게임 오버 - 메인 메뉴로 (로그라이크)
-    //   else {
-    //         // 게임 상태 초기화
-    //    // GameManager::GetInstance()->ClearParty();
- //         SceneManager::GetInstance()->ChangeScene(ESceneType::MainMenu);
-    //     }
-  // }
-    // else if (keyCode == VK_ESCAPE) {
-    //     // 메인 메뉴로
-    //     SceneManager::GetInstance()->ChangeScene(ESceneType::MainMenu);
-    // }
- //
- // 참고: 로그라이크 게임이므로 패배 시 재도전 옵션 없음
-    // MainPlayer 사망 = 게임 오버 = 메인 메뉴로만 이동 가능
+    InputManager* input = InputManager::GetInstance();
+    if (!input->IsKeyPressed()) return;
+
+    int keyCode = input->GetKeyCode();
+
+    if (keyCode == VK_RETURN || keyCode == VK_SPACE)
+    {
+        if (_ResultType == EResultType::Victory)
+        {
+            SceneManager::GetInstance()->ChangeScene(ESceneType::StageSelect);
+        }
+        else
+        {
+            GameManager::GetInstance()->RestartGame();
+        }
+    }
+    else if (keyCode == VK_ESCAPE)
+    {
+        if (_ResultType == EResultType::Victory)
+        {
+            GameManager::GetInstance()->RestartGame();
+        }
+    }
 }
