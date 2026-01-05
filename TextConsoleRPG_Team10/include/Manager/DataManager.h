@@ -38,6 +38,9 @@ private:
         return out;
     }
 
+public:
+    bool Initialize();
+
     // ===== 리소스 폴더 경로 Getter =====
     inline std::string GetAnimationsPath() const { return JoinPath(std::string(DEFAULT_RESOURCE_PATH), ANIMATIONS_FOLDER); }
     inline std::string GetCharactersPath() const { return JoinPath(std::string(DEFAULT_RESOURCE_PATH), CHARACTERS_FOLDER); }
@@ -47,9 +50,6 @@ private:
     inline std::string GetItemsPath() const { return JoinPath(std::string(DEFAULT_RESOURCE_PATH), ITEMS_FOLDER); }
     inline std::string GetSoundPath() const { return JoinPath(std::string(DEFAULT_RESOURCE_PATH), Sound_FOLDER); }
     inline std::string GetStagesPath() const { return JoinPath(std::string(DEFAULT_RESOURCE_PATH), STAGES_FOLDER); }
-
-public:
-    bool Initialize();
 
     // ===== 범용 파일 I/O (폴더 경로를 명시적으로 받음) =====
     std::string LoadTextFile(const std::string& folderPath, const std::string& fileName);

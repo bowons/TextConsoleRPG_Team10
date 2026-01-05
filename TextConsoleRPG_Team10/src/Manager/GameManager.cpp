@@ -22,7 +22,7 @@ void GameManager::RemoveDeadCompanions()
 {
     // 메인 플레이어(0번)는 제외하고 동료들만 검사 - 메인 플레이어 죽으면 게임 끝남!
     if (_Party.size() <= 1) return;  // 메인 플레이어만 있으면 스킵
-    
+
     auto it = _Party.begin() + 1;  // 1번 인덱스부터 시작 (0번은 메인 플레이어)
     while (it != _Party.end())
     {
@@ -57,19 +57,19 @@ void GameManager::Initialize()
     if (!DataManager::GetInstance()->Initialize())
     {
         PrintManager::GetInstance()->PrintLogLine(
-         "DataManager 초기화 실패!",
-         ELogImportance::WARNING
+            "DataManager 초기화 실패!",
+            ELogImportance::WARNING
         );
-    return;
+        return;
     }
 
     // StageManager 초기화
     if (!StageManager::GetInstance()->Initialize())
     {
         PrintManager::GetInstance()->PrintLogLine(
-    "StageManager 초기화 실패!",
-      ELogImportance::WARNING
-   );
+            "StageManager 초기화 실패!",
+            ELogImportance::WARNING
+        );
         return;
     }
 

@@ -42,7 +42,7 @@ void ShopScene::Enter()
 
     // ===== 타이틀 패널 (상단) - Stage와 공통 =====
     Panel* titlePanel = _Drawer->CreatePanel("Title", 2, 1, 120, 5);
-    titlePanel->SetBorder(true, ETextColor::LIGHT_YELLOW);
+    titlePanel->SetBorder(true, ETextColor::WHITE);
 
     auto titleText = std::make_unique<TextRenderer>();
     titleText->AddLineWithColor("[ 에테르 환영거울 - 상점 통신중... ]",
@@ -53,13 +53,13 @@ void ShopScene::Enter()
 
     // ===== 안내 패널 (상단 중앙) =====
     Panel* guidePanel = _Drawer->CreatePanel("Guide", 2, 6, 120, 5);
-    guidePanel->SetBorder(true, ETextColor::YELLOW);
+    guidePanel->SetBorder(true, ETextColor::WHITE);
 
     UpdateGuidePanel(guidePanel);
 
     // ===== 아이템 이미지 패널 (중앙 좌측) =====
     Panel* shopImagePanel = _Drawer->CreatePanel("ShopImage", 2, 11, 50, 23);
-    shopImagePanel->SetBorder(true, ETextColor::CYAN);
+    shopImagePanel->SetBorder(true, ETextColor::WHITE);
 
     auto imageText = std::make_unique<TextRenderer>();
     std::string uiPath = DataManager::GetInstance()->GetResourcePath("UI");
@@ -75,7 +75,7 @@ void ShopScene::Enter()
 
     // ===== 상품 목록 패널 (중앙 우측) =====
     Panel* itemListPanel = _Drawer->CreatePanel("ItemList", 54, 11, 68, 23);
-    itemListPanel->SetBorder(true, ETextColor::GREEN);
+    itemListPanel->SetBorder(true, ETextColor::WHITE);
 
     UpdateItemListPanel(itemListPanel);
 
@@ -429,13 +429,13 @@ void ShopScene::UpdateItemImage(int itemIndex)
     else
     {
         // 아스키 아트 로드 시도
-        std::string uiPath = DataManager::GetInstance()->GetResourcePath("UI");
+        std::string uiPath = DataManager::GetInstance()->GetItemsPath();
         auto artRenderer = std::make_unique<AsciiArtRenderer>();
 
         if (artRenderer->LoadFromFile(uiPath, asciiFile))
         {
             artRenderer->SetAlignment(ArtAlignment::CENTER);
-            artRenderer->SetColor(ETextColor::LIGHT_YELLOW);
+            artRenderer->SetColor(ETextColor::WHITE);
             imagePanel->SetContentRenderer(std::move(artRenderer));
         }
         else

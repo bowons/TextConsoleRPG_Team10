@@ -134,21 +134,20 @@
   <ItemGroup>
     <!-- Core -->
     <ClInclude Include="include\Config.h" />
-    <ClInclude Include="include\Data\ClassData.h" />
+    <ClInclude Include="include\Singleton.h" />
+    <!-- Common -->
+    <ClInclude Include="include\Common\TextColor.h" />
     <ClInclude Include="include\Data\StageData.h" />
+	<ClInclude Include="include\Data\ClassData.h" />
+    <!-- Factory -->
+    <ClInclude Include="include\Factory\Factory.h" />
+    <ClInclude Include="include\Factory\ItemFactory.h" />
+    <!-- Item -->
     <ClInclude Include="include\Item\FairyEssence.h" />
     <ClInclude Include="include\Item\FocusRune.h" />
     <ClInclude Include="include\Item\LuckyCharm.h" />
     <ClInclude Include="include\Item\ShieldDefense.h" />
     <ClInclude Include="include\Item\TitanAwakening.h" />
-    <ClInclude Include="include\Manager\StageManager.h" />
-    <ClInclude Include="include\Singleton.h" />
-    <!-- Common -->
-    <ClInclude Include="include\Common\TextColor.h" />
-    <!-- Factory -->
-    <ClInclude Include="include\Factory\Factory.h" />
-    <ClInclude Include="include\Factory\ItemFactory.h" />
-    <!-- Item -->
     <ClInclude Include="include\Item\AttackUp.h" />
     <ClInclude Include="include\Item\HealPotion.h" />
     <ClInclude Include="include\Item\IItem.h" />
@@ -157,6 +156,7 @@
     <ClInclude Include="include\Item\ItemSlot.h" />
     <ClInclude Include="include\Item\MonsterSpawnData.h" />
     <!-- Manager -->
+    <ClInclude Include="include\Manager\StageManager.h" />
     <ClInclude Include="include\Manager\BattleManager.h" />
     <ClInclude Include="include\Manager\DataManager.h" />
     <ClInclude Include="include\Manager\GameManager.h" />
@@ -196,17 +196,17 @@
   <ItemGroup>
     <!-- Main -->
     <ClCompile Include="Main.cpp" />
-    <ClCompile Include="src\Item\FairyEssence.cpp" />
-    <ClCompile Include="src\Item\FocusRune.cpp" />
-    <ClCompile Include="src\Item\LuckyCharm.cpp" />
-    <ClCompile Include="src\Item\ShieldDefense.cpp" />
-    <ClCompile Include="src\Item\TitanAwakening.cpp" />
     <ClCompile Include="src\Manager\StageManager.cpp" />
     <ClCompile Include="src\UI\Scenes\StageSelectScene.cpp" />
     <ClCompile Include="UIDrawer_TestExample.cpp" />
     <!-- Factory -->
     <ClCompile Include="src\Factory\ItemFactory.cpp" />
     <!-- Item -->
+    <ClCompile Include="src\Item\FairyEssence.cpp" />
+    <ClCompile Include="src\Item\FocusRune.cpp" />
+    <ClCompile Include="src\Item\LuckyCharm.cpp" />
+    <ClCompile Include="src\Item\ShieldDefense.cpp" />
+    <ClCompile Include="src\Item\TitanAwakening.cpp" />
     <ClCompile Include="src\Item\AttackUp.cpp" />
     <ClCompile Include="src\Item\HealPotion.cpp" />
     <ClCompile Include="src\Item\Inventory.cpp" />
