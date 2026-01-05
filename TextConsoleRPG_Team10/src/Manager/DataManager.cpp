@@ -196,51 +196,51 @@ std::vector<std::vector<std::string>> DataManager::LoadCSVFile(const std::string
                     while (i < n)
                     {
                         if (line[i] == '"')
-            {
-              if (i + 1 < n && line[i + 1] == '"')
-              {
-                field.push_back('"');
-                i += 2;
-              }
-              else
-              {
-                ++i;
-                break;
-              }
+                        {
+                            if (i + 1 < n && line[i + 1] == '"')
+                            {
+                                field.push_back('"');
+                                i += 2;
+                            }
+                            else
+                            {
+                                ++i;
+                                break;
+                            }
+                        }
+                        else
+                        {
+                            field.push_back(line[i++]);
+                        }
+                    }
+                    while (i < n && line[i] != ',') ++i;
+                    if (i < n && line[i] == ',') ++i;
+                }
+                else
+                {
+                    while (i < n && line[i] != ',')
+                    {
+                        field.push_back(line[i++]);
+                    }
+                    if (i < n && line[i] == ',') ++i;
+                }
+
+                trim(field);
+                row.push_back(field);
             }
-            else
-            {
-              field.push_back(line[i++]);
-            }
-          }
-          while (i < n && line[i] != ',') ++i;
-          if (i < n && line[i] == ',') ++i;
+
+            if (!line.empty() && line.back() == ',')
+                row.push_back(std::string());
+
+            result.push_back(std::move(row));
         }
-        else
-        {
-          while (i < n && line[i] != ',')
-          {
-            field.push_back(line[i++]);
-          }
-          if (i < n && line[i] == ',') ++i;
-        }
-
-        trim(field);
-        row.push_back(field);
-      }
-
-      if (!line.empty() && line.back() == ',')
-        row.push_back(std::string());
-
-      result.push_back(std::move(row));
     }
-  }
-  catch (const std::exception& ex)
-  {
-    SafeLog("DataManager::LoadCSVFile exception: " + std::string(ex.what()));
-  }
+    catch (const std::exception& ex)
+    {
+        SafeLog("DataManager::LoadCSVFile exception: " + std::string(ex.what()));
+    }
 
-  return result;
+    return result;
 }
 
 bool DataManager::SaveTextFile(const std::string& folderPath, const std::string& fileName, const std::string& data)
@@ -364,7 +364,7 @@ std::vector<ItemData> DataManager::LoadItemData(const std::string& fileName)
             return result;
         }
 
-        // CSV 형식: ItemID,Name,Description,Price,EffectAmount,MaxCount,Stock,AsciiFile
+        // CSV 형식: ItemID,Name,Description,Price,EffectAmount,MaxCount,Stock,AsciiFile,MonsterDropRate,ShopAppearRate
         for (size_t i = 1; i < csv.size(); ++i)
         {
             const auto& row = csv[i];
@@ -389,6 +389,14 @@ std::vector<ItemData> DataManager::LoadItemData(const std::string& fileName)
                 data.MaxCount = std::stoi(row[5]);
                 data.Stock = std::stoi(row[6]);
                 data.AsciiFile = row[7];
+
+                // ===== 확장 필드 파싱 (옵션: 없으면 0.0) =====
+                if (row.size() > 8 && !row[8].empty()) {
+                    data.MonsterDropRate = std::stof(row[8]);
+                }
+                if (row.size() > 9 && !row[9].empty()) {
+                    data.ShopAppearRate = std::stof(row[9]);
+                }
 
                 result.push_back(data);
             }
