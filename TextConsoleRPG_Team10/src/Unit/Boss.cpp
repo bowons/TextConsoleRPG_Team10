@@ -1,53 +1,73 @@
-#include "../../include/Unit/Boss.h"
+﻿#include "../../include/Unit/Boss.h"
+#include "../../include/Item/MonsterSpawnData.h"
 #include "../../include/Item/IItem.h"
 #include "../../include/Unit/IMonster.h"
 #include "../../include/Item/HealPotion.h"
 #include "../../include/Item/AttackUp.h"
+#include "../../include/Manager/GameManager.h"
 #include <random>
 #include <tuple>
 #include <memory>
-#include <iostream>
-
-using namespace std;
 
 // GameManager에 추가 후 삭제
-static mt19937 gen(random_device{}());
+//static mt19937 gen(random_device{}());
 
-Boss::Boss(int PlayerLevel)
+Boss::Boss(const MonsterSpawnData& Data)
 {
-    _Name = "에테르노";
-    _Level = PlayerLevel;
-    _Stage = "공허의 중심";
+    _Name = Data.MonsterName;
+    _Floor = Data.floor;
 
-    uniform_int_distribution<> HpDist(_Level * 20, _Level * 30);
-    _Stats._MaxHP = static_cast<int>(HpDist(gen) * 1.5);  // 보스는 체력 1.5배
-    _Stats._CurrentHP = _Stats._MaxHP;
+    // ===== 기본 스탯 =====
+    _Stats._MaxHP = Data.hp;
+    _Stats._CurrentHP = Data.hp;
 
-    uniform_int_distribution<> AtkDist(_Level * 5, _Level * 10);
-    _Stats._Atk = static_cast<int>(AtkDist(gen) * 1.5);  // 보스는 공격력 1.5배
+    _Stats._MaxMP = Data.mp;
+    _Stats._CurrentMP = Data.mp;
+
+    _Stats._Atk = Data.atk;
+    _Stats._Def = Data.def;
+    _Stats._Dex = Data.dex;
+    _Stats._Luk = Data.luk;
+
+    _Stats._CriticalRate = static_cast<float>(Data.crit_rate);
+    _ExpReward = Data.exp;
+    _GoldReward = Data.gold;
+
+    // ===== 임시 스탯은 기본 0 =====
+    _Stats._TempAtk = 0;
+    _Stats._TempDef = 0;
+    _Stats._TempDex = 0;
+    _Stats._TempLuk = 0;
+    _Stats._TempCriticalRate = 0.0f;
 }
 
-void Boss::TakeDamage(int Amount)
+int Boss::TakeDamage(ICharacter* Target, int Amount)
 {
     // 데미지 받음
-	_Stats._CurrentHP -= Amount;
-
-    // 데미지 받는 연출 추가
-    float HpRatio = (float)_Stats._CurrentHP / (float)_Stats._MaxHP;
-    if (HpRatio < 0.3f)
+    //회피율 = 5% + (피해자_DEX − 공격자_DEX) × 1.5%
+    int Evasion = 5 + (Target->GetDex() - this->GetDex()) * 15 / 10;
+    if (Evasion > 95) Evasion = 95; // 최대 회피율 95%
+    if (std::uniform_int_distribution<>(1, 100)(gen) <= Evasion)
     {
-        std::cout << "test 30프로 남음 연출" << std::endl; // 나중에 수정필요함. 이상함.
+        // 회피 성공
+        Amount = 0;
+        return Amount;
     }
-    else if(HpRatio < 0.6f)
+    _Stats._CurrentHP -= Amount;
+    if (_Stats._CurrentHP < 0)
     {
-        std::cout << "test 60프로 남음 연출" << std::endl;
+        _Stats._CurrentHP = 0;
     }
+    return Amount;
 }
 
-void Boss::Attack(ICharacter* Target) const
+std::tuple<std::string, int> Boss::Attack(ICharacter* Target) const
 {
-    // 공격 연출 등 나중에 추가하면 될 듯
-  Target->TakeDamage(_Stats._Atk);
+    if (!Target)
+        return { "",0 };
+
+    //공격명, 공격량 반환
+    return { "공격", _Stats._Atk }; // 몬스터 공격종류 csv에 추가 예정?
 }
 
 bool Boss::IsDead() const
@@ -56,11 +76,11 @@ bool Boss::IsDead() const
 	return _Stats._CurrentHP <= 0;
 }
 
-tuple<int, int, unique_ptr<IItem>> Boss::DropReward()
+std::tuple<int, int, std::unique_ptr<IItem>> Boss::DropReward()
 {
     // 게임 엔딩인데 다 뿌리자!
-    unique_ptr<IItem> DropItem = nullptr;
+    std::unique_ptr<IItem> DropItem = nullptr;
 
-    tuple<int, int, unique_ptr<IItem>> Reward(500, 50000, move(DropItem));
+    std::tuple<int, int, std::unique_ptr<IItem>> Reward(_ExpReward, _GoldReward, move(DropItem));
     return Reward;
 }

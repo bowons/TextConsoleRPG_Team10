@@ -11,8 +11,8 @@ public:
 
     //NormalMonster(const int PlayerLevel, std::string Stage, std::string Name); 
     NormalMonster(const MonsterSpawnData& Data);
-    virtual void TakeDamage(int amount) override;
-    void Attack(ICharacter* Target) const override;
+    virtual int TakeDamage(ICharacter* Target, int amount) override;
+    std::tuple<std::string,int> Attack(ICharacter* Target) const override;
     bool IsDead() const override;
     
     std::tuple<int, int, std::unique_ptr<IItem>> DropReward() override;

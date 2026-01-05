@@ -12,20 +12,6 @@
 // GameManager에 추가 후 삭제
 //static std::mt19937 gen(std::random_device{}());
 
-//NormalMonster::NormalMonster(int PlayerLevel, std::string Stage, std::string Name)
-//{
-//    Name = Name;
-//    _Level = PlayerLevel;
-//    _Stage = Stage;
-//
-//    std::uniform_int_distribution<> HpDist(_Level * 20, _Level * 30);
-//    _Stats._MaxHP = HpDist(gen);
-//    _Stats._CurrentHP = _Stats._MaxHP;
-//
-//    std::uniform_int_distribution<> AtkDist(_Level * 5, _Level * 10);
-//    _Stats._Atk = AtkDist(gen);
-//}
-
 NormalMonster::NormalMonster(const MonsterSpawnData& Data)
 {
     _Name = Data.MonsterName;
@@ -56,23 +42,33 @@ NormalMonster::NormalMonster(const MonsterSpawnData& Data)
 }
 
 
-void NormalMonster::TakeDamage(int Amount)
+int NormalMonster::TakeDamage(ICharacter* Target, int Amount)
 {
     // 데미지 받음
+    //회피율 = 5% + (피해자_DEX − 공격자_DEX) × 1.5%
+    int Evasion = 5 + (Target->GetDex() - this->GetDex()) * 15 / 10;
+    if (Evasion > 95) Evasion = 95; // 최대 회피율 95%
+    if (std::uniform_int_distribution<>(1, 100)(gen) <= Evasion)
+    {
+        // 회피 성공
+        Amount = 0;
+        return Amount;
+    }
     _Stats._CurrentHP -= Amount;
     if (_Stats._CurrentHP < 0) 
     {
 		_Stats._CurrentHP = 0;
     }
+    return Amount;
 }
 
-void NormalMonster::Attack(ICharacter* Target) const
+std::tuple<std::string, int> NormalMonster::Attack(ICharacter* Target) const
 {
     if (!Target) 
-        return;
+        return { "",0 };
 
-    // 공격 연출 등 나중에 추가하면 될 듯
-    Target->TakeDamage(_Stats._Atk);
+    //공격명, 공격량 반환
+    return { "공격", _Stats._Atk }; // 몬스터 공격종류 csv에 추가 예정?
 }
 
 bool NormalMonster::IsDead() const
