@@ -1,0 +1,5 @@
+class_id,role,role_desc,hp,mp,atk,def,dex,luk,crit_rate,ascii_file
+warrior,Tank,피격에 강하며 아군을 보호하는 메인 탱커,250,50,35,15,8,5,0.05,Characters/P_Warrior.txt
+mage,DPS,강력한 마법으로 후방에서 딜을 넣는 캐스터,150,150,20,5,10,8,0.07,Characters/P_Mage.txt
+archer,DPS,원거리에서 지속 딜을 넣는 민첩형 딜러,180,80,40,10,15,6,0.12,Characters/P_Archer.txt
+priest,Support,회복과 보조에 특화된 서포터,170,120,15,8,9,12,0.06,Characters/P_Priest.txt
