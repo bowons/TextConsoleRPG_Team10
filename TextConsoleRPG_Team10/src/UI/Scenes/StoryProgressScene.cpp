@@ -15,7 +15,6 @@ StoryProgressScene::StoryProgressScene()
     : UIScene("StoryProgress")
     , _CurrentStoryIndex(0)
     , _TextComplete(false)
-    , _StoryIndex(0)
 {
 }
 
@@ -40,57 +39,57 @@ void StoryProgressScene::Enter()
     // =============================================================================
 
     // ===== 스토리 이미지 패널 (상단) =====
-    //Panel* imagePanel = _Drawer->CreatePanel("StoryImage", 10, 5, 130, 30);
-    //imagePanel->SetBorder(true, ETextColor::CYAN);
+    Panel* ImagePanel = _Drawer->CreatePanel("StoryImage", 10, 5, 130, 30);
+    ImagePanel->SetBorder(true, ETextColor::CYAN);
 
     //// 더미 이미지 (플레이스홀더)
-    //auto dummyImage = std::make_unique<TextRenderer>();
-    //dummyImage->AddLine("");
-    //dummyImage->AddLine("");
-    //dummyImage->AddLine("");
-    //dummyImage->AddLine("");
-    //dummyImage->AddLine("");
-    //dummyImage->AddLine("");
-    //dummyImage->AddLine("");
-    //dummyImage->AddLine("");
-    //dummyImage->AddLine("   스토리 이미지");
-    //dummyImage->AddLine("");
-    //dummyImage->AddLine("");
-    //dummyImage->AddLine("");
-    //dummyImage->SetTextColor(MakeColorAttribute(ETextColor::DARK_GRAY, EBackgroundColor::BLACK));
+    auto DummyImage = std::make_unique<TextRenderer>();
+    DummyImage->AddLine("");
+    DummyImage->AddLine("");
+    DummyImage->AddLine("");
+    DummyImage->AddLine("");
+    DummyImage->AddLine("");
+    DummyImage->AddLine("");
+    DummyImage->AddLine("");
+    DummyImage->AddLine("");
+    DummyImage->AddLine("   스토리 이미지");
+    DummyImage->AddLine("");
+    DummyImage->AddLine("");
+    DummyImage->AddLine("");
+    DummyImage->SetTextColor(MakeColorAttribute(ETextColor::DARK_GRAY, EBackgroundColor::BLACK));
 
-    //imagePanel->SetContentRenderer(std::move(dummyImage));
-    //imagePanel->Redraw();
+    ImagePanel->SetContentRenderer(std::move(DummyImage));
+    ImagePanel->Redraw();
 
     // TODO: 여기에서 스토리 이미지 조정
   // 스토리 진행 단계(_CurrentStoryIndex)에 따라 이미지를 변경합니다.
   //
   //   구현 방법:
-     Panel* imagePanel = _Drawer->GetPanel("StoryImage");
-     auto artRenderer = std::make_unique<AsciiArtRenderer>();
+     //Panel* imagePanel = _Drawer->GetPanel("StoryImage");
+    auto ArtRenderer = std::make_unique<AsciiArtRenderer>();
     std::string UIPath = DataManager::GetInstance()->GetResourcePath("UI");
     
      // _CurrentStoryIndex에 따라 파일명 결정 (예: "Story1.txt", "Story2.txt")
      //std::string fileName = "Story" + std::to_string(_CurrentStoryIndex + 1) + ".txt";
-    std::string FileName = "Sewer2.txt";
-    if (artRenderer->LoadFromFile(UIPath, FileName)) {
-    artRenderer->SetAlignment(ArtAlignment::CENTER);
-         artRenderer->SetColor(ETextColor::LIGHT_CYAN);
-     imagePanel->SetContentRenderer(std::move(artRenderer));
-         imagePanel->Redraw();
+    std::string FileName = "Sewer.txt";
+    if (ArtRenderer->LoadFromFile(UIPath, FileName)) {
+        ArtRenderer->SetAlignment(ArtAlignment::CENTER);
+        ArtRenderer->SetColor(ETextColor::LIGHT_CYAN);
+        ImagePanel->SetContentRenderer(std::move(ArtRenderer));
+        ImagePanel->Redraw();
      }
 
     // ===== 스토리 텍스트 패널 (하단) =====
-    Panel* textPanel = _Drawer->CreatePanel("StoryText", 25, 36, 100, 8);
-    textPanel->SetBorder(true, ETextColor::LIGHT_CYAN);
+    Panel* TextPanel = _Drawer->CreatePanel("StoryText", 25, 36, 100, 8);
+    TextPanel->SetBorder(true, ETextColor::LIGHT_CYAN);
 
-    auto storyText = std::make_unique<TextRenderer>();
-    storyText->AddLine("");
-    storyText->AddLineWithColor("    스토리 텍스트",
+    auto StoryText = std::make_unique<TextRenderer>();
+   /* StoryText->AddLine("");
+    StoryText->AddLineWithColor("    스토리 텍스트",
         MakeColorAttribute(ETextColor::LIGHT_YELLOW, EBackgroundColor::BLACK));
-    storyText->AddLine("");
-    storyText->AddLine("  → 1~2 문장씩 출력하여 출력되게끔");
-    storyText->AddLine("");
+    StoryText->AddLine("");
+    StoryText->AddLine("  → 1~2 문장씩 출력하여 출력되게끔");
+    StoryText->AddLine("");*/
 
     // textPanel->SetContentRenderer(std::move(storyText));
     // textPanel->Redraw();
@@ -103,16 +102,35 @@ void StoryProgressScene::Enter()
     // auto storyText = std::make_unique<TextRenderer>();
         
     // _CurrentStoryIndex에 따라 스토리 텍스트 표시
-    storyText->AddLine("");
-    storyText->AddLineWithTyping("어둠의 탑 '에레보스'가 등장했다...", 
-    MakeColorAttribute(ETextColor::WHITE, EBackgroundColor::BLACK));
+    // storyText->AddLine("");
+    // storyText->AddLineWithTyping("어둠의 탑 '에레보스'가 등장했다...", 
+    // MakeColorAttribute(ETextColor::WHITE, EBackgroundColor::BLACK));
         
     // 타이핑 효과 활성화
-    storyText->EnableTypingEffect(true);
-    storyText->SetTypingSpeed(ETypingSpeed::Normal);
+    StoryText->EnableTypingEffect(true);
+    StoryText->SetTypingSpeed(ETypingSpeed::Normal);
     
-     textPanel->SetContentRenderer(std::move(storyText));
-     textPanel->Redraw();
+    // 플로어 설명 추가
+    StoryText->AddLineWithTyping(_StoryTexts[0][4],
+        static_cast<int>(ETextColor::LIGHT_YELLOW));
+
+    // 파티 여부에 따른 텍스트 추가
+    const auto& Party = GameManager::GetInstance()->GetParty();
+    if (Party.size() > 1)
+    {
+        StoryText->AddLineWithTyping(_StoryTexts[1][4]);
+    }
+    else
+    {
+        StoryText->AddLineWithTyping(_StoryTexts[2][4]);
+    }
+    StoryText->AddLineWithTyping(_StoryTexts[3][4]);
+
+    // Todo 파티(플레이어 제외) 내 직업에 따른 텍스트 출력
+
+
+    TextPanel->SetContentRenderer(std::move(StoryText));
+    TextPanel->Redraw();
         //
         // // CSV 파일에서 스토리 로드:
         // // DataManager::GetInstance()->LoadTextFile(경로, "Story.txt");
@@ -128,7 +146,6 @@ void StoryProgressScene::Exit()
 
     // 데이터 리셋
     _StoryTexts.clear();
-    _StoryIndex = 0;
 }
 
 void StoryProgressScene::Update()

@@ -142,7 +142,7 @@ void GameManager::StartGame()
     sm->ChangeScene(ESceneType::MainMenu);
 
     // 로딩 느낌 내는 용도, 자유롭게 제거
-    SoundPlayer::GetInstance()->PlaySFXWithPause("Title_Enter");
+    // SoundPlayer::GetInstance()->PlaySFXWithPause("Title_Enter");
     SoundPlayer::GetInstance()->PlayBGM("BGM_NoneSet01");
 
     // ===== 메인 게임 루프 =====

@@ -9,7 +9,6 @@ private:
     int _CurrentStoryIndex;  // 현재 스토리 단계
     bool _TextComplete;  // 텍스트 출력 완료 여부
     std::vector<std::vector<std::string>> _StoryTexts;
-    int _StoryIndex;
     std::string _FloorName;
     std::string _BGMID;
 
