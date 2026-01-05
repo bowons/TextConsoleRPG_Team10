@@ -1,0 +1,13 @@
+companion_id,name,job_type,hp,mp,atk,def,dex,luk,crit_rate,appear_rate,ascii_file
+c_war_good,카르트,warrior,130,25,42,12,6,6,0.05,0.06,Characters/P_Warrior.txt
+c_war_mid,브론,warrior,140,25,28,14,6,10,0.04,0.12,Characters/P_Warrior.txt
+c_war_bad,도르,warrior,95,18,14,9,5,6,0.025,0.18,Characters/P_Warrior.txt
+c_mag_good,하린,mage,85,70,36,4,7,5,0.045,0.06,Characters/P_Mage.txt
+c_mag_mid,엘린,mage,100,95,18,6,9,10,0.05,0.12,Characters/P_Mage.txt
+c_mag_bad,로아,mage,90,60,14,5,6,6,0.035,0.18,Characters/P_Mage.txt
+c_arc_good,린,archer,85,30,24,7,26,20,0.15,0.06,Characters/P_Archer.txt
+c_arc_mid,시프,archer,95,35,22,8,18,14,0.11,0.12,Characters/P_Archer.txt
+c_arc_bad,노아,archer,105,40,20,9,14,10,0.085,0.18,Characters/P_Archer.txt
+c_pri_good,리아나,priest,105,90,10,10,14,20,0.06,0.06,Characters/P_Priest.txt
+c_pri_mid,미아,priest,105,85,9,10,14,18,0.05,0.12,Characters/P_Priest.txt
+c_pri_bad,벨라,priest,90,65,7,8,12,10,0.035,0.18,Characters/P_Priest.txt

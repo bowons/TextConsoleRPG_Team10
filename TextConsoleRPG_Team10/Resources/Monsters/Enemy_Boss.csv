@@ -1,0 +1,2 @@
+enemy_id,name_kr,floor,hp,mp,atk,def,dex,luk,crit_rate,exp,gold,ascii_file
+Boss_Boss,에테르노,10,650,100,67,27,16,18,0.11,500,1000,Monsters/Boss.txt
