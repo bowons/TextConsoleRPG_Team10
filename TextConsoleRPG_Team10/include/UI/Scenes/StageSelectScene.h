@@ -1,19 +1,11 @@
 #pragma once
 #include "../UIScene.h"
+#include "../../Data/StageData.h"
 #include <vector>
 #include <string>
 
-// 노드 타입 (스테이지에서 선택 가능한 분기)
-enum class ENodeType
-{
-    Battle,      // 전투
-    Shop,        // 상점
-    Companion,   // 동료 영입
-    Event,       // 랜덤 이벤트
-    Boss         // 보스 전투
-};
-
-// 스테이지 노드 정보
+class Panel;
+// 스테이지 노드 정보 (UI 표시용)
 struct StageNode
 {
     ENodeType Type;
@@ -38,4 +30,7 @@ public:
     void Update() override;
     void Render() override;
     void HandleInput() override;
+    void UpdateTowerArrow(Panel* towerPanel, int currentFloor);  // 추가
+    void UpdateSystemLog(Panel* systemPanel, const std::vector<std::string>& messages);    // 시스템 로그 업데이트 (다른 씬에서도 사용 가능)
+    void UpdateInventoryPanel(Panel* inventoryPanel);    // 인벤토리 패널 업데이트 (다른 씬에서도 사용 가능)
 };

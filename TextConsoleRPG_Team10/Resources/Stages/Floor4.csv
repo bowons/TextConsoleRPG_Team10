@@ -1,0 +1,8 @@
+NodeID,NodeType,EnemyType,EnemyCount,EventType,PosX,PosY,Connections
+4-0,Start,,,,0,0,4-1;4-2;4-3
+4-1,Battle,Normal,1,,1,-2,4-4
+4-2,Battle,Normal,1,,1,0,4-4;4-5
+4-3,Empty,,,,1,2,4-5
+4-4,Battle,Normal,1,,2,-1,4-6
+4-5,Battle,Elite,1,,2,1,4-6
+4-6,Exit,,,,3,0,

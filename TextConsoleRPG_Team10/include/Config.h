@@ -12,6 +12,7 @@ constexpr const char* MONSTERS_FOLDER = "Monsters/";          // 몬스터 데�
 constexpr const char* UI_FOLDER = "UI/";                      // UI 리소스
 constexpr const char* ITEMS_FOLDER = "Items/";                // 아이템 데이터
 constexpr const char* Sound_FOLDER = "Sound/";               // 사운드 데이터
+constexpr const char* STAGES_FOLDER = "Stages/";               // 스테이지 데이터
 
 // ===================== File Names =====================
 constexpr const char* ITEMS_CSV = "Items.csv";                // 아이템 목록 CSV

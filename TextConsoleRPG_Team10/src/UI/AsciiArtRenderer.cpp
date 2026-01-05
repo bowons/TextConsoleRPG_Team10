@@ -5,6 +5,7 @@
 #include "../../include/Manager/PrintManager.h"
 #include <sstream>
 #include <algorithm>
+#include <fstream>
 
 bool AsciiArtRenderer::LoadFromFile(const std::string& folderPath, const std::string& fileName)
 {
@@ -106,6 +107,182 @@ bool AsciiArtRenderer::LoadAnimationFromFolder(const std::string& animationFolde
 
     // 2. 기존 LoadAnimationFromFiles 호출
     return LoadAnimationFromFiles(animationFolderPath, fileNames, frameDuration);
+}
+
+// JSON 파일에서 애니메이션 로드
+bool AsciiArtRenderer::LoadAnimationFromJson(const std::string& folderPath, const std::string& fileName)
+{
+    _AnimationFrames.clear();
+    _LastFilePath = folderPath + "/" + fileName;
+
+    // JSON 파일 로드
+    std::string jsonContent = DataManager::GetInstance()->LoadTextFile(folderPath, fileName);
+    if (jsonContent.empty()) {
+        _LastError = "Failed to load JSON file: " + _LastFilePath;
+        _HasError = true;
+        PrintManager::GetInstance()->PrintLogLine(_LastError, ELogImportance::WARNING);
+        return false;
+    }
+
+    // "frames" 찾기
+    size_t framesPos = jsonContent.find("\"frames\"");
+    if (framesPos == std::string::npos) {
+        _LastError = "JSON format error: 'frames' not found";
+    _HasError = true;
+        PrintManager::GetInstance()->PrintLogLine(_LastError, ELogImportance::WARNING);
+ return false;
+    }
+
+    // frames 배열 시작 찾기
+    size_t colonPos = jsonContent.find(':', framesPos);
+    if (colonPos == std::string::npos) {
+        _LastError = "JSON format error: colon after 'frames' not found";
+  _HasError = true;
+        PrintManager::GetInstance()->PrintLogLine(_LastError, ELogImportance::WARNING);
+        return false;
+    }
+
+    size_t arrayStart = jsonContent.find('[', colonPos);
+    if (arrayStart == std::string::npos) {
+        _LastError = "JSON format error: frames array not found";
+        _HasError = true;
+        PrintManager::GetInstance()->PrintLogLine(_LastError, ELogImportance::WARNING);
+        return false;
+    }
+
+    // 각 프레임 파싱 (단일 문자열 형태)
+    size_t pos = arrayStart + 1;
+    int frameCount = 0;
+
+    while (pos < jsonContent.length()) {
+        // 공백 건너뛰기
+        while (pos < jsonContent.length() &&
+ (jsonContent[pos] == ' ' || jsonContent[pos] == '\n' ||
+    jsonContent[pos] == '\r' || jsonContent[pos] == '\t')) {
+  pos++;
+        }
+
+        if (pos >= jsonContent.length()) break;
+
+    // 배열 끝 확인
+   if (jsonContent[pos] == ']') {
+        break;
+        }
+
+        // 콤마 건너뛰기
+  if (jsonContent[pos] == ',') {
+            pos++;
+ continue;
+        }
+
+  // 문자열 시작 " 찾기
+        if (jsonContent[pos] != '"') {
+    pos++;
+         continue;
+  }
+
+      size_t stringStart = pos + 1;
+
+  // 문자열 끝 " 찾기 (이스케이프 처리)
+        pos++;
+        while (pos < jsonContent.length()) {
+  if (jsonContent[pos] == '\\' && pos + 1 < jsonContent.length()) {
+    pos += 2; // 이스케이프 문자 건너뛰기
+       continue;
+         }
+   if (jsonContent[pos] == '"') {
+     break;
+     }
+  pos++;
+      }
+
+        if (pos >= jsonContent.length()) {
+          _LastError = "JSON format error: unterminated string";
+            _HasError = true;
+            PrintManager::GetInstance()->PrintLogLine(_LastError, ELogImportance::WARNING);
+    return false;
+        }
+
+     size_t stringEnd = pos;
+
+        // 프레임 문자열 추출
+        std::string frameString = jsonContent.substr(stringStart, stringEnd - stringStart);
+
+        // 이스케이프 문자 처리
+        std::string processedString;
+        for (size_t i = 0; i < frameString.length(); ++i) {
+  if (frameString[i] == '\\' && i + 1 < frameString.length()) {
+                if (frameString[i + 1] == 'n') {
+      processedString += '\n';
+    i++;
+           }
+    else if (frameString[i + 1] == '\\') {
+         processedString += '\\';
+ i++;
+                }
+     else if (frameString[i + 1] == '"') {
+ processedString += '"';
+      i++;
+      }
+    else if (frameString[i + 1] == 't') {
+  processedString += '\t';
+             i++;
+   }
+            else if (frameString[i + 1] == 'r') {
+         processedString += '\r';
+         i++;
+   }
+     else {
+        processedString += frameString[i];
+  }
+            }
+   else {
+   processedString += frameString[i];
+            }
+        }
+
+        // 문자열을 개행 문자로 분리
+     std::vector<std::string> frameLines;
+        std::istringstream stream(processedString);
+  std::string line;
+        while (std::getline(stream, line)) {
+     // \r 제거
+ if (!line.empty() && line.back() == '\r') {
+    line.pop_back();
+    }
+            frameLines.push_back(line);
+        }
+
+        if (!frameLines.empty()) {
+    _AnimationFrames.push_back(frameLines);
+      frameCount++;
+            PrintManager::GetInstance()->PrintLogLine(
+          "Frame " + std::to_string(frameCount) + " loaded with " +
+       std::to_string(frameLines.size()) + " lines",
+      ELogImportance::DISPLAY);
+        }
+
+        pos++;
+    }
+
+    if (_AnimationFrames.empty()) {
+      _LastError = "No frames loaded from JSON";
+        _HasError = true;
+        PrintManager::GetInstance()->PrintLogLine(_LastError, ELogImportance::WARNING);
+     return false;
+    }
+
+    _CurrentFrame = 0;
+    _IsAnimating = true;
+    _IsDirty = true;
+ _HasError = false;
+    _LastError.clear();
+
+    PrintManager::GetInstance()->PrintLogLine(
+     "Successfully loaded " + std::to_string(_AnimationFrames.size()) + " frames from " + fileName,
+        ELogImportance::DISPLAY);
+
+    return true;
 }
 
 void AsciiArtRenderer::Clear()

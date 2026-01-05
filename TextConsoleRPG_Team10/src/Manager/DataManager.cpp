@@ -2,6 +2,7 @@
 #include "../../include/Manager/PrintManager.h"
 #include "../../include/Item/ItemData.h"
 #include "../../include/Item/MonsterSpawnData.h"
+#include "../../include/Data/StageData.h"
 #include "../../include/Manager/GameManager.h"
 
 #include <filesystem>
@@ -40,6 +41,7 @@ std::string DataManager::GetResourcePath(const std::string& resourceType) const
     if (resourceType == "UI") return GetUIPath();
     if (resourceType == "Items") return GetItemsPath();
     if (resourceType == "Sound") return GetSoundPath();
+    if (resourceType == "Stages") return GetStagesPath();
 
     SafeLog("DataManager::GetResourcePath - Unknown resource type: " + resourceType);
     return "";
@@ -61,7 +63,8 @@ bool DataManager::Initialize()
             GetMonstersPath(),
             GetUIPath(),
             GetItemsPath(),
-            GetSoundPath()
+            GetSoundPath(),
+            GetStagesPath()
         };
 
         for (const auto& DirStr : RequiredDirs)
@@ -502,4 +505,167 @@ std::vector<std::string> DataManager::GetFilesInDirectory(const std::string& fol
     }
 
     return fileNames;
+}
+
+// ===== Stage 데이터 로딩 함수 구현 =====
+
+// 층 정보 로드 (FloorInfo.csv)
+std::vector<StageFloorData> DataManager::LoadStageFloorInfo()
+{
+    std::vector<StageFloorData> result;
+
+    try
+    {
+        auto csv = LoadCSVFile(GetStagesPath(), "FloorInfo.csv");
+
+        if (csv.size() <= 1)
+        {
+            SafeLog("DataManager::LoadStageFloorInfo - CSV is empty or header only");
+            return result;
+        }
+
+        // CSV 형식: Floor,BaseLevel,BattleCount,TotalXP,Description
+        for (size_t i = 1; i < csv.size(); ++i)
+        {
+            const auto& row = csv[i];
+
+            if (row.empty() || (row.size() == 1 && row[0].empty()))
+                continue;
+
+            if (row.size() < 5)
+            {
+                SafeLog("DataManager::LoadStageFloorInfo - Invalid row at line " + std::to_string(i));
+                continue;
+            }
+
+            try
+            {
+                StageFloorData data;
+                data.Floor = std::stoi(row[0]);
+                data.BaseLevel = std::stoi(row[1]);
+                data.BattleCount = std::stoi(row[2]);
+                data.TotalXP = std::stoi(row[3]);
+                data.Description = row[4];
+
+                result.push_back(data);
+            }
+            catch (const std::exception& ex)
+            {
+                SafeLog("DataManager::LoadStageFloorInfo - Failed to parse row " +
+                    std::to_string(i) + ": " + std::string(ex.what()));
+                continue;
+            }
+        }
+
+        SafeLog("Loaded " + std::to_string(result.size()) + " floor info entries",
+            ELogImportance::DISPLAY);
+    }
+    catch (const std::exception& ex)
+    {
+        SafeLog("DataManager::LoadStageFloorInfo exception: " + std::string(ex.what()));
+    }
+
+    return result;
+}
+
+// 특정 층의 노드 데이터 로드 (Floor1.csv ~ Floor10.csv)
+std::vector<NodeData> DataManager::LoadStageNodes(int floor)
+{
+    std::vector<NodeData> result;
+
+    try
+    {
+        std::string fileName = "Floor" + std::to_string(floor) + ".csv";
+        auto csv = LoadCSVFile(GetStagesPath(), fileName);
+
+        if (csv.size() <= 1)
+        {
+            SafeLog("DataManager::LoadStageNodes - CSV is empty or header only: " + fileName);
+            return result;
+        }
+
+        // CSV 형식: NodeID,NodeType,EnemyType,EnemyCount,EventType,PosX,PosY,Connections
+        for (size_t i = 1; i < csv.size(); ++i)
+        {
+            const auto& row = csv[i];
+
+            if (row.empty() || (row.size() == 1 && row[0].empty()))
+                continue;
+
+            if (row.size() < 8)
+            {
+                SafeLog("DataManager::LoadStageNodes - Invalid row at line " +
+                    std::to_string(i) + " in " + fileName);
+                continue;
+            }
+
+            try
+            {
+                NodeData node;
+                node.Id = row[0];
+
+                // NodeType 파싱
+                std::string typeStr = row[1];
+                if (typeStr == "Start") node.Type = ENodeType::Start;
+                else if (typeStr == "Battle") node.Type = ENodeType::Battle;
+                else if (typeStr == "Elite") node.Type = ENodeType::Elite;
+                else if (typeStr == "Boss") node.Type = ENodeType::Boss;
+                else if (typeStr == "Event") node.Type = ENodeType::Event;
+                else if (typeStr == "Empty") node.Type = ENodeType::Empty;
+                else if (typeStr == "Exit") node.Type = ENodeType::Exit;
+                else
+                {
+                    SafeLog("DataManager::LoadStageNodes - Unknown NodeType: " + typeStr);
+                    continue;
+                }
+
+                node.EnemyType = row[2];
+                node.EnemyCount = row[3].empty() ? 0 : std::stoi(row[3]);
+                node.EventType = row[4];
+                node.PosX = row[5].empty() ? 0 : std::stoi(row[5]);
+                node.PosY = row[6].empty() ? 0 : std::stoi(row[6]);
+
+                // Connections 파싱 (세미콜론으로 구분: "1-1;1-2;1-3")
+                std::string connStr = row[7];
+                if (!connStr.empty())
+                {
+                    size_t pos = 0;
+                    while ((pos = connStr.find(';')) != std::string::npos)
+                    {
+                        std::string conn = connStr.substr(0, pos);
+                        // Trim whitespace
+                        conn.erase(0, conn.find_first_not_of(" \t"));
+                        conn.erase(conn.find_last_not_of(" \t") + 1);
+
+                        if (!conn.empty())
+                            node.Connections.push_back(conn);
+
+                        connStr.erase(0, pos + 1);
+                    }
+                    // 마지막 연결 추가
+                    connStr.erase(0, connStr.find_first_not_of(" \t"));
+                    connStr.erase(connStr.find_last_not_of(" \t") + 1);
+                    if (!connStr.empty())
+                        node.Connections.push_back(connStr);
+                }
+
+                result.push_back(node);
+            }
+            catch (const std::exception& ex)
+            {
+                SafeLog("DataManager::LoadStageNodes - Failed to parse row " +
+                    std::to_string(i) + ": " + std::string(ex.what()));
+                continue;
+            }
+        }
+
+        SafeLog("Loaded " + std::to_string(result.size()) + " nodes from " + fileName,
+            ELogImportance::DISPLAY);
+    }
+    catch (const std::exception& ex)
+    {
+        SafeLog("DataManager::LoadStageNodes exception: " + std::string(ex.what()));
+    }
+
+    return result;
 }

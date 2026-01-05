@@ -7,6 +7,8 @@
 class Player;
 struct ItemData;
 struct MonsterSpawnData;
+struct StageFloorData;
+struct NodeData;
 
 class DataManager : public Singleton<DataManager>
 {
@@ -42,6 +44,7 @@ private:
     inline std::string GetUIPath() const { return JoinPath(std::string(DEFAULT_RESOURCE_PATH), UI_FOLDER); }
     inline std::string GetItemsPath() const { return JoinPath(std::string(DEFAULT_RESOURCE_PATH), ITEMS_FOLDER); }
     inline std::string GetSoundPath() const { return JoinPath(std::string(DEFAULT_RESOURCE_PATH), Sound_FOLDER); }
+    inline std::string GetStagesPath() const { return JoinPath(std::string(DEFAULT_RESOURCE_PATH), STAGES_FOLDER); }
 
 public:
     bool Initialize();
@@ -58,6 +61,12 @@ public:
     std::vector<ItemData> LoadItemData(const std::string& fileName = "Items.csv");
     std::vector<MonsterSpawnData> LoadMonsterSpawnData(const std::string& fileName);
     std::tuple<std::string, std::string> GetRandomStageAndMonster();
+
+    // ===== Stage 데이터 로딩 =====
+    // 특정 층의 노드 데이터 로드 (예: Floor1.csv)
+    std::vector<NodeData> LoadStageNodes(int floor);
+    // 층 정보 로드 (FloorInfo.csv)
+    std::vector<StageFloorData> LoadStageFloorInfo();
 
     // 폴더 내 모든 파일 목록 가져오기 (확장자 필터 가능)
     std::vector<std::string> GetFilesInDirectory(const std::string& folderPath, const std::string& extension = "");

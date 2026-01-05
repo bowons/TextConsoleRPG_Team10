@@ -193,6 +193,8 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\Common\TextColor.h" />
+    <ClInclude Include="include\Data\StageData.h" />
+    <ClInclude Include="include\Manager\StageManager.h" />
   </ItemGroup>
   <ItemGroup>
     <!-- Item Sources -->
@@ -307,6 +309,7 @@
     <ClCompile Include="UIDrawer_TestExample.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\Manager\StageManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="UIDrawer_Flowchart.md" />
@@ -314,5 +317,17 @@
     <None Include="PROJECT_GUIDELINE.md" />
     <None Include="QUICK_REFERENCE.md" />
     <None Include="ITEM_RESERVATION_USAGE.md" />
+    <None Include="Resources\Stages\FloorInfo.csv" />
+    <None Include="Resources\Stages\Floor1.csv" />
+    <None Include="Resources\Stages\Floor2.csv" />
+    <None Include="Resources\Stages\Floor10.csv" />
+    <None Include="Resources\Stages\Floor3.csv" />
+    <None Include="Resources\Stages\Floor4.csv" />
+    <None Include="Resources\Stages\Floor5.csv" />
+    <None Include="Resources\Stages\Floor6.csv" />
+    <None Include="Resources\Stages\Floor7.csv" />
+    <None Include="Resources\Stages\Floor8.csv" />
+    <None Include="Resources\Stages\Floor9.csv" />
+    <None Include="docs\StageSelectScene_Guide.md" />
   </ItemGroup>
 </Project>
