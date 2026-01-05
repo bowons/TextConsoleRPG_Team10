@@ -59,7 +59,7 @@ void SoundPlayer::PlayLoop(const std::string& FileName, const std::string& Uniqu
     if (err == 0) {
         // 관리 목록에 추가
         _ActiveSounds[UniqueAlias] = std::make_shared<SoundInstance>(UniqueAlias, true, Volume);
-   std::cout << "[DEBUG] BGM 재생 성공: " << UniqueAlias << std::endl;
+        // std::cout << "[DEBUG] BGM 재생 성공: " << UniqueAlias << std::endl;
     }
 }
 
@@ -78,6 +78,49 @@ void SoundPlayer::Update() {
         else {
             ++it;
         }
+    }
+}
+
+float SoundPlayer::PlaySFX(const std::string& EffectID)
+{
+    std::string FileName = "";
+    float PlayTime = 0.0f;
+    float Volume = 0.0f;
+
+    if (GetSoundData(EffectID,FileName,PlayTime,Volume))
+    {
+        Play(FileName, Volume);
+    }
+    else
+    {
+        // Todo 오류 로그 출력
+    }
+    return PlayTime;
+}
+
+void SoundPlayer::PlaySFXWithPause(const std::string& EffectID)
+{
+    float PlayTime = PlaySFX(EffectID);
+    if (PlayTime > 0.0f)
+    {
+        Sleep(PlayTime * 1000);
+    }
+}
+
+void SoundPlayer::PlayBGM(const std::string& BGMID)
+{
+    std::string FileName = "";
+    float Volume = 0.0f;
+    float PlayTime = 0.0f;
+
+    if (GetSoundData(BGMID, FileName, PlayTime, Volume))
+    {
+        PlayLoop(FileName, "BGM", Volume);
+    }
+    else
+    {
+        // Todo 오류 로그 출력
+        system("cls");
     }
 }
 
@@ -106,4 +149,25 @@ void SoundPlayer::StopAll()
 std::string SoundPlayer::GetFullSoundPath(const std::string& FileName) {
     // DataManager의 리소스 경로 시스템 활용
     return DataManager::GetInstance()->GetResourcePath("Sound") + FileName;
+}
+
+bool SoundPlayer::GetSoundData(const std::string& InID, std::string& OutFileName, float& OutPlayTime, float& OutVolume)
+{
+    if (Initialize())
+    {
+        const auto& Datas = DataManager::GetInstance()->LoadCSVFile(
+            DataManager::GetInstance()->GetResourcePath("Sound"),
+            "Sound.csv");
+        for (auto Row : Datas)
+        {
+            if (Row[0] == InID)
+            {
+                OutFileName = Row[1];
+                OutPlayTime = std::stof(Row[2]);
+                OutVolume = std::stof(Row[3]);
+                return true;
+            }
+        }
+    }
+    return false;
 }

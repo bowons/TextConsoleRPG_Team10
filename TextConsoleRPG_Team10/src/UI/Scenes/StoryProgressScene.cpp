@@ -6,6 +6,7 @@
 #include "../../../include/Manager/InputManager.h"
 #include "../../../include/Manager/SceneManager.h"
 #include "../../../include/Manager/DataManager.h"
+#include "../../../include/Manager/GameManager.h"
 #include "../../../include/Common/TextColor.h"
 
 StoryProgressScene::StoryProgressScene()
@@ -89,20 +90,20 @@ void StoryProgressScene::Enter()
         // 스토리 진행 단계에 따라 텍스트를 변경하고, 타이핑 효과를 적용합니다.
         //
         // 구현 방법:
-    // Panel* textPanel = _Drawer->GetPanel("StoryText");
-        // auto storyText = std::make_unique<TextRenderer>();
+     //Panel* textPanel = _Drawer->GetPanel("StoryText");
+     //auto storyText = std::make_unique<TextRenderer>();
         //
         // // _CurrentStoryIndex에 따라 스토리 텍스트 표시
         // storyText->AddLine("");
         // storyText->AddLineWithTyping("어둠의 탑 '에레보스'가 등장했다...", 
         //   MakeColorAttribute(ETextColor::WHITE, EBackgroundColor::BLACK));
         //
-        // // 타이핑 효과 활성화
-        // storyText->EnableTypingEffect(true);
-        // storyText->SetTypingSpeed(ETypingSpeed::Normal);
-        //
-        // textPanel->SetContentRenderer(std::move(storyText));
-        // textPanel->Redraw();
+    // 타이핑 효과 활성화
+    storyText->EnableTypingEffect(true);
+    storyText->SetTypingSpeed(ETypingSpeed::Normal);
+    
+     textPanel->SetContentRenderer(std::move(storyText));
+     textPanel->Redraw();
         //
         // // CSV 파일에서 스토리 로드:
         // // DataManager::GetInstance()->LoadTextFile(경로, "Story.txt");
@@ -133,37 +134,34 @@ void StoryProgressScene::Render()
 
 void StoryProgressScene::HandleInput()
 {
-    // TODO: 입력 처리 구현
-    //
-    // 구현 방법:
-    // InputManager* input = InputManager::GetInstance();
-    // if (!input->IsKeyPressed()) return;
-    //
-    // int keyCode = input->GetKeyCode();
-    //
-    // if (keyCode == VK_SPACE || keyCode == VK_RETURN) {  // Space or Enter
-    //   // 타이핑 효과가 진행 중이면 즉시 완료
-    //     if (!_TextComplete) {
-    //       _TextComplete = true;
-    //         // 텍스트 즉시 표시
-    //         return;
-    //     }
-    //
-    //     // 다음 스토리 단계로
-    //   _CurrentStoryIndex++;
-    //
-    //     // 스토리 끝났으면 다음 씬으로
-    //     if (_CurrentStoryIndex >= 총스토리수) {
-    // SceneManager::GetInstance()->ChangeScene(ESceneType::StageSelect);
-    //     }
-    //     else {
-    //         // 이미지 패널 업데이트 (위의 TODO 참고)
-    //  // 텍스트 패널 업데이트 (위의 TODO 참고)
-    //         _TextComplete = false;
- //         _Drawer->Render();
-    //     }
-    // }
-    // else if (keyCode == VK_ESCAPE) {  // ESC - 스토리 스킵
-    //     SceneManager::GetInstance()->ChangeScene(ESceneType::StageSelect);
-    // }
+    
+    InputManager* input = InputManager::GetInstance();
+    if (!input->IsKeyPressed()) return;
+    int keyCode = input->GetKeyCode();
+    
+     if (keyCode == VK_SPACE || keyCode == VK_RETURN) {  // Space or Enter
+       // 타이핑 효과가 진행 중이면 즉시 완료
+         if (!_TextComplete) {
+           _TextComplete = true;
+             // 텍스트 즉시 표시
+             return;
+         }
+    
+         // 다음 스토리 단계로
+       _CurrentStoryIndex++;
+    
+         // 스토리 끝났으면 다음 씬으로
+     //    if (_CurrentStoryIndex >= 총스토리수) {
+     //SceneManager::GetInstance()->ChangeScene(ESceneType::StageSelect);
+     //    }
+     //    else {
+     //        // 이미지 패널 업데이트 (위의 TODO 참고)
+     // // 텍스트 패널 업데이트 (위의 TODO 참고)
+     //        _TextComplete = false;
+     //     _Drawer->Render();
+     //    }
+     }
+     else if (keyCode == VK_ESCAPE) {  // ESC - 스토리 스킵
+         SceneManager::GetInstance()->ChangeScene(ESceneType::StageSelect);
+     }
 }

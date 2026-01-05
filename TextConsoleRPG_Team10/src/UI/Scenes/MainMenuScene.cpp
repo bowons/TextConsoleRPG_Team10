@@ -8,6 +8,7 @@
 #include "../../../include/Manager/InputManager.h"
 #include "../../../include/Manager/GameManager.h"
 #include "../../../include/Manager/PrintManager.h"
+#include "../../../include/Manager/SoundPlayer.h"
 #include "../../../include/Common/TextColor.h"
 #include <Windows.h>
 
@@ -57,6 +58,7 @@ void MainMenuScene::Enter()
         errorText->SetTextColor(static_cast<WORD>(ETextColor::LIGHT_YELLOW));
         titlePanel->SetContentRenderer(std::move(errorText));
     }
+    SoundPlayer::GetInstance()->PlaySFX("Player_Hit_Critical");
 
     // "Press Any Key" 메시지 추가 (플리커링 효과)
     auto pressKeyText = std::make_unique<TextRenderer>();

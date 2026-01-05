@@ -1,4 +1,4 @@
-﻿#include "../../include/Unit/NormalMonster.h"
+#include "../../include/Unit/NormalMonster.h"
 #include "../../include/Item/IItem.h"
 #include "../../include/Unit/IMonster.h"
 #include "../../include/Item/HealPotion.h"
@@ -18,20 +18,20 @@ NormalMonster::NormalMonster(int PlayerLevel, std::string Stage, std::string Nam
     _Stage = Stage;
 
     std::uniform_int_distribution<> HpDist(_Level * 20, _Level * 30);
-    _MaxHP = HpDist(gen);
-    _CurrentHP = _MaxHP;
+    _Stats._MaxHP = HpDist(gen);
+    _Stats._CurrentHP = _Stats._MaxHP;
 
     std::uniform_int_distribution<> AtkDist(_Level * 5, _Level * 10);
-    _Atk = AtkDist(gen);
+    _Stats._Atk = AtkDist(gen);
 }
 
 void NormalMonster::TakeDamage(int Amount)
 {
     // 데미지 받음
-    _CurrentHP -= Amount;
-    if (_CurrentHP < 0) 
+    _Stats._CurrentHP -= Amount;
+    if (_Stats._CurrentHP < 0) 
     {
-        _CurrentHP = 0;
+		_Stats._CurrentHP = 0;
     }
 }
 
@@ -41,13 +41,13 @@ void NormalMonster::Attack(ICharacter* Target) const
         return;
 
     // 공격 연출 등 나중에 추가하면 될 듯
-    Target->TakeDamage(_Atk);
+    Target->TakeDamage(_Stats._Atk);
 }
 
 bool NormalMonster::IsDead() const
 {
     // Dead 여부 확인
-    return _CurrentHP <= 0;
+	return _Stats._CurrentHP <= 0;
 }
 
 std::tuple<int, int, std::unique_ptr<IItem>> NormalMonster::DropReward()

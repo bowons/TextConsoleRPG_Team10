@@ -15,9 +15,12 @@ private:
     // nullptr인 경우 인벤토리 비활성화 (동료 캐릭터)
     std::unique_ptr<Inventory> _Inventory;
   
-    // 임시 버프 관리
-    int _TempAtkBonus;
-    int _BuffRoundsRemaining;
+     // 각 버프별 라운드 관리
+    int _AtkBuffRoundsRemaining;
+    int _DefBuffRoundsRemaining;
+    int _DexBuffRoundsRemaining;
+    int _LukBuffRoundsRemaining;
+    int _CriticalRateBuffRoundsRemaining;
 
 public:
     // 생성자
@@ -52,14 +55,30 @@ public:
     // 범용 스탯 수정 메서드 - 아이템이나 버프/디버프 등에서 사용
     void ModifyHP(int Amount);   // HP 증감 (최대치 제한)
     void ModifyMaxHP(int Amount);   // 최대 HP 증감
+    void ModifyMP(int Amount);       // MP 증감 (최대치 제한)
+    void ModifyMaxMP(int Amount);   // 최대 MP 증감
     void ModifyAtk(int Amount);  // 공격력 증감
+    void ModifyDef(int Amount);     // 방어력 증감
+    void ModifyDex(int Amount);  // 민첩성 증감
+    void ModifyLuk(int Amount);     // 운 증감
+    void ModifyCriticalRate(float Amount);  // 치명타율 증감
     void ModifyGold(int Amount);     // 골드 증감
     
     // 버프 관리 메서드
     void ApplyTempAtkBuff(int Amount, int Rounds);
+    void ApplyTempDefBuff(int Amount, int Rounds);
+    void ApplyTempDexBuff(int Amount, int Rounds);
+    void ApplyTempLukBuff(int Amount, int Rounds);
+    void ApplyTempCriticalRateBuff(float Amount, int Rounds);
     void ProcessRoundEnd();
     void ResetBuffs();
+
+	// 버프 포함 총 스탯 조회 메서드
     int GetTotalAtk() const;
+    int GetTotalDef() const;
+    int GetTotalDex() const;
+    int GetTotalLuk() const;
+    float GetTotalCriticalRate() const;
 
     // 플레이어 전용 공격 연출
     std::string GetAttackNarration() const override;
