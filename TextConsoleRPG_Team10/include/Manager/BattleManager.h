@@ -1,9 +1,11 @@
-#pragma once
+﻿#pragma once
 #include "../Singleton.h"
 #include "../Unit/IMonster.h"
 #include <memory>
 #include <string>
 #include <vector>
+#include <optional>
+
 
 class Player;
 class ICharacter;
@@ -24,6 +26,7 @@ enum class EBattleType
 {
     None,
     Normal,     // 일반 몬스터
+    Elite,      // 정예 몬스터
     Boss        // 보스
 };
 
@@ -53,11 +56,11 @@ public:
 
     // 전투 시작 (몬스터 생성만 담당)
     // GameManager에서 메인 플레이어 레벨 가져옴
-    // Normal: DataManager에서 랜덤 몬스터 생성
+    // Normal,Elite: DataManager에서 랜덤 몬스터 생성
     // Boss: 보스 몬스터 생성
-    // type: 전투 타입 (Normal/Boss)
+    // type: 전투 타입 (Normal?Elite/Boss)
     // return: 성공 시 true, 실패 시 false
-    bool StartBattle(EBattleType type);
+    bool StartBattle(EBattleType type, int Floor);
 
     // 전투 종료 처리
     // 승리 시: 보상 처리 (CalculateReward 호출)
@@ -92,6 +95,7 @@ public:
 
     // 현재 라운드 반환
     inline int GetCurrentRound() const { return _CurrentRound; }
+    inline void SetCurrentRound(int round) { _CurrentRound = round; }
 
     // ===== 아이템 예약 시스템 인터페이스 =====
 
@@ -115,14 +119,14 @@ public:
     // 각 예약에 대해 IItem::CanUse 체크
     // 조건 만족 시 IItem::ApplyEffect 호출
     // 사용 실패 시 예약 유지 (다음 턴 재시도)
-    void ProcessReservedItems();
+    bool ProcessReservedItems();
 
-    // ===== 내부 로직 (팀원이 구현 예정) =====
+    // ===== 내부 로직 =====
 
     // 턴 처리 (아이템 사용 + 공격)
     // Player: 체력/공격력 포션 자동 사용 판단 → ProcessAttack 호출
     // Monster: 즉시 ProcessAttack 호출
-    void ProcessTurn(ICharacter* Atk, ICharacter* Def);
+    void ProcessTurn(ICharacter* Def);
 
     // 공격 처리 (피해 계산 + 로그 출력)
     // Attack() 호출
@@ -137,11 +141,6 @@ public:
     // BattleResult 업데이트
     void CalculateReward(Player* P, IMonster* M);
 
-    // ===== 레거시 인터페이스 (하위 호환용 - 제거 예정) =====
-
-    // 레거시: 자동 전투 (Scene 없이 동작)
-    bool StartAutoBattle(Player* P);
-
-    // 레거시: 보스 전투 (Scene 없이 동작)
-    bool StartBossBattle(Player* P);
+    // ===== 직업 우선 순위 헬퍼 =====
+    int GetJobPriority(ICharacter* character);
 };

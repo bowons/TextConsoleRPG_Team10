@@ -1,3 +1,4 @@
+﻿#include "../../include/Item/MonsterSpawnData.h"
 #include "../../include/Manager/DataManager.h"
 #include "../../include/Manager/PrintManager.h"
 #include "../../include/Item/ItemData.h"
@@ -11,6 +12,8 @@
 #include <sstream>
 #include <algorithm>
 #include <cstdio>
+#include <optional>
+
 
 // Windows API 매크로 충돌 방지
 #ifdef DeleteFile
@@ -410,54 +413,90 @@ std::vector<MonsterSpawnData> DataManager::LoadMonsterSpawnData(const std::strin
 {
     std::vector<MonsterSpawnData> result;
 
-    auto csv = LoadCSVFile(GetMonstersPath(), fileName);
-
-    if (csv.size() <= 1)
+    try
     {
-        SafeLog("Monster CSV is empty or header only: " + fileName);
-        return result;
+        // Monsters 폴더에서 CSV 로드
+        std::vector<std::vector<std::string>> csv = LoadCSVFile(GetMonstersPath(), fileName);
+
+        if (csv.empty())
+        {
+            SafeLog("DataManager::LoadMonsterSpawnData - CSV file is empty: " + fileName);
+            return result;
+        }
+
+        for (size_t i = 1; i < csv.size(); ++i)
+        {
+            const auto& row = csv[i];
+
+            if (row.empty() || (row.size() == 1 && row[0].empty()))
+                continue;
+
+            if (row.size() < 13)
+            {
+                SafeLog("DataManager::LoadMonsterSpawnData - Invalid row at line " + std::to_string(i) + ": insufficient columns");
+                continue;
+            }
+
+            try
+            {
+                MonsterSpawnData data;
+                data.Enemy_id = row[0];
+                data.MonsterName = row[1];
+                data.floor = std::stoi(row[2]);
+                data.hp = std::stoi(row[3]);
+                data.mp = std::stoi(row[4]);
+                data.atk = std::stoi(row[5]);
+                data.def = std::stoi(row[6]);
+                data.dex = std::stoi(row[7]);
+                data.luk = std::stoi(row[8]);
+                data.crit_rate = std::stod(row[9]);
+                data.exp = std::stoi(row[10]);
+                data.gold = std::stoi(row[11]);
+                data.ascii_file = row[12];
+
+                result.push_back(data);
+            }
+            catch (const std::exception& ex)
+            {
+                SafeLog("DataManager::LoadMonsterSpawnData - Failed to parse row " + std::to_string(i) + ": " + std::string(ex.what()));
+                continue;
+            }
+        }
+
+        SafeLog("Loaded " + std::to_string(result.size()) + " monsters from " + fileName, ELogImportance::DISPLAY);
+    }
+    catch (const std::exception& ex)
+    {
+        SafeLog("DataManager::LoadMonsterSpawnData exception: " + std::string(ex.what()));
     }
 
-    for (size_t i = 1; i < csv.size(); ++i)
-    {
-        const auto& row = csv[i];
-        if (row.size() < 2)
-            continue;
-
-        MonsterSpawnData data;
-        data.Stage = row[0];
-        data.MonsterName = row[1];
-
-        result.push_back(data);
-    }
-
-    SafeLog("Loaded MonsterSpawnData: " + std::to_string(result.size()), ELogImportance::DISPLAY);
     return result;
 }
 
-//랜덤 한개 읽음
-std::tuple<std::string, std::string> DataManager::GetRandomStageAndMonster()
-{
-    auto monsterData = LoadMonsterSpawnData("Monsters.csv");
-    if (monsterData.empty()) return { "", "" };
 
-    // 랜덤 엔진은 게임 매니저에서 가져옴
-
-    // 랜덤 스테이지 선택
-    std::vector<size_t> stageIndices;
-    for (size_t i = 0; i < monsterData.size(); ++i)
-        stageIndices.push_back(i);
-    std::uniform_int_distribution<size_t> dist(0, stageIndices.size() - 1);
-
-    size_t idx = dist(gen);
-
-    // 보스는 제외 (마지막 몬스터)
-    if (idx == monsterData.size() - 1 && monsterData.size() > 1)
-        idx--;
-
-    const auto& selected = monsterData[idx];
-    return { selected.Stage, selected.MonsterName };
-}
+////랜덤 한개 읽음
+//std::tuple<std::string, std::string> DataManager::GetRandomStageAndMonster()
+//{
+//    auto monsterData = LoadMonsterSpawnData("Monsters.csv");
+//    if (monsterData.empty()) return { "", "" };
+//
+//    // 랜덤 엔진은 게임 매니저에서 가져옴
+//
+//    // 랜덤 스테이지 선택
+//    std::vector<size_t> stageIndices;
+//    for (size_t i = 0; i < monsterData.size(); ++i)
+//        stageIndices.push_back(i);
+//    std::uniform_int_distribution<size_t> dist(0, stageIndices.size() - 1);
+//
+//    size_t idx = dist(gen);
+//
+//    // 보스는 제외 (마지막 몬스터)
+//    if (idx == monsterData.size() - 1 && monsterData.size() > 1)
+//        idx--;
+//
+//    const auto& selected = monsterData[idx];
+//    return { selected.Stage, selected.MonsterName };
+//}
 
 // 폴더 내 모든 파일 목록 가져오기
 std::vector<std::string> DataManager::GetFilesInDirectory(const std::string& folderPath, const std::string& extension)
@@ -508,6 +547,27 @@ std::vector<std::string> DataManager::GetFilesInDirectory(const std::string& fol
     }
 
     return fileNames;
+}
+
+//몬스터 읽음
+std::optional<MonsterSpawnData>
+DataManager::GetMonster(const std::string& fileName, int floor)
+{
+    auto monsterData = LoadMonsterSpawnData(fileName);
+
+    std::vector<MonsterSpawnData> candidates;
+    for (const auto& monster : monsterData)
+    {
+        if (monster.floor == floor)
+            candidates.push_back(monster);
+    }
+
+    if (candidates.empty())
+        return std::nullopt;
+
+    std::uniform_int_distribution<size_t> dist(0, candidates.size() - 1);
+    return candidates[dist(gen)];
+}
 }
 
 // ===== Stage 데이터 로딩 함수 구현 =====

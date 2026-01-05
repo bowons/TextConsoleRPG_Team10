@@ -1,4 +1,5 @@
-#include "../../include/Unit/NormalMonster.h"
+﻿#include "../../include/Unit/NormalMonster.h"
+#include "../../include/Item/MonsterSpawnData.h"
 #include "../../include/Item/IItem.h"
 #include "../../include/Unit/IMonster.h"
 #include "../../include/Item/HealPotion.h"
@@ -11,37 +12,63 @@
 // GameManager에 추가 후 삭제
 //static std::mt19937 gen(std::random_device{}());
 
-NormalMonster::NormalMonster(int PlayerLevel, std::string Stage, std::string Name)
+NormalMonster::NormalMonster(const MonsterSpawnData& Data)
 {
-    _Name = Name;
-    _Level = PlayerLevel;
-    _Stage = Stage;
+    _Name = Data.MonsterName;
+    _Floor = Data.floor;
 
-    std::uniform_int_distribution<> HpDist(_Level * 20, _Level * 30);
-    _Stats._MaxHP = HpDist(gen);
-    _Stats._CurrentHP = _Stats._MaxHP;
+    // ===== 기본 스탯 =====
+    _Stats._MaxHP = Data.hp;
+    _Stats._CurrentHP = Data.hp;
 
-    std::uniform_int_distribution<> AtkDist(_Level * 5, _Level * 10);
-    _Stats._Atk = AtkDist(gen);
+    _Stats._MaxMP = Data.mp;
+    _Stats._CurrentMP = Data.mp;
+
+    _Stats._Atk = Data.atk;
+    _Stats._Def = Data.def;
+    _Stats._Dex = Data.dex;
+    _Stats._Luk = Data.luk;
+
+    _Stats._CriticalRate = static_cast<float>(Data.crit_rate);
+    _ExpReward = Data.exp;
+    _GoldReward = Data.gold;
+
+    // ===== 임시 스탯은 기본 0 =====
+    _Stats._TempAtk = 0;
+    _Stats._TempDef = 0;
+    _Stats._TempDex = 0;
+    _Stats._TempLuk = 0;
+    _Stats._TempCriticalRate = 0.0f;
 }
 
-void NormalMonster::TakeDamage(int Amount)
+
+int NormalMonster::TakeDamage(ICharacter* Target, int Amount)
 {
     // 데미지 받음
+    //회피율 = 5% + (피해자_DEX − 공격자_DEX) × 1.5%
+    int Evasion = 5 + (Target->GetDex() - this->GetDex()) * 15 / 10;
+    if (Evasion > 95) Evasion = 95; // 최대 회피율 95%
+    if (std::uniform_int_distribution<>(1, 100)(gen) <= Evasion)
+    {
+        // 회피 성공
+        Amount = 0;
+        return Amount;
+    }
     _Stats._CurrentHP -= Amount;
     if (_Stats._CurrentHP < 0) 
     {
 		_Stats._CurrentHP = 0;
     }
+    return Amount;
 }
 
-void NormalMonster::Attack(ICharacter* Target) const
+std::tuple<std::string, int> NormalMonster::Attack(ICharacter* Target) const
 {
     if (!Target) 
-        return;
+        return { "",0 };
 
-    // 공격 연출 등 나중에 추가하면 될 듯
-    Target->TakeDamage(_Stats._Atk);
+    //공격명, 공격량 반환
+    return { "공격", _Stats._Atk }; // 몬스터 공격종류 csv에 추가 예정?
 }
 
 bool NormalMonster::IsDead() const
@@ -68,8 +95,7 @@ std::tuple<int, int, std::unique_ptr<IItem>> NormalMonster::DropReward()
             DropItem = AttackUp().Clone();
         }
     }
-    
-    return {50, std::uniform_int_distribution<>(10, 20)(gen), move(DropItem)};
+    return { _ExpReward, _GoldReward, std::move(DropItem) };
 }
 
 std::string NormalMonster::GetAttackNarration() const

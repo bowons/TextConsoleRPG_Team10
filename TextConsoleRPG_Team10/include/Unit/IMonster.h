@@ -7,9 +7,11 @@
 class IMonster : public ICharacter
 {
 protected:
-    std::string _Stage;
+    int _Floor;
+    int _ExpReward;
+    int _GoldReward;
 public:
-    inline std::string GetStage() const { return _Stage; }
+    inline int GetFloor() const { return _Floor; }
     virtual std::tuple<int, int, std::unique_ptr<IItem>> DropReward() = 0;
     virtual ~IMonster() {}
 };

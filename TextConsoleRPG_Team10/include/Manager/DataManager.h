@@ -1,8 +1,10 @@
-#pragma once
+﻿#pragma once
 #include "../Singleton.h"
 #include "../Config.h"
+#include "../../include/Item/MonsterSpawnData.h"
 #include <string>
 #include <vector>
+#include <optional>
 
 class Player;
 struct ItemData;
@@ -60,7 +62,9 @@ public:
     // ===== 특화된 리소스 로딩 함수들을 아래에 구현 =====
     std::vector<ItemData> LoadItemData(const std::string& fileName = "Items.csv");
     std::vector<MonsterSpawnData> LoadMonsterSpawnData(const std::string& fileName);
-    std::tuple<std::string, std::string> GetRandomStageAndMonster();
+    std::optional<MonsterSpawnData>
+        GetMonster(const std::string& fileName, int floor);
+
 
     // ===== Stage 데이터 로딩 =====
     // 특정 층의 노드 데이터 로드 (예: Floor1.csv)
