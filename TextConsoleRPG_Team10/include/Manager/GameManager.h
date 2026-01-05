@@ -104,4 +104,7 @@ public:
     // 플레이어 이름 임시 저장/조회
     inline void SetTempPlayerName(const std::string& name) { _TempPlayerName = name; }
     inline std::string GetTempPlayerName() const { return _TempPlayerName; }
+    
+    // 동료 영입 테스트
+    void StartCompanionRecruitTest();
 };

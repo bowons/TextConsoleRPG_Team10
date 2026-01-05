@@ -53,7 +53,7 @@ int main()
     gm->Initialize();
 
     // 게임 시작 (메인 루프)
-    gm->StartGame();
+    gm->StartCompanionRecruitTest();
 
     return 0;
 }

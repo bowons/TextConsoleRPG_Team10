@@ -164,4 +164,17 @@ public:
     // 아이템: 메인 플레이어 인벤토리에 추가
     // BattleResult 업데이트
     void CalculateReward(Player* P, IMonster* M);
+
+    // ===== 레거시 인터페이스 (하위 호환용 - 제거 예정) =====
+
+    // 레거시: 자동 전투 (Scene 없이 동작)
+    bool StartAutoBattle(Player* P);
+
+    // 레거시: 보스 전투 (Scene 없이 동작)
+    bool StartBossBattle(Player* P);
+    // 레거시: 자동 전투 (Scene 없이 동작)
+    bool StartAutoBattle(Player* P);
+
+    // 레거시: 보스 전투 (Scene 없이 동작)
+    bool StartBossBattle(Player* P);
 };
