@@ -1,7 +1,7 @@
 #include "../../include/Manager/BattleManager.h"
 #include "../../include/Manager/PrintManager.h"
 #include "../../include/Unit/NormalMonster.h"
-#include "../../include/Unit/EliteMonster.h"  // 추가
+#include "../../include/Unit/EliteMonster.h"
 #include "../../include/Unit/Boss.h"
 #include "../../include/Item/HealPotion.h"
 #include "../../include/Item/AttackUp.h"
@@ -12,11 +12,12 @@
 #include "../../include/Unit/Mage.h"
 #include "../../include/Unit/Archer.h"
 #include "../../include/Unit/Priest.h"
-#include "../../include/Skill/ISkill.h"  // SkillResult 포함
+#include "../../include/Skill/ISkill.h"
 #include "../../include/Manager/GameManager.h"
 #include "../../include/Manager/DataManager.h"
 #include "../../include/Item/MonsterSpawnData.h"
-#include "../../include/Data/FloorScalingData.h"  // 추가
+#include "../../include/Data/FloorScalingData.h"
+#include "../../include/UI/IBattleAnimationCallback.h"  // 추가
 #include <iostream>
 #include <tuple>
 #include <memory>
@@ -148,12 +149,22 @@ void BattleManager::ProcessAttack(ICharacter* Atk, ICharacter* Def)
                 // MP 소모 추적
                 player->TrackMPSpent(player->GetSkills()[skillIndex]->GetMPCost());
 
-                /*PrintManager::GetInstance()->PrintLogLine(
-                    player->GetName() + "의 " + result.SkillName + "!",
-                    ELogImportance::DISPLAY
-                );*/
                 PushLog(player->GetName() + "의 " + result.SkillName + "!", EBattleLogType::Important);
 
+                // ===== 스킬 타입 체크: 버프/힐 스킬은 데미지 처리 스킵 =====
+                ESkillType skillType = player->GetSkills()[skillIndex]->GetType();
+
+                if (skillType == ESkillType::Buff || skillType == ESkillType::Heal)
+                {
+                    // 메시지만 출력하고 데미지 처리는 하지 않음
+                    if (!result.Message.empty())
+                    {
+                        PushLog(result.Message, EBattleLogType::Important);
+                    }
+                    return;  // 스킬 사용 완료
+                }
+
+                // ===== 공격 스킬만 데미지 처리 =====
                 // 다단 히트 처리
                 if (result.HitCount > 1)
                 {
@@ -166,11 +177,6 @@ void BattleManager::ProcessAttack(ICharacter* Atk, ICharacter* Def)
                         // 어그로 증가 (공격 시 +10)
                         player->ModifyAggro(10);
 
-                        /*PrintManager::GetInstance()->PrintLogLine(
-                            "타격 " + std::to_string(i + 1) + "/" + std::to_string(result.HitCount) +
-                            ": " + std::to_string(damage) + " 데미지!",
-                            ELogImportance::DISPLAY
-                        );*/
                         PushLog("타격 " + std::to_string(i + 1) + "/" + std::to_string(result.HitCount) +
                             ": " + std::to_string(damage) + " 데미지!", EBattleLogType::Important);
 
@@ -178,10 +184,6 @@ void BattleManager::ProcessAttack(ICharacter* Atk, ICharacter* Def)
                             break;
                     }
 
-                    /*PrintManager::GetInstance()->PrintLogLine(
-                        "총 데미지: " + std::to_string(totalDamage),
-                        ELogImportance::DISPLAY
-                    );*/
                     PushLog("총 데미지: " + std::to_string(totalDamage), EBattleLogType::Important);
                 }
                 else
@@ -192,19 +194,12 @@ void BattleManager::ProcessAttack(ICharacter* Atk, ICharacter* Def)
                     // 어그로 증가
                     player->ModifyAggro(10);
 
-                    /*PrintManager::GetInstance()->PrintLogLine(
-                        Def->GetName() + "에게 " + std::to_string(damage) + " 데미지!",
-                        ELogImportance::DISPLAY
-                    );*/
                     PushLog(Def->GetName() + "에게 " + std::to_string(damage) + " 데미지!", EBattleLogType::Important);
                 }
 
                 if (!result.Message.empty())
                 {
-                    PrintManager::GetInstance()->PrintLogLine(
-                        result.Message,
-                        ELogImportance::DISPLAY
-                    );
+                    PushLog(result.Message, EBattleLogType::Important);
                 }
 
                 return;  // 스킬 사용 성공 → 일반 공격 스킵
@@ -245,7 +240,7 @@ void BattleManager::ProcessAttack(ICharacter* Atk, ICharacter* Def)
     {
         if (Player* targetPlayer = dynamic_cast<Player*>(Def))
         {
-            // 치명타 판정
+            // 치명타 판별
             bool isCritical = (attackType.find("치명타") != std::string::npos ||
                 attackType.find("!") != std::string::npos);
 
@@ -274,33 +269,17 @@ void BattleManager::ProcessAttack(ICharacter* Atk, ICharacter* Def)
 
     if (isCritical)
     {
-        /*PrintManager::GetInstance()->PrintLogLine(
-            "💥 " + Atk->GetName() + "의 " + attackType + " 💥",
-            ELogImportance::DISPLAY
-        );*/
         PushLog("💥 " + Atk->GetName() + "의 " + attackType + " 💥", EBattleLogType::Important);
     }
     else if (isSpecialSkill)
     {
-        /*PrintManager::GetInstance()->PrintLogLine(
-            "⚡ " + Atk->GetName() + "의 " + attackType + "! ⚡",
-            ELogImportance::DISPLAY
-        );*/
         PushLog("⚡ " + Atk->GetName() + "의 " + attackType + "! ⚡", EBattleLogType::Important);
     }
     else
     {
-        /*PrintManager::GetInstance()->PrintLogLine(
-            Atk->GetName() + "의 " + attackType,
-            ELogImportance::DISPLAY
-        );*/
         PushLog(Atk->GetName() + "의 " + attackType, EBattleLogType::Important);
     }
 
-    /* PrintManager::GetInstance()->PrintLogLine(
-         Def->GetName() + "에게 " + std::to_string(Damage) + " 데미지!",
-         ELogImportance::DISPLAY
-     );*/
     PushLog(Def->GetName() + "에게 " + std::to_string(Damage) + " 데미지!", EBattleLogType::Important);
 }
 
@@ -322,15 +301,15 @@ void BattleManager::ProcessAOEAttack(const std::string& skillName, int damage, I
         if (member && !member->IsDead())
         {
             int actualDamage = member->TakeDamage(attacker, damage);
-            
+
             // 광역 공격 피격 시 어그로 -10
             member->ModifyAggro(-10);
-            
+
             /*PrintManager::GetInstance()->PrintLogLine(
                 "  → " + member->GetName() + "에게 " + std::to_string(actualDamage) + " 데미지!",
                 ELogImportance::DISPLAY
             ); */
-                PushLog("  → " + member->GetName() + "에게 " + std::to_string(actualDamage) + " 데미지!", EBattleLogType::Important);
+            PushLog("  → " + member->GetName() + "에게 " + std::to_string(actualDamage) + " 데미지!", EBattleLogType::Important);
         }
     }
 }
@@ -359,7 +338,7 @@ void BattleManager::ProcessDebuff(const std::string& skillName, ICharacter* atta
                 "  → " + member->GetName() + "의 공격력이 감소했다! (" + std::to_string(debuffAmount) + ", 2라운드)",
                 ELogImportance::DISPLAY
             ); */
-                PushLog("  → " + member->GetName() + "의 공격력이 감소했다! (" + std::to_string(debuffAmount) + ", 2라운드)", EBattleLogType::Important);
+            PushLog("  → " + member->GetName() + "의 공격력이 감소했다! (" + std::to_string(debuffAmount) + ", 2라운드)", EBattleLogType::Important);
         }
     }
 }

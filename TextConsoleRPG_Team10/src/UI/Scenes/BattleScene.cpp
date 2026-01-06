@@ -31,9 +31,8 @@ BattleScene::BattleScene()
     , _IsSelectingItem(false)
     , _SelectedPartyIndex(0)
     , _IsCancelMode(false)
-    , _IsPlayingAnimation(false)
-    , _AnimationTimer(0.0f)
-    , _CurrentAnimationName("")
+    , _IsWaitingForAnimation(false)
+    , _AnimationWaitTimer(0.0f)
 {
 }
 
@@ -58,9 +57,14 @@ void BattleScene::Enter() {
     _SelectedPartyIndex = 0;
     _IsCancelMode = false;
     _BattleEnd = false;
+    _IsWaitingForAnimation = false;
+    _AnimationWaitTimer = 0.0f;
 
     BattleManager* battleMgr = BattleManager::GetInstance();
     GameManager* gameMgr = GameManager::GetInstance();
+
+    // ===== 애니메이션 콜백 등록 =====
+    battleMgr->SetAnimationCallback(this);
 
     // =============================================================================
     // 패널 레이아웃 (150x45 화면 기준)
@@ -170,6 +174,10 @@ void BattleScene::Enter() {
 
 void BattleScene::Exit()
 {
+    // ===== 애니메이션 콜백 해제 =====
+    BattleManager* battleMgr = BattleManager::GetInstance();
+    battleMgr->ClearAnimationCallback();
+
     _Drawer->RemoveAllPanels();
     _SystemLogs.clear();
     _IsActive = false;
@@ -181,13 +189,13 @@ void BattleScene::Update()
     {
         _Drawer->Update();
 
-        // 애니메이션 타이머 업데이트
-        if (_IsPlayingAnimation)
+        // 애니메이션 대기 타이머 업데이트
+        if (_IsWaitingForAnimation)
         {
-            _AnimationTimer -= 0.016f;  // 약 60 FPS 기준
-            if (_AnimationTimer <= 0.0f)
+            _AnimationWaitTimer -= 0.016f;// ~60 FPS
+            if (_AnimationWaitTimer <= 0.0f)
             {
-                StopAnimation();
+                _IsWaitingForAnimation = false;
             }
         }
 
@@ -312,19 +320,16 @@ void BattleScene::UpdateInventoryPanel(Panel* inventoryPanel)
             int amount = inventory->GetSlotAmount(i);
             std::string prefix = _IsSelectingItem && _SelectedItemSlot == i ? ">" : " ";
 
-            // 예약 정보 추가 (캐릭터 이름 포함)
-            std::string suffix = "";
+            // Reservation 상태에 따라 색상 변경
             WORD itemColor = MakeColorAttribute(ETextColor::WHITE, EBackgroundColor::BLACK);
-
             if (isReserved && reservedBy)
             {
                 int partyIdx = GetPartyIndex(reservedBy);
                 itemColor = GetCharacterColor(partyIdx);
-                suffix = " [" + reservedBy->GetName() + "]";
             }
 
             std::string itemLine = prefix + std::to_string(i + 1) + ". " +
-                item->GetName() + " x" + std::to_string(amount) + suffix;
+                item->GetName() + " x" + std::to_string(amount);
 
             inventoryText->AddLineWithColor(itemLine, itemColor);
         }
@@ -917,14 +922,10 @@ void BattleScene::ProcessBattleTurn()
         {
             _SystemLogs.push_back("");
             _SystemLogs.push_back("[승리] 전투에서 승리했습니다!");
-            _SystemLogs.push_back("[보상] 경험치: " + std::to_string(result.ExpGained) +
-                ", 골드: " + std::to_string(result.GoldGained) + "G");
-            if (!result.ItemName.empty())
-            {
-                _SystemLogs.push_back("[보상] 아이템 획득: " + result.ItemName);
-            }
+            // ===== BattleResult에서 보상 정보 조회 =====
+     // CalculateReward는 EndBattle()에서 호출되므로 여기서는 표시하지 않음
             _SystemLogs.push_back("");
-            _SystemLogs.push_back("[안내] Space 키를 눌러 계속하세요.");
+            _SystemLogs.push_back("[안내] Space 키를 눌러 보상을 확인하세요.");
         }
         else
         {
@@ -961,13 +962,33 @@ void BattleScene::EndBattle(bool victory)
 
         // 현재 노드 완료 처리
         stageMgr->CompleteNode(nodeType);
+    }
 
-        // 로그 추가
+    // ===== 2. BattleManager 정리 (보상 계산 포함) =====
+    battleMgr->EndBattle();
+
+    // ===== 3. 보상 로그 수집 및 표시 =====
+    if (victory)
+    {
+        const BattleResult& result = battleMgr->GetBattleResult();
+
+        _SystemLogs.push_back("");
+        _SystemLogs.push_back("[보상] 경험치: " + std::to_string(result.ExpGained) +
+            ", 골드: " + std::to_string(result.GoldGained) + "G");
+
+        if (!result.ItemName.empty())
+        {
+            _SystemLogs.push_back("[보상] 아이템 획득: " + result.ItemName);
+        }
+
+        // ===== BattleManager 로그 수집 (보상 로그 포함) =====
+        CollectBattleLogs();
+
         _SystemLogs.push_back("");
         _SystemLogs.push_back("[성공] 스테이지 클리어!");
     }
 
-    // ===== 2. 보상 정보 최종 표시 (패널 업데이트) =====
+    // ===== 4. 보상 정보 최종 표시 =====
     Panel* logPanel = _Drawer->GetPanel("SystemLog");
     if (logPanel)
     {
@@ -976,16 +997,13 @@ void BattleScene::EndBattle(bool victory)
 
     _Drawer->Render();
 
-    // ===== 3. 사용자 입력 대기 (보상 확인용) =====
+    // ===== 5. 사용자 입력 대기 (보상 확인용) =====
     Sleep(2000);  // 2초 대기 (보상 읽을 시간)
-
-    // ===== 4. BattleManager 정리 =====
-    battleMgr->EndBattle();
 
     _IsActive = false;
     Exit();
 
-    // ===== 5. 씬 전환 =====
+    // ===== 6. 씬 전환 =====
     if (victory)
     {
         // 승리 시 StageSelect로 복귀
@@ -998,74 +1016,16 @@ void BattleScene::EndBattle(bool victory)
     }
 }
 
-// ===== 애니메이션 =====
-
-void BattleScene::PlayAnimation(const std::string& animationName, float duration)
-{
-    Panel* animPanel = _Drawer->GetPanel("Animation");
-    if (!animPanel) return;
-
-    auto animArt = std::make_unique<AsciiArtRenderer>();
-
-    std::string animPath = DataManager::GetInstance()->GetResourcePath("Animations");
-    std::string jsonFile = animationName + ".json";
-
-    if (animArt->LoadAnimationFromJson(animPath, jsonFile))
-    {
-        animArt->SetAlignment(ArtAlignment::CENTER);
-        animArt->SetColor(ETextColor::LIGHT_YELLOW);
-        animArt->StartAnimation();
-
-        animPanel->SetContentRenderer(std::move(animArt));
-        animPanel->Redraw();
-
-        _IsPlayingAnimation = true;
-        _AnimationTimer = duration;
-        _CurrentAnimationName = animationName;
-    }
-    else
-    {
-        // 애니메이션 로드 실패 - 기본 텍스트 표시
-        auto fallbackText = std::make_unique<TextRenderer>();
-        fallbackText->AddLine("");
-        fallbackText->AddLine("");
-        fallbackText->AddLine("  [" + animationName + "]");
-        fallbackText->SetTextColor(
-            MakeColorAttribute(ETextColor::WHITE, EBackgroundColor::BLACK));
-        animPanel->SetContentRenderer(std::move(fallbackText));
-        animPanel->Redraw();
-    }
-}
-
-void BattleScene::StopAnimation()
-{
-    Panel* animPanel = _Drawer->GetPanel("Animation");
-    if (!animPanel) return;
-
-    auto emptyText = std::make_unique<TextRenderer>();
-    emptyText->AddLine("");
-    emptyText->AddLine("");
-    emptyText->AddLine("  [대기 중]");
-    emptyText->SetTextColor(
-        MakeColorAttribute(ETextColor::DARK_GRAY, EBackgroundColor::BLACK));
-    animPanel->SetContentRenderer(std::move(emptyText));
-    animPanel->Redraw();
-
-    _IsPlayingAnimation = false;
-    _AnimationTimer = 0.0f;
-    _CurrentAnimationName = "";
-}
-
 // ===== 헬퍼 함수 =====
 
 WORD BattleScene::GetCharacterColor(int partyIndex) const
 {
     switch (partyIndex)
     {
-    case 0: return MakeColorAttribute(ETextColor::LIGHT_CYAN, EBackgroundColor::BLACK);    // 메인 - 하늘색
-    case 1: return MakeColorAttribute(ETextColor::LIGHT_GREEN, EBackgroundColor::BLACK);   // 동료1 - 연두색
-    case 2: return MakeColorAttribute(ETextColor::LIGHT_MAGENTA, EBackgroundColor::BLACK); // 동료2 - 분홍색
-    case 3: return MakeColorAttribute(ETextColor::LIGHT_YELLOW, EBackgroundColor::BLACK);  // 동료3 - 노란색
+    case 0: return MakeColorAttribute(ETextColor::LIGHT_CYAN, EBackgroundColor::BLACK);
+    case 1: return MakeColorAttribute(ETextColor::LIGHT_GREEN, EBackgroundColor::BLACK);
+    case 2: return MakeColorAttribute(ETextColor::LIGHT_MAGENTA, EBackgroundColor::BLACK);
+    case 3: return MakeColorAttribute(ETextColor::LIGHT_YELLOW, EBackgroundColor::BLACK);
     default: return MakeColorAttribute(ETextColor::WHITE, EBackgroundColor::BLACK);
     }
 }
@@ -1085,6 +1045,7 @@ int BattleScene::GetPartyIndex(Player* player) const
 
     return -1;
 }
+
 // ===== 전투 로그 수집 =====
 void BattleScene::CollectBattleLogs()
 {

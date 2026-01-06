@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "../Singleton.h"
 #include "../Unit/IMonster.h"
 #include <memory>
@@ -9,6 +9,7 @@
 
 class Player;
 class ICharacter;
+class IBattleAnimationCallback;  // 전방 선언
 
 // ===== 전역 함수 선언 =====
 // 직업 우선순위 반환 (Archer=0, Priest=1, Warrior=2, Mage=3)
@@ -67,7 +68,27 @@ private:
     int _CurrentRound = 0;  // 현재 라운드 (0부터 시작)
     std::vector<ItemReservation> _ItemReservations;  // 예약 목록
 
+    // ===== 애니메이션 콜백 =====
+    IBattleAnimationCallback* _AnimationCallback = nullptr;
+
+private:
+    std::vector<BattleLog> _BattleLogs;
+
 public:
+    // ===== 애니메이션 콜백 등록 =====
+  // BattleScene::Enter()에서 호출
+    inline void SetAnimationCallback(IBattleAnimationCallback* callback)
+    {
+        _AnimationCallback = callback;
+    }
+
+    // ===== 애니메이션 콜백 제거 =====
+    // BattleScene::Exit()에서 호출
+    inline void ClearAnimationCallback()
+    {
+        _AnimationCallback = nullptr;
+    }
+
     // ===== Scene 친화적 인터페이스 =====
 
     // 전투 시작 (몬스터 생성만 담당)
@@ -177,10 +198,7 @@ public:
     // BattleResult 업데이트
     void CalculateReward(Player* P, IMonster* M);
 
-private:
-    std::vector<BattleLog> _BattleLogs;
-
-public:
+    // ===== 전투 로그 시스템 =====
     void PushLog(const std::string& msg, EBattleLogType type = EBattleLogType::Normal);
     std::vector<BattleLog> ConsumeLogs(); // BattleScene에서 가져감
 };

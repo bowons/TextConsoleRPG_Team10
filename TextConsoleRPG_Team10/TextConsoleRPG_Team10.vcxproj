@@ -175,6 +175,7 @@
     <ClInclude Include="include\Skill\WarriorSkills.h" />
     <!-- UI -->
     <ClInclude Include="include\UI\AsciiArtRenderer.h" />
+    <ClInclude Include="include\UI\IBattleAnimationCallback.h" />
     <ClInclude Include="include\UI\IContentRenderer.h" />
     <ClInclude Include="include\UI\InputBridge.h" />
     <ClInclude Include="include\UI\Panel.h" />
@@ -268,6 +269,7 @@
   </ItemGroup>
   <!-- Documentation -->
   <ItemGroup>
+    <None Include="docs\AnimationCallbackGuide.md" />
     <None Include="docs\StageSelectScene_Guide.md" />
     <None Include="ITEM_RESERVATION_USAGE.md" />
     <None Include="PROJECT_GUIDELINE.md" />
