@@ -203,7 +203,7 @@ void StageSelectScene::UpdateInventoryPanel(Panel* inventoryPanel)
     if (!player)
     {
         inventoryText->AddLineWithColor("[ 인벤토리 ]",
-      MakeColorAttribute(ETextColor::LIGHT_YELLOW, EBackgroundColor::BLACK));
+            MakeColorAttribute(ETextColor::LIGHT_YELLOW, EBackgroundColor::BLACK));
         inventoryText->AddLineWithColor("플레이어 정보를 불러올 수 없습니다.",
             MakeColorAttribute(ETextColor::LIGHT_RED, EBackgroundColor::BLACK));
 
@@ -215,7 +215,7 @@ void StageSelectScene::UpdateInventoryPanel(Panel* inventoryPanel)
 
     std::string goldInfo = "[ 소지금: " + std::to_string(player->GetGold()) + " G ]";
     inventoryText->AddLineWithColor(goldInfo,
-    MakeColorAttribute(ETextColor::LIGHT_YELLOW, EBackgroundColor::BLACK));
+        MakeColorAttribute(ETextColor::LIGHT_YELLOW, EBackgroundColor::BLACK));
 
     Inventory* inventory = nullptr;
     if (!player->TryGetInventory(inventory) || !inventory)
@@ -224,8 +224,8 @@ void StageSelectScene::UpdateInventoryPanel(Panel* inventoryPanel)
             MakeColorAttribute(ETextColor::DARK_GRAY, EBackgroundColor::BLACK));
 
         inventoryPanel->ClearRenderers();
-    inventoryPanel->AddRenderer(0, 0, 45, 9, std::move(inventoryText));
-      inventoryPanel->Redraw();
+        inventoryPanel->AddRenderer(0, 0, 45, 9, std::move(inventoryText));
+        inventoryPanel->Redraw();
         return;
     }
 
@@ -234,29 +234,29 @@ void StageSelectScene::UpdateInventoryPanel(Panel* inventoryPanel)
     for (int i = 0; i < maxSlots; ++i)
     {
         if (inventory->GetItemAtSlot(i) != nullptr)
-usedSlots++;
+            usedSlots++;
     }
 
     std::string header = "[ 인벤토리 (" + std::to_string(usedSlots) + "/" + std::to_string(maxSlots) + ") ]";
     inventoryText->AddLineWithColor(header,
-  MakeColorAttribute(ETextColor::LIGHT_CYAN, EBackgroundColor::BLACK));
+        MakeColorAttribute(ETextColor::LIGHT_CYAN, EBackgroundColor::BLACK));
 
     for (int i = 0; i < maxSlots; ++i)
     {
         IItem* item = inventory->GetItemAtSlot(i);
         if (item)
         {
-      int amount = inventory->GetSlotAmount(i);
+            int amount = inventory->GetSlotAmount(i);
             std::string itemLine = std::to_string(i + 1) + ". " +
- item->GetName() + " x" + std::to_string(amount);
+                item->GetName() + " x" + std::to_string(amount);
             inventoryText->AddLineWithColor(itemLine,
                 MakeColorAttribute(ETextColor::WHITE, EBackgroundColor::BLACK));
-     }
+        }
         else
-   {
+        {
             std::string emptyLine = std::to_string(i + 1) + ". [빈 슬롯]";
             inventoryText->AddLineWithColor(emptyLine,
-    MakeColorAttribute(ETextColor::DARK_GRAY, EBackgroundColor::BLACK));
+                MakeColorAttribute(ETextColor::DARK_GRAY, EBackgroundColor::BLACK));
         }
     }
 
@@ -304,6 +304,14 @@ std::string StageSelectScene::GetNodeIcon(ENodeType type) const
 std::string StageSelectScene::GetNodeIcon(const NodeData* node) const
 {
     if (!node) return "[?]";
+
+    StageManager* stageMgr = StageManager::GetInstance();
+
+    // ===== 완료된 노드는 [ - ] 표시 =====
+    if (stageMgr->IsNodeCompleted(node->Id))
+    {
+        return "[ - ]";
+    }
 
     if (node->Type == ENodeType::Battle)
     {
@@ -528,9 +536,13 @@ void StageSelectScene::RenderStageMap(Panel* nodePanel)
                 linesWithExit.insert(y);
             }
 
-            // 모든 노드를 7자로 통일
+            // ===== 현재 위치 표시 우선 =====
             std::string displayIcon;
-            if (nodePos.isSelected)
+            if (nodePos.isCurrent)
+            {
+                displayIcon = " [★] ";  // 현재 위치 강조
+            }
+            else if (nodePos.isSelected)
             {
                 displayIcon = ">" + icon + "<";  // >[N]<
             }
@@ -683,28 +695,58 @@ bool StageSelectScene::IsNodeSelected(const std::string& nodeId) const
 void StageSelectScene::RefreshAvailableNodes()
 {
     StageManager* stageMgr = StageManager::GetInstance();
+    const NodeData* currentNode = stageMgr->GetCurrentNode();
 
-    auto availableNodes = stageMgr->GetAvailableNextNodes();
-
-    _AvailableNodeIds.clear();
-    for (const auto* node : availableNodes)
+    if (!currentNode)
     {
-        if (node)
+        _AvailableNodeIds.clear();
+        _SelectedNodeId = "";
+        return;
+    }
+
+    // ===== 현재 노드의 연결된 노드들을 선택 가능 목록으로 설정 =====
+    _AvailableNodeIds.clear();
+
+    for (const auto& connId : currentNode->Connections)
+    {
+        const NodeData* connNode = stageMgr->FindNodeById(connId);
+        if (connNode)
         {
-            _AvailableNodeIds.push_back(node->Id);
+            _AvailableNodeIds.push_back(connId);
         }
     }
 
+    // ===== 선택된 노드 초기화 =====
     if (!_AvailableNodeIds.empty())
     {
-        _SelectedNodeId = _AvailableNodeIds[0];
+        // 이전에 선택했던 노드가 연결 목록에 있으면 유지
+        bool found = false;
+        for (const auto& id : _AvailableNodeIds)
+        {
+            if (id == _SelectedNodeId)
+            {
+                found = true;
+                break;
+            }
+        }
+
+        if (!found)
+        {
+            // 이전 선택이 없거나 연결되지 않았으면 첫 번째 노드 선택
+            _SelectedNodeId = _AvailableNodeIds[0];
+        }
 
         // 디버깅: 선택 가능한 노드 확인
         std::vector<std::string> debugLogs;
         debugLogs.push_back("[디버그] 선택 가능한 노드: " + std::to_string(_AvailableNodeIds.size()) + "개");
         for (const auto& id : _AvailableNodeIds)
         {
-            debugLogs.push_back("  - " + id);
+            const NodeData* node = stageMgr->FindNodeById(id);
+            if (node)
+            {
+                std::string icon = GetNodeIcon(node);
+                debugLogs.push_back("  - " + id + " " + icon);
+            }
         }
 
         Panel* systemPanel = _Drawer->GetPanel("System");
@@ -719,77 +761,12 @@ void StageSelectScene::RefreshAvailableNodes()
 
         // 디버깅: 선택 가능한 노드가 없음
         std::vector<std::string> debugLogs;
-        debugLogs.push_back("[경고] 선택 가능한 노드가 없습니다!");
+        debugLogs.push_back("[경고] 현재 노드에서 연결된 노드가 없습니다!");
 
         Panel* systemPanel = _Drawer->GetPanel("System");
         if (systemPanel)
         {
             UpdateSystemLog(systemPanel, debugLogs);
-        }
-    }
-}
-
-void StageSelectScene::SelectNode(const std::string& nodeId)
-{
-    if (nodeId.empty()) return;
-
-    _SelectedNodeId = nodeId;
-
-    // 맵 패널 강제 재렌더링
-    Panel* nodePanel = _Drawer->GetPanel("Nodes");
-    if (nodePanel)
-    {
-        nodePanel->SetDirty();  // Dirty 플래그 설정
-        RenderStageMap(nodePanel);
-    }
-
-    // 전체 화면 재렌더링
-    _Drawer->Render();
-
-    StageManager* stageMgr = StageManager::GetInstance();
-    const NodeData* node = stageMgr->FindNodeById(nodeId);
-
-    if (node)
-    {
-        std::vector<std::string> logs;
-
-        std::string nodeTypeStr;
-        if (node->Type == ENodeType::Battle)
-        {
-            if (node->EnemyType == "Boss")
-                nodeTypeStr = "보스 전투";
-            else
-                nodeTypeStr = "일반 전투";
-        }
-        else if (node->Type == ENodeType::Event)
-        {
-            nodeTypeStr = "이벤트: " + node->EventType;
-        }
-        else if (node->Type == ENodeType::Exit)
-        {
-            nodeTypeStr = "다음 층으로";
-        }
-        else
-        {
-            nodeTypeStr = "알 수 없음";
-        }
-
-        logs.push_back("[정보] 노드 선택: " + nodeTypeStr + " (ID: " + nodeId + ")");
-        logs.push_back("");
-
-        if (stageMgr->IsNodeCompleted(nodeId))
-        {
-            logs.push_back("[경고] 이미 완료한 노드입니다.");
-        }
-        else
-        {
-            logs.push_back("[성공] Enter를 눌러 진입하세요.");
-        }
-
-        Panel* systemPanel = _Drawer->GetPanel("System");
-        if (systemPanel)
-        {
-            UpdateSystemLog(systemPanel, logs);
         }
     }
 }
@@ -825,12 +802,12 @@ void StageSelectScene::EnterNode(const std::string& nodeId)
     switch (node->Type)
     {
     case ENodeType::Battle:
-    if (node->EnemyType == "Boss")
+        if (node->EnemyType == "Boss")
         {
-BattleManager::GetInstance()->StartBattle(EBattleType::Boss, stageMgr->GetCurrentFloor());
+            BattleManager::GetInstance()->StartBattle(EBattleType::Boss, stageMgr->GetCurrentFloor());
         }
         else if (node->EnemyType == "Elite")
-     {
+        {
             BattleManager::GetInstance()->StartBattle(EBattleType::Elite, stageMgr->GetCurrentFloor());
         }
         else
@@ -843,29 +820,90 @@ BattleManager::GetInstance()->StartBattle(EBattleType::Boss, stageMgr->GetCurren
     case ENodeType::Event:
         if (node->EventType == "Companion")
         {
-   sceneMgr->ChangeScene(ESceneType::CompanionRecruit);
-     }
-    break;
+            sceneMgr->ChangeScene(ESceneType::CompanionRecruit);
+        }
+        break;
 
     case ENodeType::Exit:
         if (stageMgr->MoveToNextFloor())
         {
-          sceneMgr->ChangeScene(ESceneType::StageSelect);
+            sceneMgr->ChangeScene(ESceneType::StageSelect);
         }
-     else
- {
-     sceneMgr->ChangeScene(ESceneType::Result);
+        else
+        {
+            sceneMgr->ChangeScene(ESceneType::Result);
         }
         break;
 
     case ENodeType::Empty:
-        RefreshAvailableNodes();
-        SelectNode(_AvailableNodeIds.empty() ? "" : _AvailableNodeIds[0]);
-        _IsActive = true;
-   break;
+        // Empty 노드는 즉시 통과 → StageSelect 재진입으로 UI 갱신
+        sceneMgr->ChangeScene(ESceneType::StageSelect);
+        break;
 
     default:
-        _IsActive = true;
+        // 알 수 없는 노드 타입 → StageSelect 유지
+        sceneMgr->ChangeScene(ESceneType::StageSelect);
         break;
+    }
+}
+
+// ===== SelectNode: 노드 선택 업데이트 및 맵 재렌더링 =====
+void StageSelectScene::SelectNode(const std::string& nodeId)
+{
+    if (nodeId.empty()) return;
+
+    // 선택된 노드 ID 갱신
+    _SelectedNodeId = nodeId;
+
+    // 맵 패널 재렌더링
+    Panel* nodePanel = _Drawer->GetPanel("Nodes");
+    if (nodePanel)
+    {
+        RenderStageMap(nodePanel);
+    }
+
+    // 시스템 로그 업데이트 (선택된 노드 정보 표시)
+    StageManager* stageMgr = StageManager::GetInstance();
+    const NodeData* node = stageMgr->FindNodeById(nodeId);
+
+    if (node)
+    {
+        std::vector<std::string> logs;
+        logs.push_back("[선택] " + nodeId + " " + GetNodeIcon(node));
+
+        std::string nodeInfo;
+        if (node->Type == ENodeType::Battle)
+        {
+            if (node->EnemyType == "Boss")
+                nodeInfo = "  → 보스 전투";
+            else if (node->EnemyType == "Elite")
+                nodeInfo = "  → 엘리트 전투";
+            else
+                nodeInfo = "  → 일반 전투";
+        }
+        else if (node->Type == ENodeType::Event)
+        {
+            if (node->EventType == "Companion")
+                nodeInfo = "  → 동료 조우 이벤트";
+            else
+                nodeInfo = "  → 이벤트";
+        }
+        else if (node->Type == ENodeType::Exit)
+        {
+            nodeInfo = "  → 다음 층으로 이동";
+        }
+        else if (node->Type == ENodeType::Empty)
+        {
+            nodeInfo = "  → 빈 노드 (즉시 통과)";
+        }
+
+        if (!nodeInfo.empty())
+            logs.push_back(nodeInfo);
+
+        Panel* systemPanel = _Drawer->GetPanel("System");
+        if (systemPanel)
+        {
+            UpdateSystemLog(systemPanel, logs);
+        }
     }
 }

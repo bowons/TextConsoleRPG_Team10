@@ -1,4 +1,4 @@
-﻿#include "../../../include/UI/Scenes/BattleScene.h"
+#include "../../../include/UI/Scenes/BattleScene.h"
 #include "../../../include/UI/UIDrawer.h"
 #include "../../../include/UI/Panel.h"
 #include "../../../include/UI/TextRenderer.h"
@@ -8,9 +8,13 @@
 #include "../../../include/Manager/GameManager.h"
 #include "../../../include/Manager/BattleManager.h"
 #include "../../../include/Manager/DataManager.h"
-#include "../../../include/Manager/StageManager.h"  // 추가
+#include "../../../include/Manager/StageManager.h"
 #include "../../../include/Common/TextColor.h"
 #include "../../../include/Unit/Player.h"
+#include "../../../include/Unit/Warrior.h"
+#include "../../../include/Unit/Mage.h"
+#include "../../../include/Unit/Archer.h"
+#include "../../../include/Unit/Priest.h"
 #include "../../../include/Unit/IMonster.h"
 #include "../../../include/Item/Inventory.h"
 #include "../../../include/Item/IItem.h"
@@ -25,6 +29,8 @@ BattleScene::BattleScene()
     , _BattleEnd(false)
     , _SelectedItemSlot(0)
     , _IsSelectingItem(false)
+    , _SelectedPartyIndex(0)
+    , _IsCancelMode(false)
     , _IsPlayingAnimation(false)
     , _AnimationTimer(0.0f)
     , _CurrentAnimationName("")
@@ -49,6 +55,8 @@ void BattleScene::Enter() {
     _SystemLogs.clear();
     _SelectedItemSlot = 0;
     _IsSelectingItem = false;
+    _SelectedPartyIndex = 0;
+    _IsCancelMode = false;
     _BattleEnd = false;
 
     BattleManager* battleMgr = BattleManager::GetInstance();
@@ -58,10 +66,15 @@ void BattleScene::Enter() {
     // 패널 레이아웃 (150x45 화면 기준)
     // =============================================================================
 
-    // ===== 스테이지 정보 & 몬스터 HP 패널 (상단) =====
-    Panel* infoPanel = _Drawer->CreatePanel("BattleInfo", 0, 0, 150, 5);
+ // ===== 스테이지 정보 & 몬스터 HP 패널 (상단) =====
+    Panel* infoPanel = _Drawer->CreatePanel("BattleInfo", 0, 0, 113, 5);
     infoPanel->SetBorder(true, ETextColor::WHITE);
     UpdateBattleInfoPanel();
+
+    // ===== 커맨드 패널 (상단 우측 모서리) =====
+    Panel* commandPanel = _Drawer->CreatePanel("Command", 113, 0, 37, 5);
+    commandPanel->SetBorder(true, ETextColor::WHITE);
+    UpdateCommandPanel();
 
     // ===== 캐릭터 아스키 아트 패널 (왼쪽, 4명 2x2 배치) =====
     int charArtStartX = 0;
@@ -142,7 +155,7 @@ void BattleScene::Enter() {
 
     std::vector<std::string> initialLogs = {
       "[전투] 전투가 시작되었습니다!",
-      "",
+  "",
       "[안내] Space 키를 눌러 턴을 진행하세요."
     };
     UpdateSystemLog(logPanel, initialLogs);
@@ -196,13 +209,13 @@ void BattleScene::UpdateSystemLog(Panel* systemPanel, const std::vector<std::str
     systemPanel->ClearRenderers();
     systemPanel->SetDirty();
 
-    // 좌측 영역: 시스템 로그 (1 ~ 74)
+    // ===== 전체 영역: 시스템 로그만 표시 =====
     auto logText = std::make_unique<TextRenderer>();
     logText->AddLineWithColor(
         "  [ 시스템 로그 ]",
         MakeColorAttribute(ETextColor::LIGHT_YELLOW, EBackgroundColor::BLACK));
 
-    int maxLines = 6;  // 로그 표시 라인 수
+    int maxLines = 7;  // 로그 표시 라인 수
     int messageSize = static_cast<int>(messages.size());
     int displayCount = (messageSize < maxLines) ? messageSize : maxLines;
     int startIdx = (messageSize > maxLines) ? (messageSize - maxLines) : 0;
@@ -230,21 +243,7 @@ void BattleScene::UpdateSystemLog(Panel* systemPanel, const std::vector<std::str
         logText->AddLineWithColor(messages[i], color);
     }
 
-    systemPanel->AddRenderer(1, 0, 74, 10, std::move(logText));
-
-    // 우측 영역: 커맨드 (75 ~ 111)
-    auto commandText = std::make_unique<TextRenderer>();
-    commandText->AddLine("");
-    commandText->AddLineWithColor(
-        "  [ 커맨드 ]",
-        MakeColorAttribute(ETextColor::LIGHT_YELLOW, EBackgroundColor::BLACK));
-    commandText->AddLine("");
-    commandText->AddLine("  [Space] 턴 진행");
-    commandText->AddLine("  [1~5] 아이템 예약");
-    commandText->AddLine("  [C] 예약 취소");
-    commandText->AddLine("  [ESC] 도망");
-    systemPanel->AddRenderer(75, 0, 37, 10, std::move(commandText));
-
+    systemPanel->AddRenderer(1, 0, 111, 10, std::move(logText));
     systemPanel->Redraw();
 }
 
@@ -343,6 +342,47 @@ void BattleScene::UpdateInventoryPanel(Panel* inventoryPanel)
     inventoryPanel->Redraw();
 }
 
+void BattleScene::UpdateCommandPanel()
+{
+    Panel* commandPanel = _Drawer->GetPanel("Command");
+    if (!commandPanel) return;
+
+    commandPanel->ClearRenderers();
+    commandPanel->SetDirty();
+
+    auto commandText = std::make_unique<TextRenderer>();
+    commandText->AddLineWithColor(
+        " [ 커맨드 ]",
+        MakeColorAttribute(ETextColor::LIGHT_YELLOW, EBackgroundColor::BLACK));
+    commandText->AddLine(" [Space] 턴 진행");
+    commandText->AddLine(" [1~5] 아이템 선택");
+    commandText->AddLine(" [←→] 대상 선택");
+    commandText->AddLine(" [C] 예약 취소");
+    commandText->AddLine("");
+
+    // 현재 활성화된 예약 표시
+    BattleManager* battleMgr = BattleManager::GetInstance();
+    const auto& reservations = battleMgr->GetActiveReservations();
+
+    for (const auto& res : reservations)
+    {
+        if (!res.IsActive) continue;
+
+        Player* user = res.User;
+        int slotIndex = res.SlotIndex;
+
+        int partyIdx = GetPartyIndex(user);
+        WORD userColor = (partyIdx != -1) ? GetCharacterColor(partyIdx) : MakeColorAttribute(ETextColor::WHITE, EBackgroundColor::BLACK);
+
+        commandText->AddLineWithColor("  [아이템 예약] " + user->GetName() + " - 슬롯 " + std::to_string(slotIndex + 1),
+            userColor);
+    }
+
+    commandPanel->ClearRenderers();
+    commandPanel->AddRenderer(0, 0, 35, 5, std::move(commandText));
+    commandPanel->Redraw();
+}
+
 void BattleScene::UpdatePartyPanels()
 {
     auto party = GameManager::GetInstance()->GetParty();
@@ -355,55 +395,116 @@ void BattleScene::UpdatePartyPanels()
         Panel* partyPanel = _Drawer->GetPanel(panelName);
         if (!partyPanel) continue;
 
+        // ===== 보더 색상 결정 =====
+        WORD borderColor = MakeColorAttribute(ETextColor::WHITE, EBackgroundColor::BLACK);
+
+        if (_IsCancelMode && _SelectedPartyIndex == i)
+        {
+            // 취소 모드에서 선택된 파티원 - MAGENTA
+            borderColor = MakeColorAttribute(ETextColor::LIGHT_MAGENTA, EBackgroundColor::BLACK);
+        }
+        else if (_IsSelectingItem && _SelectedPartyIndex == i)
+        {
+            // 아이템 선택 모드에서 선택된 파티원 - 캐릭터 색상
+            borderColor = GetCharacterColor(i);
+        }
+        else
+        {
+            // 예약 확인 - 예약이 있으면 캐릭터 색상
+            bool hasReservation = false;
+
+            // ===== 범위 체크 추가 =====
+            if (i < party.size() && party[i])
+            {
+                for (const auto& res : reservations)
+                {
+                    if (res.IsActive && res.User == party[i].get())
+                    {
+                        hasReservation = true;
+                        break;
+                    }
+                }
+            }
+
+            if (hasReservation)
+            {
+                borderColor = GetCharacterColor(i);
+            }
+        }
+
+        partyPanel->SetBorder(true, borderColor);
+
         auto partyText = std::make_unique<TextRenderer>();
-        partyText->AddLine("");
 
         if (i < party.size() && party[i])
         {
             std::string name = party[i]->GetName();
-            std::string className = "전사";  // TODO: 직업 추가
+
+            // ===== 직업 판별 =====
+            std::string className = "Unknown";
+            if (dynamic_cast<Warrior*>(party[i].get())) {
+                className = "전사";
+            }
+            else if (dynamic_cast<Mage*>(party[i].get())) {
+                className = "마법사";
+            }
+            else if (dynamic_cast<Archer*>(party[i].get())) {
+                className = "궁수";
+            }
+            else if (dynamic_cast<Priest*>(party[i].get())) {
+                className = "사제";
+            }
+
+            // ===== 스탯 정보 =====
             int hp = party[i]->GetCurrentHP();
             int maxHp = party[i]->GetMaxHP();
             int mp = party[i]->GetCurrentMP();
             int maxMp = party[i]->GetMaxMP();
+            int atk = party[i]->GetTotalAtk();
+            int def = party[i]->GetTotalDef();
+            int dex = party[i]->GetTotalDex();
+            int luk = party[i]->GetTotalLuk();
+            float critRate = party[i]->GetTotalCriticalRate();
+            int aggro = party[i]->GetAggro();
 
-            // 예약 여부 체크
-            bool hasReservation = false;
-            for (const auto& res : reservations)
-            {
-                if (res.IsActive && res.User == party[i].get())
-                {
-                    hasReservation = true;
-                    break;
-                }
-            }
+            // ===== 이름 + 직업 + 어그로 =====
+            WORD nameColor = MakeColorAttribute(ETextColor::LIGHT_CYAN, EBackgroundColor::BLACK);
+            std::string nameLine = " " + name + "/" + className + " (AG:" + std::to_string(aggro) + ")";
+            partyText->AddLineWithColor(nameLine, nameColor);
 
-            // 이름 색상 (예약 있으면 캐릭터 색상, 없으면 기본 색상)
-            WORD nameColor = hasReservation ?
-                GetCharacterColor(i) :
-                MakeColorAttribute(ETextColor::LIGHT_CYAN, EBackgroundColor::BLACK);
-
-            partyText->AddLineWithColor(" " + name + " (" + className + ")",
-                nameColor);
-
+            // ===== HP (빨강/초록) =====
             std::string hpLine = " HP:" + std::to_string(hp) + "/" + std::to_string(maxHp);
             WORD hpColor = (hp < maxHp * 0.3f) ?
                 MakeColorAttribute(ETextColor::LIGHT_RED, EBackgroundColor::BLACK) :
                 MakeColorAttribute(ETextColor::LIGHT_GREEN, EBackgroundColor::BLACK);
             partyText->AddLineWithColor(hpLine, hpColor);
 
+            // ===== MP (파랑) =====
             std::string mpLine = " MP:" + std::to_string(mp) + "/" + std::to_string(maxMp);
             partyText->AddLineWithColor(mpLine,
                 MakeColorAttribute(ETextColor::LIGHT_BLUE, EBackgroundColor::BLACK));
+
+            // ===== ATK/DEF/DEX/LUK/CRIT (회색) =====
+            std::string atkDefLine = " A:" + std::to_string(atk) + " D:" + std::to_string(def);
+            int critPercent = static_cast<int>(critRate * 100);
+            std::string dexLukLine = " Dx:" + std::to_string(dex) +
+                " Lk:" + std::to_string(luk) +
+                " Cr:" + std::to_string(critPercent) + "%";
+
+            std::string statLine = atkDefLine + dexLukLine;
+            partyText->AddLineWithColor(statLine,
+                MakeColorAttribute(ETextColor::WHITE, EBackgroundColor::BLACK));
+
         }
         else
         {
+            partyText->AddLine("");
             partyText->AddLine(" [빈 슬롯]");
             partyText->AddLine("");
         }
 
         partyPanel->ClearRenderers();
-        partyPanel->AddRenderer(0, 0, 34, 4, std::move(partyText));
+        partyPanel->AddRenderer(0, 0, 34, 6, std::move(partyText));
         partyPanel->Redraw();
     }
 }
@@ -466,6 +567,9 @@ void BattleScene::UpdateBattleInfoPanel()
     BattleManager* battleMgr = BattleManager::GetInstance();
     IMonster* monster = battleMgr->GetCurrentMonster();
 
+    infoPanel->ClearRenderers();
+    infoPanel->SetDirty();
+
     auto infoText = std::make_unique<TextRenderer>();
     infoText->AddLine("");
 
@@ -480,7 +584,7 @@ void BattleScene::UpdateBattleInfoPanel()
 
     if (monster)
     {
-        std::string info = "      " + battleTypeStr + " - " +
+        std::string info = "    " + battleTypeStr + " - " +
             monster->GetName() + " (HP: " +
             std::to_string(monster->GetCurrentHP()) + "/" +
             std::to_string(monster->GetMaxHP()) + ")";
@@ -489,12 +593,11 @@ void BattleScene::UpdateBattleInfoPanel()
     }
     else
     {
-        infoText->AddLineWithColor("               전투 대기 중...",
+        infoText->AddLineWithColor("   전투 대기 중...",
             MakeColorAttribute(ETextColor::DARK_GRAY, EBackgroundColor::BLACK));
     }
 
-    infoPanel->ClearRenderers();
-    infoPanel->AddRenderer(0, 0, 148, 3, std::move(infoText));
+    infoPanel->AddRenderer(0, 0, 111, 5, std::move(infoText));
     infoPanel->Redraw();
 }
 
@@ -510,23 +613,154 @@ void BattleScene::HandleInput()
 
     BattleManager* battleMgr = BattleManager::GetInstance();
     Player* mainPlayer = GameManager::GetInstance()->GetMainPlayer().get();
+    auto party = GameManager::GetInstance()->GetParty();
 
     if (!mainPlayer) return;
 
-    // ESC: 도망 (전투 포기)
-    if (keyCode == VK_ESCAPE)
+    // ===== 방향키 처리 (아이템 선택 모드 또는 취소 모드에서) =====
+    if (_IsSelectingItem || _IsCancelMode)
     {
-        _SystemLogs.push_back("[경고] 전투에서 도망쳤습니다!");
-        Panel* logPanel = _Drawer->GetPanel("SystemLog");
-        if (logPanel) UpdateSystemLog(logPanel, _SystemLogs);
+        if (keyCode == 75)  // 왼쪽 화살표
+        {
+            // 이전 파티원 선택 (빈 슬롯은 건너뛰기)
+            int attempts = 0;
+            do {
+                _SelectedPartyIndex--;
+                if (_SelectedPartyIndex < 0) _SelectedPartyIndex = 3;
+                attempts++;
+            } while (attempts < 4 && (_SelectedPartyIndex >= party.size() || !party[_SelectedPartyIndex]));
 
-        Sleep(1000);
+            UpdatePartyPanels();
+            _Drawer->Render();
+            return;
+        }
+        else if (keyCode == 77)  // 오른쪽 화살표
+        {
+            // 다음 파티원 선택 (빈 슬롯은 건너뛰기)
+            int attempts = 0;
+            do {
+                _SelectedPartyIndex++;
+                if (_SelectedPartyIndex > 3) _SelectedPartyIndex = 0;
+                attempts++;
+            } while (attempts < 4 && (_SelectedPartyIndex >= party.size() || !party[_SelectedPartyIndex]));
 
-        battleMgr->EndBattle();
-        _IsActive = false;
-        Exit();
-        SceneManager::GetInstance()->ChangeScene(ESceneType::StageSelect);
-        return;
+            UpdatePartyPanels();
+            _Drawer->Render();
+            return;
+        }
+        else if (keyCode == VK_RETURN || keyCode == VK_SPACE)  // Enter 또는 Space - 확정
+        {
+            if (_IsCancelMode)
+            {
+                // 취소 모드 - 선택된 파티원의 예약 취소
+                Player* selectedPlayer = party[_SelectedPartyIndex].get();
+                const auto& reservations = battleMgr->GetActiveReservations();
+
+                int cancelCount = 0;
+                for (const auto& res : reservations)
+                {
+                    if (res.IsActive && res.User == selectedPlayer)
+                    {
+                        if (battleMgr->CancelItemReservation(selectedPlayer, res.SlotIndex))
+                        {
+                            cancelCount++;
+                        }
+                    }
+                }
+
+                if (cancelCount > 0)
+                {
+                    _SystemLogs.push_back("[안내] " + selectedPlayer->GetName() + "의 " +
+                        std::to_string(cancelCount) + "개 예약이 취소되었습니다.");
+                }
+                else
+                {
+                    _SystemLogs.push_back("[안내] " + selectedPlayer->GetName() + "의 예약이 없습니다.");
+                }
+
+                _IsCancelMode = false;
+                _SelectedPartyIndex = 0;
+            }
+            else if (_IsSelectingItem)
+            {
+                // 아이템 선택 모드 - 예약 등록
+                Inventory* inventory = nullptr;
+                if (!mainPlayer->TryGetInventory(inventory) || !inventory)
+                {
+                    _SystemLogs.push_back("[오류] 인벤토리를 사용할 수 없습니다.");
+                    _IsSelectingItem = false;
+                    _SelectedPartyIndex = 0;
+                }
+                else
+                {
+                    IItem* item = inventory->GetItemAtSlot(_SelectedItemSlot);
+                    if (!item)
+                    {
+                        _SystemLogs.push_back("[경고] 해당 슬롯에 아이템이 없습니다.");
+                        _IsSelectingItem = false;
+                        _SelectedPartyIndex = 0;
+                    }
+                    else
+                    {
+                        Player* targetPlayer = party[_SelectedPartyIndex].get();
+
+                        // 이미 예약되어 있는지 확인
+                        if (item->IsReserved())
+                        {
+                            // 예약 취소 후 재예약
+                            if (battleMgr->CancelItemReservation(mainPlayer, _SelectedItemSlot))
+                            {
+                                if (battleMgr->ReserveItemUse(targetPlayer, _SelectedItemSlot))
+                                {
+                                    _SystemLogs.push_back("[안내] " + item->GetName() + " 예약 대상을 " +
+                                        targetPlayer->GetName() + "으로 변경했습니다.");
+                                }
+                                else
+                                {
+                                    _SystemLogs.push_back("[오류] 예약 변경 실패.");
+                                }
+                            }
+                        }
+                        else
+                        {
+                            // 새 예약
+                            if (battleMgr->ReserveItemUse(targetPlayer, _SelectedItemSlot))
+                            {
+                                _SystemLogs.push_back("[안내] " + item->GetName() + " 예약 완료! (대상: " +
+                                    targetPlayer->GetName() + ", " + item->GetUseConditionDescription() + ")");
+                            }
+                            else
+                            {
+                                _SystemLogs.push_back("[오류] 예약 실패.");
+                            }
+                        }
+
+                        _IsSelectingItem = false;
+                        _SelectedPartyIndex = 0;
+                    }
+                }
+            }
+
+            Panel* logPanel = _Drawer->GetPanel("SystemLog");
+            if (logPanel) UpdateSystemLog(logPanel, _SystemLogs);
+
+            Panel* inventoryPanel = _Drawer->GetPanel("Inventory");
+            if (inventoryPanel) UpdateInventoryPanel(inventoryPanel);
+
+            UpdatePartyPanels();
+            _Drawer->Render();
+            return;
+        }
+        else if (keyCode == VK_ESCAPE)  // ESC - 취소
+        {
+            _IsSelectingItem = false;
+            _IsCancelMode = false;
+            _SelectedPartyIndex = 0;
+
+            UpdatePartyPanels();
+            _Drawer->Render();
+            return;
+        }
     }
 
     // Space: 턴 진행
@@ -544,7 +778,7 @@ void BattleScene::HandleInput()
         return;
     }
 
-    // 1~5: 아이템 예약/예약 취소
+    // 1~5: 아이템 선택 (대상 선택 모드 진입)
     if (keyCode >= '1' && keyCode <= '5')
     {
         int slotIndex = keyCode - '1';  // 0~4
@@ -567,77 +801,78 @@ void BattleScene::HandleInput()
             return;
         }
 
-        // 이미 예약되어 있으면 취소
+        // ===== 이미 예약된 아이템인지 확인 =====
         if (item->IsReserved())
         {
-            if (battleMgr->CancelItemReservation(mainPlayer, slotIndex))
+            // 예약한 사용자 찾기
+            const auto& reservations = battleMgr->GetActiveReservations();
+            std::string reservedByName = "알 수 없음";
+
+            for (const auto& res : reservations)
             {
-                _SystemLogs.push_back("[안내] " + item->GetName() + " 예약이 취소되었습니다.");
+                if (res.IsActive && res.SlotIndex == slotIndex && res.User)
+                {
+                    reservedByName = res.User->GetName();
+                    break;
+                }
             }
-            else
-            {
-                _SystemLogs.push_back("[오류] 예약 취소 실패.");
-            }
+
+            _SystemLogs.push_back("[안내] " + item->GetName() + "은(는) 이미 " +
+                reservedByName + "에게 예약되어 있습니다.");
+
+            Panel* logPanel = _Drawer->GetPanel("SystemLog");
+            if (logPanel) UpdateSystemLog(logPanel, _SystemLogs);
+
+            _Drawer->Render();
+            return;
         }
-        else
+
+        // ===== 예약되지 않은 아이템 → 대상 선택 모드 진입 =====
+        _IsSelectingItem = true;
+        _IsCancelMode = false;
+        _SelectedItemSlot = slotIndex;
+        _SelectedPartyIndex = 0;  // 첫 번째 파티원부터 시작
+
+        // 첫 번째 유효한 파티원 찾기
+        int attempts = 0;
+        while (attempts < 4 && (_SelectedPartyIndex >= party.size() || !party[_SelectedPartyIndex]))
         {
-            // 예약 등록
-            if (battleMgr->ReserveItemUse(mainPlayer, slotIndex))
-            {
-                _SystemLogs.push_back("[안내] " + item->GetName() + " 예약 완료! (" +
-                    item->GetUseConditionDescription() + ")");
-            }
-            else
-            {
-                _SystemLogs.push_back("[오류] 예약 실패.");
-            }
+            _SelectedPartyIndex++;
+            if (_SelectedPartyIndex > 3) _SelectedPartyIndex = 0;
+            attempts++;
         }
+
+        _SystemLogs.push_back("[안내] " + item->GetName() + " 사용 대상을 선택하세요. (←→ 방향키, Enter/Space 확정, ESC 취소)");
 
         Panel* logPanel = _Drawer->GetPanel("SystemLog");
         if (logPanel) UpdateSystemLog(logPanel, _SystemLogs);
 
-        Panel* inventoryPanel = _Drawer->GetPanel("Inventory");
-        if (inventoryPanel) UpdateInventoryPanel(inventoryPanel);
-
+        UpdatePartyPanels();
         _Drawer->Render();
         return;
     }
-
-    // C: 모든 예약 취소
+    // C: 예약 취소 모드
     if (keyCode == 'C' || keyCode == 'c')
     {
-        Inventory* inventory = nullptr;
-        if (!mainPlayer->TryGetInventory(inventory)) return;
+        _IsCancelMode = true;
+        _IsSelectingItem = false;
+        _SelectedPartyIndex = 0;
 
-        const auto& reservations = battleMgr->GetActiveReservations();
-        int cancelCount = 0;
-
-        for (const auto& res : reservations)
+        // 첫 번째 유효한 파티원 찾기
+        int attempts = 0;
+        while (attempts < 4 && (_SelectedPartyIndex >= party.size() || !party[_SelectedPartyIndex]))
         {
-            if (res.IsActive && res.User == mainPlayer)
-            {
-                if (battleMgr->CancelItemReservation(mainPlayer, res.SlotIndex))
-                {
-                    cancelCount++;
-                }
-            }
+            _SelectedPartyIndex++;
+            if (_SelectedPartyIndex > 3) _SelectedPartyIndex = 0;
+            attempts++;
         }
 
-        if (cancelCount > 0)
-        {
-            _SystemLogs.push_back("[안내] " + std::to_string(cancelCount) + "개의 예약이 취소되었습니다.");
-        }
-        else
-        {
-            _SystemLogs.push_back("[안내] 취소할 예약이 없습니다.");
-        }
+        _SystemLogs.push_back("[안내] 예약 취소 대상을 선택하세요. (←→ 방향키, Enter/Space 확정, ESC 취소)");
 
         Panel* logPanel = _Drawer->GetPanel("SystemLog");
         if (logPanel) UpdateSystemLog(logPanel, _SystemLogs);
 
-        Panel* inventoryPanel = _Drawer->GetPanel("Inventory");
-        if (inventoryPanel) UpdateInventoryPanel(inventoryPanel);
-
+        UpdatePartyPanels();
         _Drawer->Render();
         return;
     }
@@ -662,7 +897,7 @@ void BattleScene::ProcessBattleTurn()
 
     // TODO: 애니메이션 재생
     // PlayAnimation("BattleStart", 1.0f);
-    
+
     // BattleManager 턴 처리
     bool continuesBattle = battleMgr->ProcessBattleTurn();
 

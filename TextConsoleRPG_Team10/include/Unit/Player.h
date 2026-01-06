@@ -43,6 +43,11 @@ protected:
     // ===== 어그로 시스템 (자식 클래스에서 초기화 필요) =====
     int _AggroValue;  // 어그로 수치 (0~100)
     
+    // 어그로 고정 시스템 (포효 스킬용)
+    bool _IsAggroLocked = false;  // 어그로 고정 여부
+    int _AggroLockRoundsRemaining = 0;  // 어그로 고정 남은 턴
+    int _LockedAggroValue = 0;  // 고정된 어그로 값
+    
     // 숙련도 포인트 (전투 종료 시 정산) - 자식 클래스에서 접근 가능
     int _DamageTakenThisBattle;
     int _MPSpentThisBattle;
@@ -155,9 +160,14 @@ public:
 
     // ===== 어그로 시스템 =====
     inline int GetAggro() const { return _AggroValue; }
-    void ModifyAggro(int amount);  // 어그로 증감 (0~100 제한)
+    void ModifyAggro(int amount);  // 어그로 증감 (0~100 제한, 고정 중이면 무시)
     void ResetAggro();  // 전투 시작 시 초기화 (전사 30, 나머지 0)
     virtual std::string GetAggroMaxDialogue() const;  // 어그로 100 도달 시 대사 (각 클래스에서 오버라이드)
+    
+    // 어그로 고정 시스템 (포효 스킬용)
+    void LockAggro(int value, int rounds);  // 어그로를 특정 값으로 고정 (rounds 턴간)
+    void UnlockAggro();  // 어그로 고정 해제
+    inline bool IsAggroLocked() const { return _IsAggroLocked; }  // 어그로 고정 여부 확인
 
     // ===== FF2 숙련도 시스템 (나중에 구현) =====
 

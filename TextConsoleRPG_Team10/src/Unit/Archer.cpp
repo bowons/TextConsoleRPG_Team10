@@ -15,13 +15,13 @@ Archer::Archer(const std::string& name, bool enableInventory)
     _Stats._Dex = 30;
     _Stats._Luk = 25;
     _Stats._CriticalRate = 0.15f;  // 높은 기본 치명타율
-    
+
     // 직업별 스킬 초기화
     InitializeSkills();
 }
 
 Archer::Archer(const ClassData& data, const std::string& name, bool enableInventory)
- : Player(data, name, enableInventory)
+    : Player(data, name, enableInventory)
 {
     InitializeSkills();
 }

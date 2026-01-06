@@ -215,6 +215,7 @@
     <ClCompile Include="src\Skill\MonsterSkills.cpp" />
     <ClCompile Include="src\Skill\PriestSkills.cpp" />
     <ClCompile Include="src\Skill\WarriorSkills.cpp" />
+    <ClCompile Include="src\UI\Scenes\BattleScene.cpp" />
     <ClCompile Include="src\UI\Scenes\StageSelectScene.cpp" />
     <ClCompile Include="src\Unit\Archer.cpp" />
     <ClCompile Include="src\Unit\EliteMonster.cpp" />
@@ -253,7 +254,6 @@
     <ClCompile Include="src\UI\UIDrawer.cpp" />
     <ClCompile Include="src\UI\UIScene.cpp" />
     <!-- UI Scenes -->
-    <ClCompile Include="src\UI\Scenes\BattleScene.cpp" />
     <ClCompile Include="src\UI\Scenes\CharacterSelectScene.cpp" />
     <ClCompile Include="src\UI\Scenes\CompanionRecruitScene.cpp" />
     <ClCompile Include="src\UI\Scenes\MainMenuScene.cpp" />

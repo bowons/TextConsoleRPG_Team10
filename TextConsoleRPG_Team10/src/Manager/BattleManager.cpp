@@ -1,4 +1,4 @@
-﻿#include "../../include/Manager/BattleManager.h"
+#include "../../include/Manager/BattleManager.h"
 #include "../../include/Manager/PrintManager.h"
 #include "../../include/Unit/NormalMonster.h"
 #include "../../include/Unit/EliteMonster.h"  // 추가
@@ -46,10 +46,20 @@ Player* BattleManager::SelectMonsterTarget()
             continue;
 
         int aggro = member->GetAggro();
+
+        // 1순위: 어그로가 더 높은 대상
         if (aggro > maxAggro)
         {
             maxAggro = aggro;
             target = member.get();
+        }
+        // 2순위: 어그로가 동일하면 민첩성이 낮은 대상 (약한 대상 우선)
+        else if (aggro == maxAggro && target != nullptr)
+        {
+            if (member->GetDex() < target->GetDex())
+            {
+                target = member.get();
+            }
         }
     }
 
@@ -230,7 +240,33 @@ void BattleManager::ProcessAttack(ICharacter* Atk, ICharacter* Def)
     // ===== 일반 단일 공격 =====
     int Damage = Def->TakeDamage(Atk, baseDamage);
 
-    // Player의 일반 공격 시 어그로는 Attack() 내부에서 처리됨 (치명타 판별 포함)
+    // ===== 몬스터의 공격인 경우 피격자의 어그로 감소 =====
+    if (IMonster* monster = dynamic_cast<IMonster*>(Atk))
+    {
+        if (Player* targetPlayer = dynamic_cast<Player*>(Def))
+        {
+            // 치명타 판정
+            bool isCritical = (attackType.find("치명타") != std::string::npos ||
+                attackType.find("!") != std::string::npos);
+
+            if (isCritical)
+            {
+                // 치명타 공격 시 어그로 -20
+                targetPlayer->ModifyAggro(-20);
+            }
+            else
+            {
+                // 일반 공격 시 어그로 -10
+                targetPlayer->ModifyAggro(-10);
+            }
+        }
+    }
+    // ===== 플레이어의 공격인 경우 어그로 증가 (기존 로직 유지) =====
+    else if (Player* attackingPlayer = dynamic_cast<Player*>(Atk))
+    {
+        // Player의 일반 공격 시 어그로는 Attack() 내부에서 처리됨 (치명타 판별 포함)
+        // 여기서는 별도 처리 불필요
+    }
 
     // 공격 타입에 따른 로그 출력
     bool isCritical = (attackType == "치명타!");
@@ -261,10 +297,10 @@ void BattleManager::ProcessAttack(ICharacter* Atk, ICharacter* Def)
         PushLog(Atk->GetName() + "의 " + attackType, EBattleLogType::Important);
     }
 
-   /* PrintManager::GetInstance()->PrintLogLine(
-        Def->GetName() + "에게 " + std::to_string(Damage) + " 데미지!",
-        ELogImportance::DISPLAY
-    );*/
+    /* PrintManager::GetInstance()->PrintLogLine(
+         Def->GetName() + "에게 " + std::to_string(Damage) + " 데미지!",
+         ELogImportance::DISPLAY
+     );*/
     PushLog(Def->GetName() + "에게 " + std::to_string(Damage) + " 데미지!", EBattleLogType::Important);
 }
 
@@ -286,11 +322,15 @@ void BattleManager::ProcessAOEAttack(const std::string& skillName, int damage, I
         if (member && !member->IsDead())
         {
             int actualDamage = member->TakeDamage(attacker, damage);
+            
+            // 광역 공격 피격 시 어그로 -10
+            member->ModifyAggro(-10);
+            
             /*PrintManager::GetInstance()->PrintLogLine(
                 "  → " + member->GetName() + "에게 " + std::to_string(actualDamage) + " 데미지!",
                 ELogImportance::DISPLAY
-            );*/
-            PushLog("  → " + member->GetName() + "에게 " + std::to_string(actualDamage) + " 데미지!", EBattleLogType::Important);
+            ); */
+                PushLog("  → " + member->GetName() + "에게 " + std::to_string(actualDamage) + " 데미지!", EBattleLogType::Important);
         }
     }
 }
@@ -318,8 +358,8 @@ void BattleManager::ProcessDebuff(const std::string& skillName, ICharacter* atta
             /*PrintManager::GetInstance()->PrintLogLine(
                 "  → " + member->GetName() + "의 공격력이 감소했다! (" + std::to_string(debuffAmount) + ", 2라운드)",
                 ELogImportance::DISPLAY
-            );*/
-            PushLog("  → " + member->GetName() + "의 공격력이 감소했다! (" + std::to_string(debuffAmount) + ", 2라운드)", EBattleLogType::Important);
+            ); */
+                PushLog("  → " + member->GetName() + "의 공격력이 감소했다! (" + std::to_string(debuffAmount) + ", 2라운드)", EBattleLogType::Important);
         }
     }
 }
@@ -362,7 +402,7 @@ void BattleManager::CalculateReward(Player* P, IMonster* M)
         }
         /*PrintManager::GetInstance()->PrintColorText(std::to_string(Exp), ETextColor::LIGHT_GREEN);
         PrintManager::GetInstance()->PrintLogLine("의 경험치를 획득했습니다.");*/
-        PushLog(std::to_string(Exp)+ "의 경험치를 획득했습니다.", EBattleLogType::Important);
+        PushLog(std::to_string(Exp) + "의 경험치를 획득했습니다.", EBattleLogType::Important);
 
         // 파티 전체에 경험치 분배
         for (const auto& member : party)
@@ -388,12 +428,12 @@ void BattleManager::CalculateReward(Player* P, IMonster* M)
         /*PrintManager::GetInstance()->PrintLog(mainPlayer->GetName() + "은(는) ");
         PrintManager::GetInstance()->PrintColorText(std::to_string(Gold), ETextColor::YELLOW);
         PrintManager::GetInstance()->PrintLogLine("G를 획득했습니다.");*/
-        PushLog(mainPlayer->GetName() + "은(는) "+ std::to_string(Gold)+ "G를 획득했습니다.", EBattleLogType::Important);
+        PushLog(mainPlayer->GetName() + "은(는) " + std::to_string(Gold) + "G를 획득했습니다.", EBattleLogType::Important);
         mainPlayer->GainGold(Gold);
         /*PrintManager::GetInstance()->PrintLog(mainPlayer->GetName() + "의 소지 골드량은 ");
         PrintManager::GetInstance()->PrintColorText(std::to_string(mainPlayer->GetGold()) + " G", ETextColor::YELLOW);
         PrintManager::GetInstance()->PrintLogLine("입니다.");*/
-        PushLog(mainPlayer->GetName() + "의 소지 골드량은 "+ std::to_string(mainPlayer->GetGold()) + " G"+ "입니다.", EBattleLogType::Important);
+        PushLog(mainPlayer->GetName() + "의 소지 골드량은 " + std::to_string(mainPlayer->GetGold()) + " G" + "입니다.", EBattleLogType::Important);
     }
 
     // ===== 아이템: 메인 플레이어 인벤토리에만 추가 =====
@@ -727,7 +767,7 @@ bool BattleManager::CancelItemReservation(Player* player, int slotIndex)
             "해당 슬롯에 예약된 아이템이 없습니다.",
             ELogImportance::WARNING
         );*/
-        PushLog("해당 슬롯에 예약된 아이템이 없습니다.",EBattleLogType::Important);
+        PushLog("해당 슬롯에 예약된 아이템이 없습니다.", EBattleLogType::Important);
         return false;
     }
 

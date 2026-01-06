@@ -21,6 +21,8 @@ private:
     // ===== 인벤토리 UI =====
     int _SelectedItemSlot;  // 선택된 인벤토리 슬롯 (0~4)
     bool _IsSelectingItem;  // 아이템 선택 모드 활성화 여부
+    int _SelectedPartyIndex; // 선택된 파티원 인덱스 (0~3)
+    bool _IsCancelMode;    // 예약 취소 모드 여부
 
   // ===== 애니메이션 =====
     bool _IsPlayingAnimation;  // 애니메이션 재생 중
@@ -42,6 +44,9 @@ private:
     
     // 시스템 로그 업데이트
     void UpdateSystemLog(class Panel* systemPanel, const std::vector<std::string>& messages);
+    
+    // 커맨드 패널 업데이트
+    void UpdateCommandPanel();
     
     // 인벤토리 패널 업데이트
     void UpdateInventoryPanel(class Panel* inventoryPanel);

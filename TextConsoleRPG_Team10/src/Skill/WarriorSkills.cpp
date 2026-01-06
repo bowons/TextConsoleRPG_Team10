@@ -18,14 +18,15 @@ SkillResult RoarSkill::CalculateEffect(Player* user, ICharacter* target)
     int defBoost = static_cast<int>(user->GetTotalDef() * 0.5f);
     user->ApplyTempDefBuff(defBoost, 3);
 
-    // TODO: 어그로 시스템 구현 필요 (BattleManager에서 처리)
+    // 어그로 100으로 고정 (3턴간)
+    user->LockAggro(100, 3);
 
     return SkillResult{
         _Name,
         defBoost,
-1,
+        1,
         true,
-        "3턴간 방어력 +" + std::to_string(defBoost) + " (어그로 최상)"
+        "3턴간 방어력 +" + std::to_string(defBoost) + " + 어그로 100 고정!"
     };
 }
 
