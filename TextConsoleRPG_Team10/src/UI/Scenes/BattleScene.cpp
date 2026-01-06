@@ -1,4 +1,4 @@
-﻿#include "../../../include/UI/Scenes/BattleScene.h"
+#include "../../../include/UI/Scenes/BattleScene.h"
 #include "../../../include/UI/UIDrawer.h"
 #include "../../../include/UI/Panel.h"
 #include "../../../include/UI/TextRenderer.h"
@@ -108,10 +108,10 @@ void BattleScene::Enter() {
         if (i < party.size() && party[i])
         {
             Player* player = party[i].get();
-            
+
             // CSV에서 정의된 파일명 사용 (Class.csv의 ascii_file 컬럼)
             std::string artFileName;
-            
+
             if (dynamic_cast<Warrior*>(player)) {
                 artFileName = "P_Warrior.txt";  // CSV: Characters/P_Warrior.txt
             }
@@ -130,7 +130,7 @@ void BattleScene::Enter() {
 
             auto charArt = std::make_unique<AsciiArtRenderer>();
             std::string charactersPath = DataManager::GetInstance()->GetResourcePath("Characters");
-            
+
             if (charArt->LoadFromFile(charactersPath, artFileName))
             {
                 charArt->SetAlignment(ArtAlignment::CENTER);
@@ -658,16 +658,16 @@ void BattleScene::UpdateMonsterInfoPanel()
     // ===== CSV 파일명 매핑 로직 =====
     // Enemy_Normal.csv, Enemy_Elite.csv, Enemy_Boss.csv의 ascii_file 컬럼 사용
     // 예: "Monsters/Slime.txt" → "Slime.txt"
-    
+
     std::string monstersPath = DataManager::GetInstance()->GetResourcePath("Monsters");
-    
+
     // 몬스터 이름 기반으로 파일명 추출
     // CSV 데이터: ascii_file = "Monsters/Slime.txt"
     // 실제 필요한 파일명: "Slime.txt"
-    
+
     std::string fileName;
     std::string monsterName = monster->GetName();
-    
+
     // ===== 몬스터 이름 → 파일명 매핑 (Monsters.csv 기준) =====
     if (monsterName.find("슬라임") != std::string::npos || monsterName.find("망령") != std::string::npos) {
         fileName = "Slime.txt";
@@ -730,7 +730,7 @@ void BattleScene::UpdateMonsterInfoPanel()
 
     // 아스키 아트 로드
     auto monsterArt = std::make_unique<AsciiArtRenderer>();
-    
+
     if (monsterArt->LoadFromFile(monstersPath, fileName))
     {
         monsterArt->SetAlignment(ArtAlignment::CENTER);
@@ -739,22 +739,23 @@ void BattleScene::UpdateMonsterInfoPanel()
     }
     else
     {
-        // 로드 실패 시 기본 텍스트 + 스탯 표시
+        // 로드 실패 시 기본 텍스트
         auto fallbackText = std::make_unique<TextRenderer>();
+        fallbackText->AddLine("");
         fallbackText->AddLine("");
         fallbackText->AddLineWithColor("  [ " + monster->GetName() + " ]",
             MakeColorAttribute(ETextColor::LIGHT_RED, EBackgroundColor::BLACK));
         fallbackText->AddLine("");
-        
+
         // HP 바 표시
         int hp = monster->GetCurrentHP();
         int maxHp = monster->GetMaxHP();
         float hpRatio = static_cast<float>(hp) / maxHp;
-        
+
         std::string hpBar = "  HP: [";
         int barLength = 20;
         int filledLength = static_cast<int>(hpRatio * barLength);
-        
+
         for (int i = 0; i < barLength; ++i)
         {
             if (i < filledLength)
@@ -763,24 +764,24 @@ void BattleScene::UpdateMonsterInfoPanel()
                 hpBar += "-";
         }
         hpBar += "]";
-        
-        WORD hpColor = (hpRatio < 0.3f) 
+
+        WORD hpColor = (hpRatio < 0.3f)
             ? MakeColorAttribute(ETextColor::LIGHT_RED, EBackgroundColor::BLACK)
             : MakeColorAttribute(ETextColor::LIGHT_GREEN, EBackgroundColor::BLACK);
-        
+
         fallbackText->AddLineWithColor(hpBar, hpColor);
         fallbackText->AddLineWithColor("      " + std::to_string(hp) + " / " + std::to_string(maxHp),
             MakeColorAttribute(ETextColor::WHITE, EBackgroundColor::BLACK));
-        
+
         fallbackText->AddLine("");
-        fallbackText->AddLineWithColor("  ATK: " + std::to_string(monster->GetAtk()) + 
+        fallbackText->AddLineWithColor("  ATK: " + std::to_string(monster->GetAtk()) +
             " | DEF: " + std::to_string(monster->GetDef()),
             MakeColorAttribute(ETextColor::YELLOW, EBackgroundColor::BLACK));
-        
+
         fallbackText->AddLine("");
         fallbackText->AddLineWithColor("  (파일: " + fileName + ")",
             MakeColorAttribute(ETextColor::DARK_GRAY, EBackgroundColor::BLACK));
-        
+
         enemyPanel->SetContentRenderer(std::move(fallbackText));
     }
 
@@ -836,8 +837,8 @@ void BattleScene::HandleInput()
     if (_IsWaitingForAnimation)
         return;
 
-    if (_InputState != EBattleInputState::Playing)
-        return;
+    /*if (_InputState != EBattleInputState::Playing)
+        return;*/
     InputManager* input = InputManager::GetInstance();
     if (!input->IsKeyPressed()) return;
 
@@ -1004,6 +1005,7 @@ void BattleScene::HandleInput()
         {
         case EBattleInputState::Playing:
             ProcessBattleTurn();
+            CollectBattleLogs();
             break;
 
         case EBattleInputState::ResultShown:
@@ -1198,7 +1200,7 @@ void BattleScene::ProcessBattleTurn()
         }
 
         _BattleEnd = true;
-        _InputState = EBattleInputState::ResultShown;
+        _InputState = EBattleInputState::EndWaiting;
     }
 
     // 6. 로그/UI 반영
@@ -1226,6 +1228,15 @@ void BattleScene::EndBattle(bool victory)
 
         // 현재 노드 완료 처리
         stageMgr->CompleteNode(nodeType);
+    }
+    else
+    {
+        // ===== 패배 시 전체 게임 상태 리셋 =====
+        GameManager* gm = GameManager::GetInstance();
+        if (gm)
+        {
+            gm->ResetGameState();  // ⭐ 중앙화된 리셋 메서드 호출
+        }
     }
 
     // ===== 2. BattleManager 정리 (보상 계산 포함) =====

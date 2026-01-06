@@ -16,6 +16,7 @@ private:
     std::vector<std::shared_ptr<Player>> _Party;  // 파티 멤버 (0번: 메인 플레이어)
     bool _IsGameOver = false;
     bool _IsRunning = false;
+    bool _IsInitialized = false;  // 중복 초기화 방지
 
     // 플레이어 이름 임시 저장 (CharacterSelectScene 연동용)
     std::string _TempPlayerName;
@@ -33,6 +34,10 @@ public:
     void StartGame();    // 메인 루프 시작
     void EndGame();  // 게임 종료
     void RestartGame();  // 게임 재시작 (모든 데이터 초기화)
+
+    // 게임 상태 전체 리셋 (패배 시 호출)
+    // 모든 Manager, 리소스, 파티, 상태 초기화
+    void ResetGameState();
 
 
     // ===== 파티 관리 =====

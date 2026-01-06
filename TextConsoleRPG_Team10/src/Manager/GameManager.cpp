@@ -4,6 +4,8 @@
 #include "../../include/Manager/StageManager.h"
 #include "../../include/Manager/DataManager.h"
 #include "../../include/Manager/SoundPlayer.h"
+#include "../../include/Manager/BattleManager.h"  // 추가
+#include "../../include/Manager/ShopManager.h" // 추가
 #include "../../include/UI/UIDrawer.h"
 #include "../../include/UI/Scenes/MainMenuScene.h"
 #include "../../include/UI/Scenes/PlayerNameInputScene.h"
@@ -56,6 +58,18 @@ size_t GameManager::GetAliveCount() const
 // ===== 게임 초기화 (씬 등록) =====
 void GameManager::Initialize()
 {
+    // ===== 중복 초기화 방지 =====
+    if (_IsInitialized)
+    {
+        PrintManager::GetInstance()->PrintLogLine(
+            "GameManager::Initialize - Already initialized, skipping",
+            ELogImportance::DISPLAY
+        );
+        return;
+    }
+
+    _IsInitialized = true;
+
     // 랜덤 시드 초기화 (치명타 판정용)
     std::srand(static_cast<unsigned int>(std::time(nullptr)));
 
@@ -195,27 +209,70 @@ void GameManager::RestartGame()
         ELogImportance::DISPLAY
     );
 
+    // 전체 게임 상태 리셋
+    ResetGameState();
+
+    _IsGameOver = false;
+    _IsRunning = true;
+
+    PrintManager::GetInstance()->PrintLogLine(
+   "새로운 여정을 시작합니다!",
+  ELogImportance::DISPLAY
+    );
+
+    SceneManager::GetInstance()->ChangeScene(ESceneType::MainMenu);
+}
+
+// ===== 게임 상태 전체 리셋 =====
+void GameManager::ResetGameState()
+{
+    PrintManager::GetInstance()->PrintLogLine(
+        "게임 상태를 초기화합니다...",
+        ELogImportance::DISPLAY
+    );
+
+    // 1. 파티 정리
     ClearParty();
 
+    // 2. BattleManager 정리
+    BattleManager* battleMgr = BattleManager::GetInstance();
+    if (battleMgr)
+    {
+      if (battleMgr->IsBattleActive())
+        {
+        battleMgr->EndBattle();
+        }
+        // 내부 상태 완전 초기화
+      battleMgr->ResetAll();
+    }
+
+    // 3. StageManager 정리
     StageManager* stageMgr = StageManager::GetInstance();
     if (stageMgr && stageMgr->IsInitialized())
     {
         stageMgr->StartNewGame();
     }
 
-    _IsGameOver = false;
-    _IsRunning = true;
+    // 4. ShopManager 정리 (선택적)
+    ShopManager* shopMgr = ShopManager::GetInstance();
+ if (shopMgr)
+    {
+        // 상점 재고 초기화 (다음 방문 시 새로 로드됨)
+     // ReopenShop()은 씬 진입 시 호출되므로 여기서는 생략 가능
+    }
 
+    // 5. UI 정리
     UIDrawer* drawer = UIDrawer::GetInstance();
-    drawer->ClearScreen();
-    drawer->RemoveAllPanels();
+    if (drawer)
+    {
+        drawer->ClearScreen();
+   drawer->RemoveAllPanels();
+    }
 
     PrintManager::GetInstance()->PrintLogLine(
-        "새로운 여정을 시작합니다!",
+        "게임 상태 초기화 완료!",
         ELogImportance::DISPLAY
     );
-
-    SceneManager::GetInstance()->ChangeScene(ESceneType::MainMenu);
 }
 
 // ===== DEPRECATED: 레거시 함수, CreateMainPlayerWithClass 사용 권장 =====

@@ -11,6 +11,7 @@
 #include "../../../include/Manager/DataManager.h"
 #include "../../../include/Manager/SoundPlayer.h"
 #include "../../../include/Common/TextColor.h"
+#include "../../../include/UI/Scenes/ResultScene.h"  // 추가
 #include "../../../include/Unit/Player.h"
 #include "../../../include/Item/Inventory.h"
 #include "../../../include/Item/IItem.h"
@@ -411,7 +412,7 @@ void StageSelectScene::RenderStageMap(Panel* nodePanel)
     int mapRealWidth = (maxPosX - minPosX) * horizontalSpacing + nodeWidth;
     int mapRealHeight = (maxPosY - minPosY) * verticalSpacing + 1;
 
-    // 중앙 정렬을 위한 오프셋 계산
+    // 중앙 정렬을 위한 오프SET 계산
     int baseX = (mapWidth - mapRealWidth) / 2;
     int baseY = (mapHeight - mapRealHeight) / 2;
 
@@ -834,7 +835,15 @@ void StageSelectScene::EnterNode(const std::string& nodeId)
         }
         else
         {
+            // ⭐ 10층 클리어 - 게임 승리 (Result 씬으로 전환)
             sceneMgr->ChangeScene(ESceneType::Result);
+
+            // Result 씬의 타입을 Victory로 설정
+            ResultScene* resultScene = dynamic_cast<ResultScene*>(sceneMgr->GetCurrentScene());
+            if (resultScene)
+            {
+                resultScene->SetResultType(EResultType::Victory);
+            }
         }
         break;
 
