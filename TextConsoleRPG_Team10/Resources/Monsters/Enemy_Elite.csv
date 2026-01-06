@@ -1,5 +1,5 @@
-enemy_id,name_kr,floor,hp,mp,atk,def,dex,luk,crit_rate,exp,gold,ascii_file,attack_name
-Mouse_Elite,거대 시궁쥐,1,110,10,14,8,6,6,0.05,65,40,Monsters/Mouse.txt,맹렬한 연속 공격
+﻿enemy_id,name_kr,floor,hp,mp,atk,def,dex,luk,crit_rate,exp,gold,ascii_file,attack_name
+Mouse_Elite,거대 시궁쥐,1,110,10,14,8,6,6,0.05,65,40,Monsters/BigMouse.txt,맹렬한 연속 공격
 Goblin_Elite,고블린 대장,2,105,12,15,9,6,7,0.06,65,40,Monsters/Goblin.txt,야만적 타격
 Skeleton_Elite,스켈레톤 나이트,3,130,8,15,12,5,5,0.05,65,40,Monsters/Skeleton.txt,뼈 검 난무
 Yeti_Elite,옵시디언 골렘,4,180,6,16,16,3,3,0.04,75,50,Monsters/Yeti.txt,대지 강타
