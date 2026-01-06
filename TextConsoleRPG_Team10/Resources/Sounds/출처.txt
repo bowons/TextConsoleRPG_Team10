@@ -560,6 +560,24 @@ impsplat
  BGM_NoneSet05
 - 335523__hmmm101__pixel-song-3.wav
 - https://freesound.org/people/hmmm101/sounds/335523/
+ BGM_3
+- Red Shift - The Grey Room _ Density & Time.mp3
+ BGM_4
+- Nebula - The Grey Room _ Density & Time.mp3
+ BGM_5
+- Obon Fog - The Mini Vandals.mp3
+ BGM_7
+- False Vacuum Decay - The Grey Room _ Density & Time.mp3
+ BGM_8
+- Blacksmith - Godmode.mp3
+ BGM_10
+- Dangerous Toys - SefChol.mp3
+ BGM_11_GameOver
+- 518568__szegvari__violin-solo-little-sad-story-mastering
+-https://freesound.org/people/szegvari/sounds/518568/
+ BGM_12_GameClear
+- 558839__dominictreis__royal-entrance-music.mp3
+- https://freesound.org/people/dominictreis/sounds/558839/
 
 단독 파일 - 보스 음성
  643715__snowfightstudios__devil-demon_i-am-death
@@ -567,4 +585,7 @@ impsplat
  643718__snowfightstudios__devil-demon_i-am-the-darkness
 - https://freesound.org/people/SnowFightStudios/sounds/643718/
  643725__snowfightstudios__devil-demon_you-cant-escape-death
-- https://freesound.org/people/SnowFightStudios/sounds/643725/ 
+- https://freesound.org/people/SnowFightStudios/sounds/643725/
+ Boss_Dead
+- 337641__richerlandtv__creepy-ghost-voice-2
+- https://freesound.org/people/RICHERlandTV/sounds/337641/
