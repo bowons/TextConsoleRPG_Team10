@@ -18,12 +18,13 @@ struct SoundInstance {
 
 class SoundPlayer : public Singleton<SoundPlayer> {
 private:
-    SoundPlayer() : _IsInitialized(false) {}
+    SoundPlayer() : _IsInitialized(false), _CurrentBGMID("") {}
     friend class Singleton<SoundPlayer>;
 
     bool _IsInitialized;
     // 활성화된 사운드를 별칭(Alias)으로 관리
     std::unordered_map<std::string, std::shared_ptr<SoundInstance>> _ActiveSounds;
+    std::string _CurrentBGMID;
 
 public:
     // 초기화: DataManager 준비 상태 확인
@@ -47,6 +48,7 @@ public:
     float PlaySFX(const std::string& EffectID);
     void PlaySFXWithPause(const std::string& EffectID);
     void PlayBGM(const std::string& BGMID);
+    void ResetBGM();
 
     // 몬스터 사망 효과음 재생
     void PlayMonserSFX(const std::string& MonsterName, const std::string& SoundType);

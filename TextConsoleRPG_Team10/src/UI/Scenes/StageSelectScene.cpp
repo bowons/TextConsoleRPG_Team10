@@ -36,8 +36,6 @@ void StageSelectScene::Enter()
     _IsActive = true;
     _SelectedNodeIndex = 0;
 
-    SoundPlayer::GetInstance()->PlayBGM("BGM_"
-        + std::to_string(StageManager::GetInstance()->GetCurrentFloor()));
     // 입력 버퍼 완전히 클리어 (이전 Scene의 입력 잔여물 제거)
     HANDLE hInput = GetStdHandle(STD_INPUT_HANDLE);
     FlushConsoleInputBuffer(hInput);
@@ -830,11 +828,7 @@ void StageSelectScene::EnterNode(const std::string& nodeId)
     case ENodeType::Exit:
         if (stageMgr->MoveToNextFloor())
         {
-            sceneMgr->ChangeScene(ESceneType::StageSelect);
-        }
-        else
-        {
-            sceneMgr->ChangeScene(ESceneType::Result);
+            sceneMgr->ChangeScene(ESceneType::StoryProgress);
         }
         break;
 

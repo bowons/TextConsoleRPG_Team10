@@ -134,6 +134,7 @@ void ShopScene::Enter()
 
 void ShopScene::Exit()
 {
+    SoundPlayer::GetInstance()->ResetBGM();
     _Drawer->RemoveAllPanels();
     _IsActive = false;
 }

@@ -7,7 +7,7 @@ Get_Reward,GetReward.wav,0.5773,1
 LevelUp,LevelUp.wav,2.011,1
 Warrior_Roar,Roar.wav,1.198,0.5
 Warrior_Smash,Smash.wav,1.204,1
-Mage_FireBall,FireBall.wav,0.381,1
+Mage_Fireball,FireBall.wav,0.381,1
 Mage_Overload,Overload.wav,1.202,1
 Archer_Aim,Aim.wav,1.004,1
 Archer_MultiShot,MultiShot.wav,0.95,0.9
@@ -102,7 +102,7 @@ ChaosEye_Hit,GhostHitted.wav,0.503,1
 AbyssButler_Attack,AbyssAttack.wav,1.136,0.8
 AbyssButler_Dead,AbyssDead.wav,3.034,0.8
 AbyssButler_Hit,GhostHitted.wav,0.503,1
-BGM_0,TitleEnter.wav,3.914,1
+BGM_0,BGM_NoneSet01.wav,82,0.5
 BGM_NoneSet01,BGM_NoneSet01.wav,82,0.5
 BGM_NoneSet02,BGM_NoneSet02.wav,82.909,0.5
 BGM_NoneSet03,BGM_NoneSet03.wav,60.022,0.5
@@ -110,6 +110,17 @@ BGM_NoneSet04,BGM_NoneSet04,15.01,0.5
 BGM_NoneSet05,BGM_NoneSet05,50.759,0.5
 BGM_1,Ambient_01_Sewer.wav,20.063,1
 BGM_2,Ambient_02_AbandonedMine.wav,70.157,0.8
+BGM_3,BGM_3,240.741,0.5
+BGM_4,BGM_4,189.474,0.5
+BGM_5,BGM_5,158.869,0.5
 BGM_6,BGM_06_SnowField.wav,249.013,0.5
+BGM_7,BGM_7,225,0.5
+BGM_8,BGM_8,92.773,0.5
 BGM_9,BGM_09_Altar.wav,71.231,0.5
+BGM_10,BGM_10,229.868,0.5
+BGM_11,BGM_11_GameOver,11.087,0.5
+BGM_12,BGM_12_GameClear,27.951,0.5
 BGM_Shop,BGM_Shop.wav,64,0.8
+BossVoice_1,BossVoice_IamDeath.wav,0.557,0.5
+BossVoice_2,BossVoice_IamTheDarkness.wav,1.779,0.5
+BossVoice_3,BossVoice_YouCannotEscapeDeath.wav,2.44,0.5
