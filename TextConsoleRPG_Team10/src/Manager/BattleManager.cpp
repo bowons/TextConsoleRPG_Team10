@@ -229,14 +229,14 @@ void BattleManager::ProcessAttack(ICharacter* Atk, ICharacter* Def)
         if (attackType == "어둠의 폭풍")
         {
             ProcessAOEAttack(attackType, baseDamage, boss);
-            RequestFlush(EBattleFlushType::MonsterAttack);
+            RequestFlush(EBattleFlushType::BossAttack);
             return;
         }
 
         if (attackType == "공포의 속삭임")
         {
             ProcessDebuff(attackType, boss);
-            RequestFlush(EBattleFlushType::MonsterAttack);
+            RequestFlush(EBattleFlushType::BossAttack);
             return;
         }
     }
@@ -311,7 +311,7 @@ void BattleManager::ProcessAOEAttack(const std::string& skillName, int damage, I
             PushLog("  → " + member->GetName() + "에게 " + std::to_string(actualDamage) + " 데미지!", EBattleLogType::Important);
         }
     }
-    RequestFlush();
+    RequestFlush(EBattleFlushType::BossAttack);
 }
 
 // ===== 디버프 처리 (Boss 전용) =====
@@ -333,7 +333,7 @@ void BattleManager::ProcessDebuff(const std::string& skillName, ICharacter* atta
             PushLog("  → " + member->GetName() + "의 공격력이 감소했다! (" + std::to_string(debuffAmount) + ", 2라운드)", EBattleLogType::Important);
         }
     }
-    RequestFlush();
+    RequestFlush(EBattleFlushType::BossDebuff);
 }
 
 void BattleManager::CalculateReward(Player* P, IMonster* M)

@@ -19,7 +19,9 @@ enum class EBattleFlushType
     PlayerItem,
     MonsterAttack,
     TurnEnd,
-    BattleEnd
+    BattleEnd,
+    BossAttack,
+    BossDebuff
 };
 
 // ===== 전역 함수 선언 =====
