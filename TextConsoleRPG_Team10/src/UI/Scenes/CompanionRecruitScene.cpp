@@ -66,7 +66,7 @@ void CompanionRecruitScene::Enter() {
   // =============================================================================
 
   // ===== 타이틀 패널 (상단) =====
-  Panel* titlePanel = _Drawer->CreatePanel("Title", 0, 0, 122, 5);
+  Panel* titlePanel = _Drawer->CreatePanel("Title", 2, 1, 120, 4);
   titlePanel->SetBorder(true, ETextColor::WHITE);
 
   auto titleText = std::make_unique<TextRenderer>();
@@ -74,30 +74,30 @@ void CompanionRecruitScene::Enter() {
   titleText->AddLineWithColor(
       "                    [ 동료 영입 ] - " + std::to_string(_CompanionLevel) + "층",
       MakeColorAttribute(ETextColor::WHITE, EBackgroundColor::BLACK));
-  titleText->AddLine("");
 
   titlePanel->SetContentRenderer(std::move(titleText));
   titlePanel->Redraw();
 
   // ===== 장소 이미지 패널 (좌측 중앙) =====
-  Panel* locationPanel = _Drawer->CreatePanel("Location", 0, 5, 61, 24);
+  Panel* locationPanel = _Drawer->CreatePanel("Location", 2, 5, 58, 24);
   locationPanel->SetBorder(true, ETextColor::WHITE);
 
   auto locationArt = std::make_unique<AsciiArtRenderer>();
   std::string mapsPath = DataManager::GetInstance()->GetResourcePath("Maps");
   locationArt->LoadFromFile(mapsPath, "Prison_Entrance.txt");
+  locationArt->SetAlignment(ArtAlignment::CENTER);
 
   locationPanel->SetContentRenderer(std::move(locationArt));
   locationPanel->Redraw();
 
   // ===== 동료 캐릭터 이미지 + 정보 패널 (우측 중앙) =====
-  Panel* characterPanel = _Drawer->CreatePanel("Character", 61, 5, 61, 24);
+  Panel* characterPanel = _Drawer->CreatePanel("Character", 60, 5, 62, 24);
   characterPanel->SetBorder(true, ETextColor::WHITE);
 
   UpdateCompanionInfoPanel(characterPanel);
 
   // ===== 타워(맵) 패널 (우측 상단) =====
-  Panel* towerPanel = _Drawer->CreatePanel("Tower", 122, 1, 30, 30);
+  Panel* towerPanel = _Drawer->CreatePanel("Tower", 122, 1, 28, 28);
   auto towerArt = std::make_unique<AsciiArtRenderer>();
   std::string uiPath = DataManager::GetInstance()->GetResourcePath("UI");
 
@@ -121,16 +121,16 @@ void CompanionRecruitScene::Enter() {
   // 타워 화살표 업데이트
   UpdateTowerArrow(towerPanel, floorInfo->Floor);
 
-  // ===== 아군 파티 패널 (하단 상단, 4명 가로 배치) =====
+  // ===== 아군 파티 패널 (중단, 4명 가로 배치) =====
   auto party = GameManager::GetInstance()->GetParty();
 
-  int partyStartX = 0;
+  int partyStartX = 2;
   int partyStartY = 29;
-  int partyHeight = 7;
-  int partyWidth = 30;
+  int partyHeight = 6;
+  int partyWidth = 36;
 
   for (int i = 0; i < 4; ++i) {
-    int xPos = partyStartX + i * partyWidth;
+    int xPos = partyStartX + i * (partyWidth + 1);
     std::string panelName = "Party" + std::to_string(i);
 
     Panel* partyPanel = _Drawer->CreatePanel(panelName, xPos, partyStartY,
@@ -146,39 +146,46 @@ void CompanionRecruitScene::Enter() {
       std::string className = "전사";  // TODO: 직업 추가
       int hp = player->GetCurrentHP();
       int maxHp = player->GetMaxHP();
-      int atk = player->GetAtk();
-      int def = player->GetDef();
+      int mp = player->GetCurrentMP();
+      int maxMp = player->GetMaxMP();
 
-      partyText->AddLine(" " + name + " | " + className);
-      partyText->AddLine(" HP:" + std::to_string(hp) + "/" +
-                         std::to_string(maxHp));
-      partyText->AddLine(" ATK:" + std::to_string(atk) +
-                         " DEF:" + std::to_string(def));
+      partyText->AddLineWithColor(" " + name + " (" + className + ")",
+          MakeColorAttribute(ETextColor::LIGHT_CYAN, EBackgroundColor::BLACK));
+      
+      std::string hpLine = " HP:" + std::to_string(hp) + "/" + std::to_string(maxHp);
+      WORD hpColor = (hp < maxHp * 0.3f) ?
+          MakeColorAttribute(ETextColor::LIGHT_RED, EBackgroundColor::BLACK) :
+          MakeColorAttribute(ETextColor::LIGHT_GREEN, EBackgroundColor::BLACK);
+      partyText->AddLineWithColor(hpLine, hpColor);
+
+      std::string mpLine = " MP:" + std::to_string(mp) + "/" + std::to_string(maxMp);
+      partyText->AddLineWithColor(mpLine,
+          MakeColorAttribute(ETextColor::LIGHT_BLUE, EBackgroundColor::BLACK));
     } else {
-      partyText->AddLine(" 빈 슬롯");
+      partyText->AddLine(" [빈 슬롯]");
       partyText->AddLine("");
     }
 
-    partyPanel->SetContentRenderer(std::move(partyText));
+    partyPanel->AddRenderer(0, 0, 34, 4, std::move(partyText));
     partyPanel->Redraw();
   }
 
   // ===== 시스템 로그 패널 (하단 좌측-중앙) =====
-  Panel* logPanel = _Drawer->CreatePanel("SystemLog", 0, 36, 113, 9);
+  Panel* logPanel = _Drawer->CreatePanel("SystemLog", 2, 35, 100, 10);
   logPanel->SetBorder(true, ETextColor::WHITE);
 
-  // 좌측 영역: 시스템 로그 (1 ~ 74)
+  // 좌측 영역: 시스템 로그 (0 ~ 64)
   auto logText = std::make_unique<TextRenderer>();
   logText->AddLine("");
   logText->AddLineWithColor(
       "  [ 시스템 로그 ]",
       MakeColorAttribute(ETextColor::WHITE, EBackgroundColor::BLACK));
   logText->AddLine("");
-  logText->AddLine("  " + _CurrentCompanion->_Name + "을(를) 발견했습니다!");
+  logText->AddLine("  " + _CurrentCompanion->_Name + "과(와) 발견했습니다!");
   logText->AddLine("  영입하시겠습니까?");
-  logPanel->AddRenderer(1, 0, 74, 10, std::move(logText));
+  logPanel->AddRenderer(0, 0, 65, 8, std::move(logText));
 
-  // 우측 영역: 커맨드 (75 ~ 111)
+  // 우측 영역: 커맨드 (65 ~ 98)
   auto logCommandText = std::make_unique<TextRenderer>();
   logCommandText->AddLine("");
   logCommandText->AddLineWithColor(
@@ -188,13 +195,13 @@ void CompanionRecruitScene::Enter() {
   logCommandText->AddLine("  [← /→ ] 선택");
   logCommandText->AddLine("  [Enter] 확인");
   logCommandText->AddLine("  [ESC] 거부");
-  logPanel->AddRenderer(75, 0, 37, 10, std::move(logCommandText));
+  logPanel->AddRenderer(65, 0, 33, 8, std::move(logCommandText));
 
   logPanel->Redraw();
 
   // ===== 인벤토리 & 골드 패널 (하단 우측) =====
   Panel* inventoryCommandPanel =
-      _Drawer->CreatePanel("Command", 113, 36, 37, 9);
+      _Drawer->CreatePanel("Command", 102, 35, 48, 10);
   inventoryCommandPanel->SetBorder(true, ETextColor::WHITE);
 
   auto inventoryCommandText = std::make_unique<TextRenderer>();
@@ -218,7 +225,7 @@ void CompanionRecruitScene::Enter() {
     inventoryCommandText->AddLine("  골드: " + std::to_string(party[0]->GetGold()) + " G");
   }
 
-  inventoryCommandPanel->SetContentRenderer(std::move(inventoryCommandText));
+  inventoryCommandPanel->AddRenderer(0, 0, 46, 8, std::move(inventoryCommandText));
   inventoryCommandPanel->Redraw();
 
   _Drawer->Render();
@@ -231,7 +238,7 @@ void CompanionRecruitScene::UpdateCompanionInfoPanel(Panel* infoPanel) {
 
   const CompanionData& companion = _CurrentCompanion.value();
 
-  // 상단: 아스키 아트 (0 ~ 15줄)
+  // 상단: 아스키 아트 (0 ~ 14줄)
   auto characterArt = std::make_unique<AsciiArtRenderer>();
   std::string charactersPath = DataManager::GetInstance()->GetResourcePath("Characters");
   
@@ -248,7 +255,7 @@ void CompanionRecruitScene::UpdateCompanionInfoPanel(Panel* infoPanel) {
   
   if (artLoaded) {
     characterArt->SetAlignment(ArtAlignment::CENTER);
-    infoPanel->AddRenderer(0, 0, 59, 15, std::move(characterArt));
+    infoPanel->AddRenderer(0, 0, 60, 14, std::move(characterArt));
   } else {
     // 로드 실패 시 에러 메시지 표시
     auto errorText = std::make_unique<TextRenderer>();
@@ -259,10 +266,10 @@ void CompanionRecruitScene::UpdateCompanionInfoPanel(Panel* infoPanel) {
     errorText->AddLine("");
     errorText->AddLine("  경로: " + charactersPath);
     errorText->AddLine("  파일: " + fileName);
-    infoPanel->AddRenderer(0, 0, 59, 15, std::move(errorText));
+    infoPanel->AddRenderer(0, 0, 60, 14, std::move(errorText));
   }
 
-  // 하단: 동료 정보 (16줄부터)
+  // 하단: 동료 정보 (14줄부터)
   auto infoText = std::make_unique<TextRenderer>();
   infoText->AddLine("");
   infoText->AddLineWithColor(
@@ -293,16 +300,16 @@ void CompanionRecruitScene::UpdateCompanionInfoPanel(Panel* infoPanel) {
   infoText->AddLine("  DEX: " + std::to_string(companion._Dex) + " / LUK: " + std::to_string(companion._Luk));
   infoText->AddLine("  치명타율: " + std::to_string(static_cast<int>(companion._CritRate * 100)) + "%");
 
-  infoPanel->AddRenderer(0, 16, 59, 8, std::move(infoText));
+  infoPanel->AddRenderer(0, 14, 60, 10, std::move(infoText));
   infoPanel->Redraw();
 }
 
 void CompanionRecruitScene::UpdateTowerArrow(Panel* towerPanel, int currentFloor) {
   auto arrowRenderer = std::make_unique<TextRenderer>();
 
-  const int towerHeight = 25;
+  const int towerHeight = 25;  // StageSelectScene과 동일
   const int maxFloor = 10;
-  const int topMargin = 6;
+  const int topMargin = 6;     // StageSelectScene과 동일
   const int bottomMargin = 0;
   const int usableHeight = towerHeight - topMargin - bottomMargin;
 
