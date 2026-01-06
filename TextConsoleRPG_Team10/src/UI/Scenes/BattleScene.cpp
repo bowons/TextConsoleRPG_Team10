@@ -57,7 +57,6 @@ void BattleScene::Enter() {
     _SelectedPartyIndex = 0;
     _IsCancelMode = false;
     _BattleEnd = false;
-    _InputState = EBattleInputState::Playing;
 
     BattleManager* battleMgr = BattleManager::GetInstance();
     GameManager* gameMgr = GameManager::GetInstance();
