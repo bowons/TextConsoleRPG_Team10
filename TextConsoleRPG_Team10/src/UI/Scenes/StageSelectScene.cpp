@@ -655,7 +655,8 @@ return;
         if (!_SelectedNodeId.empty())
         {
             EnterNode(_SelectedNodeId);
-            SoundPlayer::GetInstance()->PlaySFX("Footstep" + std::to_string(rand() % 9 + 1));
+            int Index = rand() % 9 + 1;
+            SoundPlayer::GetInstance()->PlaySFX("FootStep" + std::to_string(Index));
         }
         return;
     }
@@ -675,7 +676,11 @@ return;
         return;
     }
 
-    SoundPlayer::GetInstance()->PlaySFX("FootStep_" + std::to_string(rand() % 9 + 1));
+    // Play FootStep
+    {
+        int Index = rand() % 9 + 1;
+        SoundPlayer::GetInstance()->PlaySFX("FootStep_" + std::to_string(Index));
+    }
 
     int currentIndex = -1;
     for (size_t i = 0; i < _AvailableNodeIds.size(); ++i)
