@@ -1,4 +1,4 @@
-﻿#include "../../../include/UI/Scenes/BattleScene.h"
+#include "../../../include/UI/Scenes/BattleScene.h"
 #include "../../../include/UI/UIDrawer.h"
 #include "../../../include/UI/Panel.h"
 #include "../../../include/UI/TextRenderer.h"
@@ -20,7 +20,7 @@
 #include "../../../include/Item/IItem.h"
 #include <Windows.h>
 #include <fstream>
-#include <nlohmann/json.hpp>
+#include "../../../include/nlohmann/json.hpp"
 
 static const std::string ANIM_ROOT_PATH =
 "Resources/Animations/";
@@ -91,10 +91,22 @@ void BattleScene::Enter() {
 
     auto party = gameMgr->GetParty();
 
+    // ===== 배치 순서 매핑: 4 2 / 3 1 =====
+    // party[0] → 우하단 (row=1, col=1)
+    // party[1] → 좌하단 (row=1, col=0)
+    // party[2] → 우상단 (row=0, col=1)
+    // party[3] → 좌상단 (row=0, col=0)
+    int layoutMap[4][2] = {
+        {1, 1},  // party[0] → 우하단 (1,1)
+        {1, 0},  // party[1] → 좌하단 (1,0)
+        {0, 1},  // party[2] → 우상단 (0,1)
+        {0, 0}   // party[3] → 좌상단 (0,0)
+    };
+
     for (int i = 0; i < 4; ++i)
     {
-        int row = i / 2;
-        int col = i % 2;
+        int row = layoutMap[i][0];
+        int col = layoutMap[i][1];
         int xPos = charArtStartX + col * charArtWidth;
         int yPos = charArtStartY + row * charArtHeight;
 
@@ -675,15 +687,15 @@ void BattleScene::UpdateMonsterInfoPanel()
     // ===== 몬스터 이름 → 파일명 매핑 (Monsters.csv 기준) =====
     if (monsterName.find("슬라임") != std::string::npos || monsterName.find("망령") != std::string::npos) {
         fileName = "Slime.txt";
+    } 
+	else if (monsterName.find("박쥐") != std::string::npos) {
+        fileName = "Bat.txt";
     }
     else if (monsterName.find("쥐") != std::string::npos) {
         fileName = "Mouse.txt";
     }
     else if (monsterName.find("고블린") != std::string::npos) {
         fileName = "Goblin.txt";
-    }
-    else if (monsterName.find("박쥐") != std::string::npos) {
-        fileName = "Bat.txt";
     }
     else if (monsterName.find("해골") != std::string::npos || monsterName.find("스켈레톤") != std::string::npos) {
         fileName = "Skeleton.txt";
