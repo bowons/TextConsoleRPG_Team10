@@ -634,7 +634,7 @@ bool BattleManager::ProcessBattleTurn()
         {
             _Result.Victory = true;
             _Result.IsCompleted = true;
-            SoundPlayer::GetInstance()->PlayMonserSFX(_CurrentMonster.get()->GetName(), "Dead");
+            SoundPlayer::GetInstance()->PlayMonsterSFX(_CurrentMonster.get()->GetName(), "Dead");
             return false;
         }
         _IsPlayerTurn = false;   // ⭐ 다음은 몬스터

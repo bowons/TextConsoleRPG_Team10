@@ -5,6 +5,7 @@
 #include "../../include/Item/HealPotion.h"
 #include "../../include/Item/AttackUp.h"
 #include "../../include/Manager/GameManager.h"
+#include "../../include/Manager/SoundPlayer.h"
 #include "../../include/Skill/MonsterSkills.h"
 #include "../../include/Skill/ISkill.h"
 #include <random>
@@ -110,6 +111,7 @@ std::tuple<std::string, int> Boss::Attack(ICharacter* Target) const
         if (_TurnCounter % 3 == 0)
         {
             int aoeDamage = static_cast<int>(_Stats._Atk * 1.2f);
+            SoundPlayer::GetInstance()->PlayMonsterSFX(GetName(), "_Attack1");
             return { "어둠의 폭풍", aoeDamage };
         }
 
@@ -117,6 +119,7 @@ std::tuple<std::string, int> Boss::Attack(ICharacter* Target) const
         if (_TurnCounter % 4 == 0)
         {
             // 디버프는 데미지 0, BattleManager에서 처리
+            SoundPlayer::GetInstance()->PlayMonsterSFX(GetName(), "_Debuff");
             return { "공포의 속삭임", 0 };
         }
 
@@ -132,11 +135,13 @@ std::tuple<std::string, int> Boss::Attack(ICharacter* Target) const
         {
             // 치명타 발동! (강화된 공격 × 2배)
             int critDamage = static_cast<int>(_Stats._Atk * 1.3f * 2);
+            SoundPlayer::GetInstance()->PlaySFX("Golem_Atack");
             return { "강화된 " + _AttackName + " 치명타!", critDamage };
         }
 
         // 그 외엔 강화된 일반 공격 (×1.3배)
         int enhancedDamage = static_cast<int>(_Stats._Atk * 1.3f);
+        SoundPlayer::GetInstance()->PlaySFX("Golem_Atack");
         return { "강화된 " + _AttackName, enhancedDamage };
     }
 
@@ -145,6 +150,7 @@ std::tuple<std::string, int> Boss::Attack(ICharacter* Target) const
     if (_TurnCounter % 2 == 0)
     {
         int skillDamage = static_cast<int>(_Stats._Atk * 1.5f);
+        SoundPlayer::GetInstance()->PlayMonsterSFX(GetName(), "_Attack2");
         return { "에테르 충격파", skillDamage };
     }
 
@@ -160,6 +166,7 @@ std::tuple<std::string, int> Boss::Attack(ICharacter* Target) const
     {
         // ===== 치명타 발동! (데미지 2배) =====
         int critDamage = _Stats._Atk * 2;
+        SoundPlayer::GetInstance()->PlaySFX("Golem_Atack");
         return { _AttackName + " 치명타!", critDamage };
     }
 

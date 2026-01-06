@@ -125,7 +125,7 @@ void SoundPlayer::ResetBGM()
     PlayBGM(_CurrentBGMID);
 }
 
-void SoundPlayer::PlayMonserSFX(const std::string& MonsterName, const std::string& SoundType)
+void SoundPlayer::PlayMonsterSFX(const std::string& MonsterName, const std::string& SoundType)
 {
     std::string SoundID = "";
     if (MonsterName=="오염된 슬라임")
@@ -138,7 +138,7 @@ void SoundPlayer::PlayMonserSFX(const std::string& MonsterName, const std::strin
     }
     else if (MonsterName == "고블린 정찰병")
     {
-        SoundID.append("Gobline");
+        SoundID.append("Goblin");
     }
     else if (MonsterName == "박쥐 떼")
     {
@@ -235,7 +235,11 @@ void SoundPlayer::PlayMonserSFX(const std::string& MonsterName, const std::strin
     else if (MonsterName == "심연의 집사")
     {
         SoundID.append("AbyssButler");
-        }
+    }
+    else if (MonsterName == "에테르노")
+    {
+        SoundID.append("Boss");
+    }
 
     SoundID.append(SoundType);
     PlaySFX(SoundID);
