@@ -572,7 +572,6 @@ bool BattleManager::ProcessBattleTurn()
 
     // 3. TODO: BattleScene에서 라운드 시작 로그 표시
 
-    ProcessReservedItems();
     // 4. GameManager에서 메인 플레이어 가져오기
     GameManager* gm = GameManager::GetInstance();
     Player* mainPlayer = gm->GetMainPlayer().get();
