@@ -1,4 +1,4 @@
-#include "../../../include/UI/Scenes/BattleScene.h"
+﻿#include "../../../include/UI/Scenes/BattleScene.h"
 #include "../../../include/UI/UIDrawer.h"
 #include "../../../include/UI/Panel.h"
 #include "../../../include/UI/TextRenderer.h"
@@ -146,7 +146,7 @@ void BattleScene::Enter() {
             if (charArt->LoadFromFile(charactersPath, artFileName))
             {
                 charArt->SetAlignment(ArtAlignment::CENTER);
-                charArt->SetColor(ETextColor::WHITE);
+                charArt->SetColor(ETextColor::LIGHT_CYAN); //캐릭터 색상
                 charArtPanel->SetContentRenderer(std::move(charArt));
             }
             else
@@ -203,7 +203,7 @@ void BattleScene::Enter() {
 
     auto animArt = std::make_unique<AsciiArtRenderer>();
     animArt->SetAlignment(ArtAlignment::CENTER);
-    animArt->SetColor(ETextColor::WHITE);
+    animArt->SetColor(ETextColor::WHITE); //애니메이션 색상
     animPanel->SetContentRenderer(std::move(animArt));
     animPanel->Redraw();
 
@@ -750,7 +750,7 @@ void BattleScene::UpdateMonsterInfoPanel()
     if (monsterArt->LoadFromFile(monstersPath, fileName))
     {
         monsterArt->SetAlignment(ArtAlignment::CENTER);
-        monsterArt->SetColor(ETextColor::WHITE);
+        monsterArt->SetColor(ETextColor::LIGHT_YELLOW); // 몬스터 색상
         enemyPanel->SetContentRenderer(std::move(monsterArt));
     }
     else
