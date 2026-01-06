@@ -217,6 +217,18 @@ void BattleScene::Enter() {
         [this](EBattleFlushType type)
         {
             this->CollectBattleLogs();
+            switch (type)
+            {
+            case EBattleFlushType::PlayerAttack:
+            case EBattleFlushType::PlayerItem:
+            case EBattleFlushType::MonsterAttack:
+            case EBattleFlushType::BossAttack:
+            case EBattleFlushType::BossDebuff:
+                // 애니메이션 대기 설정
+                _IsWaitingForAnimation = true;
+                _AnimationWaitTimer = 1.0f; // 1초 대기
+                break;
+            }
         }
     );
 }

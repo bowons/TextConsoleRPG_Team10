@@ -139,6 +139,7 @@ void BattleManager::ProcessTurn(ICharacter* Def)
     if (TryUseReservedItem(currentPlayer))
     {
         PushLog(currentPlayer->GetName() + "은(는) 아이템 사용으로 턴 종료", EBattleLogType::Important);
+        RequestFlush(EBattleFlushType::PlayerItem);
     }
     else
     {
