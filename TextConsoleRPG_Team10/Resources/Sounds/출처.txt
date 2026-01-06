@@ -579,6 +579,10 @@ impsplat
 - 558839__dominictreis__royal-entrance-music.mp3
 - https://freesound.org/people/dominictreis/sounds/558839/
 
+게임 클리어 음악 후보
+- 770063__vrymaa__nihil-inanis.wav
+- https://freesound.org/people/Vrymaa/sounds/770063/
+
 단독 파일 - 보스 음성
  643715__snowfightstudios__devil-demon_i-am-death
 - https://freesound.org/people/SnowFightStudios/sounds/643715/
@@ -589,3 +593,12 @@ impsplat
  Boss_Dead
 - 337641__richerlandtv__creepy-ghost-voice-2
 - https://freesound.org/people/RICHERlandTV/sounds/337641/
+ Boss_Attack1
+- 688085__danietzyt__shock-wave-wind.wav
+- https://freesound.org/people/DanietzYT/sounds/688085/
+ Boss_Attack2
+- 331859__electroshocknetwork__xkicks-god-of-the-resis.aiff
+- https://freesound.org/people/ElectroShockNetwork/sounds/331859/
+ Boss_Dbuff
+- 570852__rafaelzimrp__magicshield_down.wav
+- https://freesound.org/people/rafaelzimrp/sounds/570852/

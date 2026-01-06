@@ -27,8 +27,8 @@ Slime_Hit,SlimeHitted.wav,0.386,1
 Rat_Attack,RatAttack.wav,1.202,0.5
 Rat_Dead,RatDead.wav,1.138,1
 Rat_Hit,RatHitted.wav,0.508,0.7
-Gobline_Attack,GoblinAttack .wav,0.589,0.8
-Gobline_Dead,GoblinDead.wav,0.48,0.5
+Goblin_Attack,GoblinAttack .wav,0.589,0.8
+Goblin_Dead,GoblinDead.wav,0.48,0.5
 Goblin_Hit,GoblinHitted.wav,0.231,0.8
 Bat_Attack,BatAttack.wav,0.785,1
 Bat_Dead,FlyingMobDead.wav,0.744,0.5
@@ -121,7 +121,10 @@ BGM_10,BGM_10.wav,229.868,0.5
 BGM_11,BGM_11_GameOver,11.087,0.5
 BGM_12,BGM_12_GameClear,27.951,0.5
 BGM_Shop,BGM_Shop.wav,64,0.8
-BossVoice_1,BossVoice_IamDeath.wav,0.557,0.5
-BossVoice_2,BossVoice_IamTheDarkness.wav,1.779,0.5
-BossVoice_3,BossVoice_YouCannotEscapeDeath.wav,2.44,0.5
-Boss_Dead,Boss_Dead.wav,,
+Boss_Voice1,BossVoice_IamDeath.wav,0.557,0.5
+Boss_Voice2,BossVoice_IamTheDarkness.wav,1.779,0.5
+Boss_Voice3,BossVoice_YouCannotEscapeDeath.wav,2.44,0.5
+Boss_Dead,Boss_Dead.wav,2.907,0.8
+Boss_Attack1,Boss_Attack1,0.921,0.5
+Boss_Attack2,Boss_Attack2,1.333,0.5
+Boss_Debuff,Boss_Debuff,1.207,1

@@ -51,7 +51,7 @@ public:
     void ResetBGM();
 
     // 몬스터 사망 효과음 재생
-    void PlayMonserSFX(const std::string& MonsterName, const std::string& SoundType);
+    void PlayMonsterSFX(const std::string& MonsterName, const std::string& SoundType);
 
 private:
     std::string GetFullSoundPath(const std::string& FileName);
