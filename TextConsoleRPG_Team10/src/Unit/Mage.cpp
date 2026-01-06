@@ -1,7 +1,7 @@
 #include "../../include/Unit/Mage.h"
 #include "../../include/Skill/MageSkills.h"
 #include "../../include/Data/ClassData.h"
-#include "../../include/Manager/PrintManager.h"  // 추가
+#include "../../include/Manager/PrintManager.h"
 
 Mage::Mage(const std::string& name, bool enableInventory)
     : Player(name, enableInventory)
@@ -17,6 +17,10 @@ Mage::Mage(const std::string& name, bool enableInventory)
     _Stats._Luk = 18;
     _Stats._CriticalRate = 0.10f;
 
+    // 마력 폭주 초기화
+    _IsMagicOverloadActive = false;
+    _MagicOverloadRoundsRemaining = 0;
+
     // 직업별 스킬 초기화
     InitializeSkills();
 }
@@ -24,6 +28,10 @@ Mage::Mage(const std::string& name, bool enableInventory)
 Mage::Mage(const ClassData& data, const std::string& name, bool enableInventory)
     : Player(data, name, enableInventory)
 {
+    // 마력 폭주 초기화
+    _IsMagicOverloadActive = false;
+    _MagicOverloadRoundsRemaining = 0;
+
     InitializeSkills();
 }
 
@@ -84,4 +92,44 @@ void Mage::ApplyProficiencyGrowth()
             );
         }
     }
+}
+
+// ===== 마력 폭주 시스템 구현 =====
+
+void Mage::ActivateMagicOverload(int rounds)
+{
+    _IsMagicOverloadActive = true;
+    _MagicOverloadRoundsRemaining = rounds;
+}
+
+void Mage::DeactivateMagicOverload()
+{
+    _IsMagicOverloadActive = false;
+    _MagicOverloadRoundsRemaining = 0;
+}
+
+void Mage::ProcessRoundEnd()
+{
+    // 부모 클래스의 ProcessRoundEnd 먼저 호출 (기본 버프 처리)
+    Player::ProcessRoundEnd();
+
+    // ===== 마력 폭주 처리 =====
+    if (_IsMagicOverloadActive && _MagicOverloadRoundsRemaining > 0)
+    {
+        _MagicOverloadRoundsRemaining--;
+        if (_MagicOverloadRoundsRemaining == 0)
+        {
+            DeactivateMagicOverload();
+        }
+    }
+}
+
+void Mage::ResetBuffs()
+{
+    // 부모 클래스의 ResetBuffs 먼저 호출
+    Player::ResetBuffs();
+
+    // 마력 폭주 초기화
+    _IsMagicOverloadActive = false;
+    _MagicOverloadRoundsRemaining = 0;
 }

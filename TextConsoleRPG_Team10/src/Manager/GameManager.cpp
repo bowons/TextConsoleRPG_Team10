@@ -215,7 +215,7 @@ void GameManager::RestartGame()
         ELogImportance::DISPLAY
     );
 
-    SceneManager::GetInstance()->ChangeScene(ESceneType::PlayerNameInput);
+    SceneManager::GetInstance()->ChangeScene(ESceneType::MainMenu);
 }
 
 // ===== DEPRECATED: 레거시 함수, CreateMainPlayerWithClass 사용 권장 =====

@@ -15,13 +15,13 @@ Archer::Archer(const std::string& name, bool enableInventory)
     _Stats._Dex = 30;
     _Stats._Luk = 25;
     _Stats._CriticalRate = 0.15f;  // 높은 기본 치명타율
-    
+
     // 직업별 스킬 초기화
     InitializeSkills();
 }
 
 Archer::Archer(const ClassData& data, const std::string& name, bool enableInventory)
- : Player(data, name, enableInventory)
+    : Player(data, name, enableInventory)
 {
     InitializeSkills();
 }
@@ -40,9 +40,9 @@ int Archer::SelectBestSkill(ICharacter* target) const
 
     // 아처 스킬 우선순위:
     // 1순위: 연사 (적 HP 20% 이하)
-    // 2순위: 정밀조준 (버프 준비)
+    // 2순위: 정밀조준 (전투 시작 첫 턴)
 
- // 연사 (인덱스 1) - 적 HP 20% 이하
+    // 연사 (인덱스 1) - 적 HP 20% 이하
     if (CanUseSkill(1))
     {
         float targetHpRatio = static_cast<float>(target->GetCurrentHP()) / target->GetMaxHP();
@@ -50,7 +50,7 @@ int Archer::SelectBestSkill(ICharacter* target) const
             return 1;
     }
 
-    // 정밀조준 (인덱스 0)
+    // 정밀조준 (인덱스 0) - 첫 턴에만 사용 가능
     if (CanUseSkill(0))
     {
         return 0;

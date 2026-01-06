@@ -2,6 +2,7 @@
 #include "../../include/Unit/Player.h"
 #include "../../include/Manager/GameManager.h"
 #include "../../include/Manager/SoundPlayer.h"
+#include "../../include/Manager/BattleManager.h"
 
 // ===== 정밀 조준 (Aim) =====
 
@@ -27,9 +28,9 @@ SkillResult AimSkill::CalculateEffect(Player* user, ICharacter* target)
 
     return SkillResult{
         _Name,
-   lukBoost,
-    1,
-   true,
+        lukBoost,
+        1,
+        true,
         "1턴간 행운 +" + std::to_string(lukBoost) + " (치명타율 상승)"
     };
 }
@@ -39,9 +40,9 @@ bool AimSkill::CanActivate(const Player* user) const
     if (!user)
         return false;
 
-    // TODO: 전투 시작 첫 턴 체크 (BattleManager::GetCurrentRound() == 1)
-    // 현재는 항상 사용 가능으로 설정
-    return true;
+    // 전투 시작 첫 턴에만 사용 가능
+    BattleManager* bm = BattleManager::GetInstance();
+    return bm->GetCurrentRound() == 1;
 }
 
 std::string AimSkill::GetConditionDescription() const
@@ -77,9 +78,9 @@ SkillResult MultiShotSkill::CalculateEffect(Player* user, ICharacter* target)
 
     return SkillResult{
         _Name,
- singleHitDamage,  // BattleManager가 HitCount만큼 반복 처리
+        singleHitDamage,  // BattleManager가 HitCount만큼 반복 처리
         3,  // 타격 횟수
-    true,
+        true,
         "3연속 공격! (각 타격마다 치명타 독립 판정)"
     };
 }
