@@ -179,6 +179,47 @@ TransactionResult ShopManager::BuyItem(Player* player, int idx)
         return { false, "이 캐릭터는 아이템을 구매할 수 없습니다.", 0, itemName };
     }
 
+    // 1. 동일 아이템 슬롯에 추가 가능 여부 확인
+    int maxStack = stock.StoredItem->GetMaxCount();
+    bool canAddToExisting = false;
+    
+    // 기존 슬롯에 추가 가능한지 확인
+    for (int i = 0; i < 5; ++i)  // 인벤토리 최대 5칸 가정
+    {
+        IItem* slotItem = inventory->GetItemAtSlot(i);
+        if (slotItem && typeid(*slotItem) == typeid(*stock.StoredItem))
+        {
+            int currentAmount = inventory->GetSlotAmount(i);
+            if (currentAmount < maxStack)
+            {
+                canAddToExisting = true;
+                break;
+            }
+        }
+    }
+
+    // 2. 빈 슬롯 확인 (기존 슬롯에 추가 불가능한 경우)
+    bool hasEmptySlot = false;
+    if (!canAddToExisting)
+    {
+        for (int i = 0; i < 5; ++i)
+        {
+            if (inventory->GetSlotAmount(i) <= 0)
+            {
+                hasEmptySlot = true;
+                break;
+            }
+        }
+    }
+
+    // 3. 추가 불가능한 경우 구매 거부 (골드 차감 X)
+    if (!canAddToExisting && !hasEmptySlot)
+    {
+        return { false, "인벤토리 공간이 부족합니다.", 0, itemName };
+    }
+
+    // ===== 여기부터는 추가 가능한 경우만 진행 =====
+    
     // 아이템 생성 및 인벤토리 추가
     std::unique_ptr<IItem> item = stock.StoredItem->Clone();
     int remain;
@@ -186,6 +227,7 @@ TransactionResult ShopManager::BuyItem(Player* player, int idx)
 
     if (addSuccess && remain == 0)
     {
+        // 성공적으로 추가됨 → 골드 차감 & 재고 감소
         stock._StockCount--;
         player->ModifyGold(-price);
 

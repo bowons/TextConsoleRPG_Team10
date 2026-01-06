@@ -1,4 +1,4 @@
-﻿#include "../../include/Unit/Player.h"
+#include "../../include/Unit/Player.h"
 #include "../../include/Data/ClassData.h"
 #include <iostream>
 #include <cstdlib>

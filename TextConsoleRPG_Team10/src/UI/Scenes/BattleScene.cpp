@@ -1,4 +1,4 @@
-﻿#include "../../../include/UI/Scenes/BattleScene.h"
+#include "../../../include/UI/Scenes/BattleScene.h"
 #include "../../../include/UI/UIDrawer.h"
 #include "../../../include/UI/Panel.h"
 #include "../../../include/UI/TextRenderer.h"
@@ -669,46 +669,16 @@ void BattleScene::UpdateMonsterInfoPanel()
     }
     else
     {
-        // 로드 실패 시 기본 텍스트 + 스탯 표시
+        // 로드 실패 시 기본 텍스트
         auto fallbackText = std::make_unique<TextRenderer>();
+        fallbackText->AddLine("");
         fallbackText->AddLine("");
         fallbackText->AddLineWithColor("  [ " + monster->GetName() + " ]",
             MakeColorAttribute(ETextColor::LIGHT_RED, EBackgroundColor::BLACK));
         fallbackText->AddLine("");
-        
-        // HP 바 표시
-        int hp = monster->GetCurrentHP();
-        int maxHp = monster->GetMaxHP();
-        float hpRatio = static_cast<float>(hp) / maxHp;
-        
-        std::string hpBar = "  HP: [";
-        int barLength = 20;
-        int filledLength = static_cast<int>(hpRatio * barLength);
-        
-        for (int i = 0; i < barLength; ++i)
-        {
-            if (i < filledLength)
-                hpBar += "=";
-            else
-                hpBar += "-";
-        }
-        hpBar += "]";
-        
-        WORD hpColor = (hpRatio < 0.3f) 
-            ? MakeColorAttribute(ETextColor::LIGHT_RED, EBackgroundColor::BLACK)
-            : MakeColorAttribute(ETextColor::LIGHT_GREEN, EBackgroundColor::BLACK);
-        
-        fallbackText->AddLineWithColor(hpBar, hpColor);
-        fallbackText->AddLineWithColor("      " + std::to_string(hp) + " / " + std::to_string(maxHp),
-            MakeColorAttribute(ETextColor::WHITE, EBackgroundColor::BLACK));
-        
-        fallbackText->AddLine("");
-        fallbackText->AddLineWithColor("  ATK: " + std::to_string(monster->GetAtk()) + 
-            " | DEF: " + std::to_string(monster->GetDef()),
-            MakeColorAttribute(ETextColor::YELLOW, EBackgroundColor::BLACK));
-        
-        fallbackText->AddLine("");
-        fallbackText->AddLineWithColor("  (파일: " + fileName + ")",
+        fallbackText->AddLineWithColor("  (이미지 로드 실패)",
+            MakeColorAttribute(ETextColor::DARK_GRAY, EBackgroundColor::BLACK));
+        fallbackText->AddLineWithColor("  파일: " + fileName,
             MakeColorAttribute(ETextColor::DARK_GRAY, EBackgroundColor::BLACK));
         
         enemyPanel->SetContentRenderer(std::move(fallbackText));
