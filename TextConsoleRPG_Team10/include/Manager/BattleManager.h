@@ -9,6 +9,7 @@
 
 class Player;
 class ICharacter;
+class IBattleAnimationCallback;  // 전방 선언
 
 // ===== 전투 플러시 타입 =====
 enum class EBattleFlushType
@@ -60,9 +61,10 @@ struct BattleLog
 // ===== 아이템 예약 구조체 =====
 struct ItemReservation
 {
-    int SlotIndex;      // 인벤토리 슬롯 인덱스
-    Player* User; // 사용자
-    bool IsActive; // 예약 활성화 여부
+    int SlotIndex;          // 인벤토리 슬롯 인덱스
+    Player* Owner;        // 아이템 소유자 (메인 플레이어)
+    Player* Target;         // 사용 대상 (파티원)
+    bool IsActive;     // 예약 활성화 여부
 };
 
 class BattleManager : public Singleton<BattleManager>
@@ -75,10 +77,37 @@ private:
     BattleResult _Result;
 
     // ===== 아이템 예약 시스템 =====
-    int _CurrentRound = 0;  // 현재 라운드 (0부터 시작)
+    int _CurrentRound = 0;  // 현재 턴 카운터 (0부터 시작)
     std::vector<ItemReservation> _ItemReservations;  // 예약 목록
 
+    // ===== 턴제 시스템 (우선순위 순환) =====
+    int _CurrentPartyMemberIndex = 0;  // 현재 행동할 파티원 인덱스 (우선순위 정렬 후)
+    std::vector<Player*> _TurnOrder;   // 우선순위 정렬된 파티원 목록 (전투 시작 시 생성)
+
+    // ===== 애니메이션 콜백 =====
+    IBattleAnimationCallback* _AnimationCallback = nullptr;
+
+private:
+    std::vector<BattleLog> _BattleLogs;
+
+    // ===== 내부 헬퍼 함수 =====
+    void RefreshTurnOrder();  // 파티 정렬 (사망자 제외)
+
 public:
+    // ===== 애니메이션 콜백 등록 =====
+  // BattleScene::Enter()에서 호출
+    inline void SetAnimationCallback(IBattleAnimationCallback* callback)
+    {
+        _AnimationCallback = callback;
+    }
+
+    // ===== 애니메이션 콜백 제거 =====
+    // BattleScene::Exit()에서 호출
+    inline void ClearAnimationCallback()
+    {
+        _AnimationCallback = nullptr;
+    }
+
     // ===== Scene 친화적 인터페이스 =====
 
     // 전투 시작 (몬스터 생성만 담당)
@@ -127,16 +156,17 @@ public:
     // ===== 아이템 예약 시스템 인터페이스 =====
 
     // 아이템 사용 예약
-    // player: 사용자
+    // owner: 아이템을 소유한 플레이어 (메인 플레이어)
+    // target: 아이템을 사용받을 대상 (파티원)
     // slotIndex: 예약할 슬롯 인덱스
     // return: 예약 성공 시 true
-    bool ReserveItemUse(Player* player, int slotIndex);
+    bool ReserveItemUse(Player* owner, Player* target, int slotIndex);
 
     // 아이템 예약 취소
-    // player: 사용자
+    // owner: 아이템을 소유한 플레이어 (메인 플레이어)
     // slotIndex: 취소할 슬롯
     // return: 취소 성공 시 true
-    bool CancelItemReservation(Player* player, int slotIndex);
+    bool CancelItemReservation(Player* owner, int slotIndex);
 
     // 현재 예약된 아이템 목록 조회 (UI 표시용)
     // return: 활성화된 예약 목록

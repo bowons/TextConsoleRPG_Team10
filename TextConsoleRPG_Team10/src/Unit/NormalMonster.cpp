@@ -72,10 +72,28 @@ int NormalMonster::TakeDamage(ICharacter* Target, int Amount)
 
 std::tuple<std::string, int> NormalMonster::Attack(ICharacter* Target) const
 {
-    if (!Target) 
+    if (!Target)
         return { "",0 };
 
-    // CSV에서 로드한 공격명 사용
+    // ===== 치명타 판정 (LUK 반영) =====
+    // 치명타율 = 기본 치명타율 + (총 LUK * 0.1%)
+    int totalLuk = _Stats._Luk + _Stats._TempLuk;
+    float lukBonus = totalLuk * 0.001f;  // LUK 1당 0.1% (0.001)
+    float totalCritRate = _Stats._CriticalRate + _Stats._TempCriticalRate + lukBonus;
+
+    // 확률 계산 (1~100 사이)
+    int critRoll = std::uniform_int_distribution<>(1, 100)(gen);
+    float critThreshold = totalCritRate * 100.0f;
+
+    if (critRoll <= static_cast<int>(critThreshold))
+    {
+        // ===== 치명타 발동! (데미지 2배) =====
+        int critDamage = _Stats._Atk * 2;
+        return { _AttackName + " 치명타!", critDamage };
+    }
+
+    // ===== 일반 공격 =====
+ // CSV에서 로드한 공격명 사용
     return { _AttackName, _Stats._Atk };
 }
 

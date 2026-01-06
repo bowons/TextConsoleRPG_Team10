@@ -5,6 +5,11 @@ struct ClassData;
 
 class Mage : public Player
 {
+private:
+    // ===== 마력 폭주 버프 시스템 =====
+    bool _IsMagicOverloadActive;
+    int _MagicOverloadRoundsRemaining;
+
 protected:
     void InitializeSkills() override;
 
@@ -21,4 +26,15 @@ public:
 
     // 어그로 최대 대사 오버라이드
     std::string GetAggroMaxDialogue() const override;
+
+    // ===== 마력 폭주 시스템 =====
+    inline bool IsMagicOverloadActive() const { return _IsMagicOverloadActive; }
+    void ActivateMagicOverload(int rounds);
+    void DeactivateMagicOverload();
+
+    // ProcessRoundEnd 오버라이드 (마력 폭주 처리 추가)
+    void ProcessRoundEnd() override;
+
+    // ResetBuffs 오버라이드 (마력 폭주 초기화 추가)
+    void ResetBuffs() override;
 };
