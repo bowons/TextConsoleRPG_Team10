@@ -4,6 +4,14 @@
 #include <string>
 #include <Windows.h>  // WORD 타입 정의
 
+// ===== 전투 입력 상태 =====
+enum class EBattleInputState
+{
+    Playing,        // 전투 진행 중 (턴 처리)
+    ResultShown,    // 전투 종료, 결과 로그 표시 중
+    EndWaiting      // 결과 확인 완료, 씬 이동 대기
+};
+
 // 전투 Scene
 class BattleScene : public UIScene
 {
@@ -26,6 +34,8 @@ private:
     bool _IsPlayingAnimation;  // 애니메이션 재생 중
     float _AnimationTimer;     // 애니메이션 타이머
     std::string _CurrentAnimationName;  // 현재 재생 중인 애니메이션 이름
+
+    EBattleInputState _InputState = EBattleInputState::Playing;
 
 public:
     BattleScene();
