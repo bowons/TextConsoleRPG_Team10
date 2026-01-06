@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 #include <optional>
+#include "../Data/CompanionData.h"
 
 class Player;
 struct ItemData;
@@ -97,6 +98,15 @@ std::optional<ClassData> GetClassData(const std::string& classId, const std::str
 
     // === 편의 함수 =====
     std::string GetResourcePath(const std::string& resourceType) const;
+
+    // ===== 동료 데이터 로딩 =====
+    // Companion.csv 파일에서 모든 동료 데이터 로드
+    std::vector<CompanionData> LoadCompanionData(const std::string& fileName = "Companion.csv");
+    
+    // 등장 확률에 따라 랜덤 동료 선택
+    // currentFloor: 현재 층수 (동료 레벨 결정)
+    // return: 선택된 동료 데이터 (없으면 std::nullopt)
+    std::optional<CompanionData> GetRandomCompanion();
 
     inline const bool IsInitialized() { return _IsInitialized; };
 };

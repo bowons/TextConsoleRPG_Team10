@@ -7,6 +7,7 @@
 #include "../../include/Data/ClassData.h"  // 추가
 #include "../../include/Data/FloorScalingData.h"  // 추가
 #include "../../include/Manager/GameManager.h"
+#include "../../include/Data/CompanionData.h"
 
 #include <filesystem>
 #include <fstream>
@@ -15,6 +16,7 @@
 #include <algorithm>
 #include <cstdio>
 #include <optional>
+#include <random>
 
 
 // Windows API 매크로 충돌 방지
@@ -913,4 +915,88 @@ std::optional<FloorScalingData> DataManager::GetFloorScaling(int floor, const st
 
     SafeLog("DataManager::GetFloorScaling - Floor not found: " + std::to_string(floor), ELogImportance::WARNING);
     return std::nullopt;
+}
+
+std::vector<CompanionData> DataManager::LoadCompanionData(const std::string& fileName)
+{
+    std::vector<CompanionData> companions;
+    
+    auto csvData = LoadCSVFile(GetCharactersPath(), fileName);
+    
+    if (csvData.size() <= 1)  // 헤더만 있거나 빈 파일
+    {
+        return companions;
+    }
+    
+    // 헤더 스킵하고 데이터 파싱
+    for (size_t i = 1; i < csvData.size(); ++i)
+    {
+        const auto& row = csvData[i];
+        
+        if (row.size() < 12) continue;  // 필드 개수 확인
+        
+        CompanionData data;
+        data._CompanionId = row[0];
+        data._Name = row[1];
+        data._JobType = row[2];
+        data._HP = std::stoi(row[3]);
+        data._MP = std::stoi(row[4]);
+        data._Atk = std::stoi(row[5]);
+        data._Def = std::stoi(row[6]);
+        data._Dex = std::stoi(row[7]);
+        data._Luk = std::stoi(row[8]);
+        data._CritRate = std::stof(row[9]);
+        data._AppearRate = std::stof(row[10]);
+        data._AsciiFile = row[11];
+        
+        companions.push_back(data);
+    }
+    
+    return companions;
+}
+
+std::optional<CompanionData> DataManager::GetRandomCompanion()
+{
+    static std::vector<CompanionData> companionCache;
+    
+    // 캐시가 비어있으면 로드
+    if (companionCache.empty())
+    {
+        companionCache = LoadCompanionData();
+        
+        if (companionCache.empty())
+        {
+            return std::nullopt;
+        }
+    }
+    
+    // 가중치 기반 랜덤 선택
+    static std::random_device rd;
+    static std::mt19937 gen(rd());
+    
+    // 누적 확률 계산
+    std::vector<float> cumulativeProbabilities;
+    float totalProb = 0.0f;
+    
+    for (const auto& companion : companionCache)
+    {
+        totalProb += companion._AppearRate;
+        cumulativeProbabilities.push_back(totalProb);
+    }
+    
+    // 랜덤 값 생성 (0.0 ~ totalProb)
+    std::uniform_real_distribution<float> dist(0.0f, totalProb);
+    float randValue = dist(gen);
+    
+    // 선택된 동료 찾기
+    for (size_t i = 0; i < cumulativeProbabilities.size(); ++i)
+    {
+        if (randValue <= cumulativeProbabilities[i])
+        {
+            return companionCache[i];
+        }
+    }
+    
+    // 실패 시 첫 번째 동료 반환 (안전장치)
+    return companionCache[0];
 }

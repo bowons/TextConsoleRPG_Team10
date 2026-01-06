@@ -332,7 +332,7 @@ void GameManager::StartBattleTest()
   drawer->Shutdown();
 }
 
-// ===== 동료 영입 테스트 (임시) =====
+// ===== 동료 영입 테스트 (임시)=====
 void GameManager::StartCompanionRecruitTest() {
   _IsGameOver = false;
   _IsRunning = true;
@@ -342,97 +342,7 @@ void GameManager::StartCompanionRecruitTest() {
   PrintManager::GetInstance()->EndLine();
 
   // 임시 메인 플레이어 생성
-  auto mainPlayer = std::make_shared<Player>("테스트 플레이어", true);
-
-  _Party.clear();
-  _Party.push_back(mainPlayer);
-
-  SceneManager* sm = SceneManager::GetInstance();
-  UIDrawer* drawer = UIDrawer::GetInstance();
-
-  // CompanionRecruitScene으로 바로 전환
-  sm->ChangeScene(ESceneType::CompanionRecruit);
-
-  // ===== 메인 게임 루프 =====
-  while (_IsRunning && !_IsGameOver) {
-    // 씬 업데이트
-    sm->Update();
-
-    // 씬 렌더링
-    sm->Render();
-
-    // ESC 키로 종료 가능 (테스트용)
-    if (GetAsyncKeyState(VK_ESCAPE) & 0x8000) {
-      Sleep(150);
-      EndGame();
-    }
-  }
-
-  // 게임 종료 메시지
-  PrintManager::GetInstance()->EndLine();
-  PrintManager::GetInstance()->PrintLogLine("동료 영입 테스트를 종료합니다.",
-                                            ELogImportance::DISPLAY);
-
-  // UIDrawer 정리
-  drawer->Shutdown();
-}
-
-// ===== 동료 영입 테스트 (임시) =====
-void GameManager::StartCompanionRecruitTest() {
-  _IsGameOver = false;
-  _IsRunning = true;
-
-  PrintManager::GetInstance()->PrintLogLine("동료 영입 테스트 모드 시작...",
-                                            ELogImportance::DISPLAY);
-  PrintManager::GetInstance()->EndLine();
-
-  // 임시 메인 플레이어 생성
-  auto mainPlayer = std::make_shared<Player>("테스트 플레이어", true);
-
-  _Party.clear();
-  _Party.push_back(mainPlayer);
-
-  SceneManager* sm = SceneManager::GetInstance();
-  UIDrawer* drawer = UIDrawer::GetInstance();
-
-  // CompanionRecruitScene으로 바로 전환
-  sm->ChangeScene(ESceneType::CompanionRecruit);
-
-  // ===== 메인 게임 루프 =====
-  while (_IsRunning && !_IsGameOver) {
-    // 씬 업데이트
-    sm->Update();
-
-    // 씬 렌더링
-    sm->Render();
-
-    // ESC 키로 종료 가능 (테스트용)
-    if (GetAsyncKeyState(VK_ESCAPE) & 0x8000) {
-      Sleep(150);
-      EndGame();
-    }
-  }
-
-  // 게임 종료 메시지
-  PrintManager::GetInstance()->EndLine();
-  PrintManager::GetInstance()->PrintLogLine("동료 영입 테스트를 종료합니다.",
-                                            ELogImportance::DISPLAY);
-
-  // UIDrawer 정리
-  drawer->Shutdown();
-}
-
-// ===== 동료 영입 테스트 (임시) =====
-void GameManager::StartCompanionRecruitTest() {
-  _IsGameOver = false;
-  _IsRunning = true;
-
-  PrintManager::GetInstance()->PrintLogLine("동료 영입 테스트 모드 시작...",
-                                            ELogImportance::DISPLAY);
-  PrintManager::GetInstance()->EndLine();
-
-  // 임시 메인 플레이어 생성
-  auto mainPlayer = std::make_shared<Player>("테스트 플레이어", true);
+  auto mainPlayer = std::make_shared<Warrior>("테스트 플레이어", true);
 
   _Party.clear();
   _Party.push_back(mainPlayer);
