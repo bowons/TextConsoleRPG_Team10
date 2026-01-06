@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "../UIScene.h"
 #include <vector>
 #include <string>
@@ -78,4 +78,7 @@ private:
     
     // 전투 종료 처리
     void EndBattle(bool victory);
+
+    // 로그 받기
+    void CollectBattleLogs();
 };

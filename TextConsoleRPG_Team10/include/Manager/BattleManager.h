@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "../Singleton.h"
 #include "../Unit/IMonster.h"
 #include <memory>
@@ -32,6 +32,18 @@ enum class EBattleType
     Normal,     // 일반 몬스터
     Elite,      // 정예 몬스터
     Boss        // 보스
+};
+// ===== 전투 로그 =====
+enum class EBattleLogType
+{
+    Normal,
+    Warning,
+    Important
+};
+struct BattleLog
+{
+    std::string Message;
+    EBattleLogType Type;
 };
 
 // ===== 아이템 예약 구조체 =====
@@ -164,4 +176,11 @@ public:
     // 아이템: 메인 플레이어 인벤토리에 추가
     // BattleResult 업데이트
     void CalculateReward(Player* P, IMonster* M);
+
+private:
+    std::vector<BattleLog> _BattleLogs;
+
+public:
+    void PushLog(const std::string& msg, EBattleLogType type = EBattleLogType::Normal);
+    std::vector<BattleLog> ConsumeLogs(); // BattleScene에서 가져감
 };

@@ -1,4 +1,4 @@
-#include "../../../include/UI/Scenes/BattleScene.h"
+﻿#include "../../../include/UI/Scenes/BattleScene.h"
 #include "../../../include/UI/UIDrawer.h"
 #include "../../../include/UI/Panel.h"
 #include "../../../include/UI/TextRenderer.h"
@@ -540,6 +540,7 @@ void BattleScene::HandleInput()
         }
 
         ProcessBattleTurn();
+        CollectBattleLogs();
         return;
     }
 
@@ -661,9 +662,11 @@ void BattleScene::ProcessBattleTurn()
 
     // TODO: 애니메이션 재생
     // PlayAnimation("BattleStart", 1.0f);
-
+    
     // BattleManager 턴 처리
     bool continuesBattle = battleMgr->ProcessBattleTurn();
+
+    CollectBattleLogs();
 
     // UI 업데이트
     UpdatePartyPanels();
@@ -846,4 +849,19 @@ int BattleScene::GetPartyIndex(Player* player) const
     }
 
     return -1;
+}
+// ===== 전투 로그 수집 =====
+void BattleScene::CollectBattleLogs()
+{
+    BattleManager* battleMgr = BattleManager::GetInstance();
+    auto logs = battleMgr->ConsumeLogs();
+
+    for (const auto& log : logs)
+    {
+        _SystemLogs.push_back(log.Message);
+    }
+
+    Panel* logPanel = _Drawer->GetPanel("SystemLog");
+    if (logPanel)
+        UpdateSystemLog(logPanel, _SystemLogs);
 }
