@@ -208,6 +208,10 @@ void StoryProgressScene::HandleInput() {
             _IsFirst = false;
             SceneManager::GetInstance()->ChangeScene(ESceneType::PlayerNameInput);
         }
+        else if(GameManager::GetInstance()->GetMainPlayer().get()->IsDead())
+        {
+            SceneManager::GetInstance()->ChangeScene(ESceneType::MainMenu);
+        }
         else
         {
             SceneManager::GetInstance()->ChangeScene(ESceneType::StageSelect);
