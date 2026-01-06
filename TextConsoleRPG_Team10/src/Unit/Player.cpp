@@ -1,4 +1,4 @@
-#include "../../include/Unit/Player.h"
+﻿#include "../../include/Unit/Player.h"
 #include "../../include/Data/ClassData.h"
 #include <iostream>
 #include <cstdlib>
@@ -180,7 +180,7 @@ std::tuple<std::string, int> Player::Attack(ICharacter* Target) const
     
     int actualDamage = Target->TakeDamage(
         const_cast<ICharacter*>(static_cast<const ICharacter*>(this)),
-        TotalDamage);
+        baseDamage);
     SoundPlayer::GetInstance()->PlaySFXWithPause("Player_Attack");
     
     return std::make_tuple("일반 공격", actualDamage);
