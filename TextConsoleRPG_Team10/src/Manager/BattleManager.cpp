@@ -1,7 +1,7 @@
-﻿#include "../../include/Manager/BattleManager.h"
+#include "../../include/Manager/BattleManager.h"
 #include "../../include/Manager/PrintManager.h"
 #include "../../include/Unit/NormalMonster.h"
-#include "../../include/Unit/EliteMonster.h"  // 추가
+#include "../../include/Unit/EliteMonster.h"
 #include "../../include/Unit/Boss.h"
 #include "../../include/Item/HealPotion.h"
 #include "../../include/Item/AttackUp.h"
@@ -12,11 +12,12 @@
 #include "../../include/Unit/Mage.h"
 #include "../../include/Unit/Archer.h"
 #include "../../include/Unit/Priest.h"
-#include "../../include/Skill/ISkill.h"  // SkillResult 포함
+#include "../../include/Skill/ISkill.h"
 #include "../../include/Manager/GameManager.h"
 #include "../../include/Manager/DataManager.h"
 #include "../../include/Item/MonsterSpawnData.h"
-#include "../../include/Data/FloorScalingData.h"  // 추가
+#include "../../include/Data/FloorScalingData.h"
+#include "../../include/UI/IBattleAnimationCallback.h"
 #include <iostream>
 #include <tuple>
 #include <memory>
@@ -24,11 +25,17 @@
 #include <Windows.h>
 #include <optional>
 
-// TODO: 로그 찍기, CalculateReward 내부 구현
+// ===== 직업 우선순위 반환 함수 (전역 함수) =====
+// Archer(0) > Priest(1) > Warrior(2) > Mage(3)
+int GetJobPriority(ICharacter* character)
+{
+    if (dynamic_cast<Archer*>(character))  return 0;
+    if (dynamic_cast<Priest*>(character))  return 1;
+    if (dynamic_cast<Warrior*>(character)) return 2;
+    if (dynamic_cast<Mage*>(character))    return 3;
 
-// 코드 흐름, 각 함수 호출은 GM에서 이루어짐?
-//StartBattle / ProcessBattleTurn -> 플레이어 ProcessTurn -> ProcessAttack -> 몬스터 ProcessAttack / EndBattle -> CalculateReward
-
+    return 99; // 예외 / 알 수 없는 타입
+}
 
 // ===== 몬스터 타겟 선정 (어그로 최댓값 기준) =====
 Player* BattleManager::SelectMonsterTarget()
@@ -46,10 +53,20 @@ Player* BattleManager::SelectMonsterTarget()
             continue;
 
         int aggro = member->GetAggro();
+
+        // 1순위: 어그로가 더 높은 대상
         if (aggro > maxAggro)
         {
             maxAggro = aggro;
             target = member.get();
+        }
+        // 2순위: 어그로가 동일하면 민첩성이 낮은 대상 (약한 대상 우선)
+        else if (aggro == maxAggro && target != nullptr)
+        {
+            if (member->GetDex() < target->GetDex())
+            {
+                target = member.get();
+            }
         }
     }
 
@@ -57,22 +74,26 @@ Player* BattleManager::SelectMonsterTarget()
     return target ? target : gm->GetMainPlayer().get();
 }
 
-void BattleManager::ProcessTurn(ICharacter* Def)
+// ===== 우선순위 정렬된 파티원 목록 갱신 =====
+void BattleManager::RefreshTurnOrder()
 {
     GameManager* gm = GameManager::GetInstance();
     const auto& party = gm->GetParty();
 
-    // 정렬용 복사본 (shared_ptr -> raw pointer)
-    std::vector<ICharacter*> sortedParty;
+    _TurnOrder.clear();
+
+    // 생존한 파티원만 수집
     for (const auto& member : party)
     {
-        if (member)
-            sortedParty.push_back(member.get());
+        if (member && !member->IsDead())
+        {
+            _TurnOrder.push_back(member.get());
+        }
     }
 
-    // ===== 직업 우선순위 정렬 (1순위: 직업, 2순위: DEX) =====
-    std::sort(sortedParty.begin(), sortedParty.end(),
-        [](ICharacter* a, ICharacter* b)
+    // 우선순위 정렬 (1순위: 직업, 2순위: DEX)
+    std::sort(_TurnOrder.begin(), _TurnOrder.end(),
+        [](Player* a, Player* b)
         {
             int jobA = GetJobPriority(a);
             int jobB = GetJobPriority(b);
@@ -86,38 +107,49 @@ void BattleManager::ProcessTurn(ICharacter* Def)
             return a->GetDex() > b->GetDex();
         });
 
-    // TODO: BattleScene에서 "=== 플레이어 턴 시작 ===" 로그 표시
-    /*PrintManager::GetInstance()->EndLine();
-    PrintManager::GetInstance()->PrintLogLine(
-        "=== 플레이어 턴 시작 ===",
-        ELogImportance::DISPLAY
-    );*/
-    PushLog("=== 플레이어 턴 시작 ===", EBattleLogType::Important);
-
-    // 파티 돌아가면서 행동 진행
-    for (ICharacter* member : sortedParty)
+    // 인덱스 초기화 (순환 시작)
+    if (_CurrentPartyMemberIndex >= static_cast<int>(_TurnOrder.size()))
     {
-        if (!member || member->IsDead())
-            continue;
+        _CurrentPartyMemberIndex = 0;
+    }
+}
 
-        Player* player = dynamic_cast<Player*>(member);
-        if (!player)
-            continue;
+void BattleManager::ProcessTurn(ICharacter* Def)
+{
+    // ===== 1턴 = 1명만 행동 =====
+    if (_TurnOrder.empty())
+    {
+        RefreshTurnOrder();
+    }
 
-        // 1️⃣ 해당 플레이어의 예약 아이템 체크
-        if (TryUseReservedItem(player))
-        {
-            // 아이템 사용으로 턴 종료
-            /*PrintManager::GetInstance()->PrintLogLine(
-                player->GetName() + "은(는) 아이템 사용으로 턴 종료",
-                ELogImportance::DISPLAY
-            );*/
-            PushLog(player->GetName() + "은(는) 아이템 사용으로 턴 종료", EBattleLogType::Important);
-            continue;
-        }
+    if (_TurnOrder.empty())
+    {
+        PushLog("[경고] 생존한 파티원이 없습니다.", EBattleLogType::Important);
+        return;
+    }
 
-        // 2️⃣ 아이템 미사용 시 공격 진행
-        ProcessAttack(member, Def);
+    // ===== 현재 턴의 파티원 가져오기 =====
+    Player* currentPlayer = _TurnOrder[_CurrentPartyMemberIndex];
+
+    PushLog("=== " + currentPlayer->GetName() + "의 턴 ===", EBattleLogType::Important);
+
+    // 1️⃣ 예약 아이템 체크
+    if (TryUseReservedItem(currentPlayer))
+    {
+        PushLog(currentPlayer->GetName() + "은(는) 아이템 사용으로 턴 종료", EBattleLogType::Important);
+    }
+    else
+    {
+        // 2️⃣ 공격 진행
+        ProcessAttack(currentPlayer, Def);
+    }
+
+    // ===== 다음 파티원으로 순환 =====
+    _CurrentPartyMemberIndex++;
+    if (_CurrentPartyMemberIndex >= static_cast<int>(_TurnOrder.size()))
+    {
+        _CurrentPartyMemberIndex = 0;  // 사이클 완료 → 다시 Archer부터
+        RefreshTurnOrder();  // 사망자 제외하고 재정렬
     }
 }
 
@@ -126,7 +158,7 @@ void BattleManager::ProcessAttack(ICharacter* Atk, ICharacter* Def)
     if (!Atk || !Def)
         return;
 
-    // Player의 경우 스킬 우선 사용 시도
+    // Player의 스킬 우선 사용
     if (Player* player = dynamic_cast<Player*>(Atk))
     {
         int skillIndex = player->SelectBestSkill(Def);
@@ -135,14 +167,20 @@ void BattleManager::ProcessAttack(ICharacter* Atk, ICharacter* Def)
             SkillResult result = player->UseSkill(skillIndex, Def);
             if (result.Success)
             {
-                // MP 소모 추적
                 player->TrackMPSpent(player->GetSkills()[skillIndex]->GetMPCost());
-
-                /*PrintManager::GetInstance()->PrintLogLine(
-                    player->GetName() + "의 " + result.SkillName + "!",
-                    ELogImportance::DISPLAY
-                );*/
                 PushLog(player->GetName() + "의 " + result.SkillName + "!", EBattleLogType::Important);
+
+                ESkillType skillType = player->GetSkills()[skillIndex]->GetType();
+
+                // 버프/힐 스킬은 데미지 처리 스킵
+                if (skillType == ESkillType::Buff || skillType == ESkillType::Heal)
+                {
+                    if (!result.Message.empty())
+                    {
+                        PushLog(result.Message, EBattleLogType::Important);
+                    }
+                    return;
+                }
 
                 // 다단 히트 처리
                 if (result.HitCount > 1)
@@ -152,74 +190,47 @@ void BattleManager::ProcessAttack(ICharacter* Atk, ICharacter* Def)
                     {
                         int damage = Def->TakeDamage(player, result.Value);
                         totalDamage += damage;
-
-                        // 어그로 증가 (공격 시 +10)
                         player->ModifyAggro(10);
 
-                        /*PrintManager::GetInstance()->PrintLogLine(
-                            "타격 " + std::to_string(i + 1) + "/" + std::to_string(result.HitCount) +
-                            ": " + std::to_string(damage) + " 데미지!",
-                            ELogImportance::DISPLAY
-                        );*/
                         PushLog("타격 " + std::to_string(i + 1) + "/" + std::to_string(result.HitCount) +
                             ": " + std::to_string(damage) + " 데미지!", EBattleLogType::Important);
 
                         if (Def->IsDead())
                             break;
                     }
-
-                    /*PrintManager::GetInstance()->PrintLogLine(
-                        "총 데미지: " + std::to_string(totalDamage),
-                        ELogImportance::DISPLAY
-                    );*/
                     PushLog("총 데미지: " + std::to_string(totalDamage), EBattleLogType::Important);
                 }
                 else
                 {
-                    // 단일 타격
                     int damage = Def->TakeDamage(player, result.Value);
-
-                    // 어그로 증가
                     player->ModifyAggro(10);
-
-                    /*PrintManager::GetInstance()->PrintLogLine(
-                        Def->GetName() + "에게 " + std::to_string(damage) + " 데미지!",
-                        ELogImportance::DISPLAY
-                    );*/
                     PushLog(Def->GetName() + "에게 " + std::to_string(damage) + " 데미지!", EBattleLogType::Important);
                 }
 
                 if (!result.Message.empty())
                 {
-                    PrintManager::GetInstance()->PrintLogLine(
-                        result.Message,
-                        ELogImportance::DISPLAY
-                    );
+                    PushLog(result.Message, EBattleLogType::Important);
                 }
 
-                return;  // 스킬 사용 성공 → 일반 공격 스킵
+                return;
             }
-            // 스킬 사용 실패 (MP 부족 등) → 일반 공격으로 폴백
         }
     }
 
-    // ===== 몬스터 공격 처리 =====
-    // 스킬 사용 실패 또는 Monster → 일반 공격
+    // 일반 공격
     std::tuple<std::string, int> attackResult = Atk->Attack(Def);
     std::string attackType = std::get<0>(attackResult);
     int baseDamage = std::get<1>(attackResult);
 
-    // ===== Boss 특수 스킬 처리 =====
+    // Boss 특수 스킬 처리
     if (Boss* boss = dynamic_cast<Boss*>(Atk))
     {
-        // 광역 공격 스킬
         if (attackType == "어둠의 폭풍")
         {
             ProcessAOEAttack(attackType, baseDamage, boss);
             return;
         }
 
-        // 디버프 스킬
         if (attackType == "공포의 속삭임")
         {
             ProcessDebuff(attackType, boss);
@@ -227,44 +238,50 @@ void BattleManager::ProcessAttack(ICharacter* Atk, ICharacter* Def)
         }
     }
 
-    // ===== 일반 단일 공격 =====
-    int Damage = Def->TakeDamage(Atk, baseDamage);
+    // 실제 데미지 적용
+    int Damage = 0;
 
-    // Player의 일반 공격 시 어그로는 Attack() 내부에서 처리됨 (치명타 판별 포함)
+    // Player's Attack() already calls TakeDamage internally
+    // If it's a Player, use the damage from Attack()'s return value
+    if (dynamic_cast<Player*>(Atk))
+    {
+        Damage = baseDamage;
+    }
+    // For Monsters, explicitly call TakeDamage
+    else if (IMonster* monster = dynamic_cast<IMonster*>(Atk))
+    {
+        Damage = Def->TakeDamage(Atk, baseDamage);
+    }
 
-    // 공격 타입에 따른 로그 출력
+    // 몬스터 공격 시 피격자 어그로 감소
+    if (IMonster* monster = dynamic_cast<IMonster*>(Atk))
+    {
+        if (Player* targetPlayer = dynamic_cast<Player*>(Def))
+        {
+            bool isCritical = (attackType.find("치명타") != std::string::npos ||
+                attackType.find("!") != std::string::npos);
+
+            targetPlayer->ModifyAggro(isCritical ? -20 : -10);
+        }
+    }
+
+    // 공격 로그 출력
     bool isCritical = (attackType == "치명타!");
     bool isSpecialSkill = (attackType != "공격" && attackType != "치명타!");
 
     if (isCritical)
     {
-        /*PrintManager::GetInstance()->PrintLogLine(
-            "💥 " + Atk->GetName() + "의 " + attackType + " 💥",
-            ELogImportance::DISPLAY
-        );*/
         PushLog("💥 " + Atk->GetName() + "의 " + attackType + " 💥", EBattleLogType::Important);
     }
     else if (isSpecialSkill)
     {
-        /*PrintManager::GetInstance()->PrintLogLine(
-            "⚡ " + Atk->GetName() + "의 " + attackType + "! ⚡",
-            ELogImportance::DISPLAY
-        );*/
         PushLog("⚡ " + Atk->GetName() + "의 " + attackType + "! ⚡", EBattleLogType::Important);
     }
     else
     {
-        /*PrintManager::GetInstance()->PrintLogLine(
-            Atk->GetName() + "의 " + attackType,
-            ELogImportance::DISPLAY
-        );*/
         PushLog(Atk->GetName() + "의 " + attackType, EBattleLogType::Important);
     }
 
-   /* PrintManager::GetInstance()->PrintLogLine(
-        Def->GetName() + "에게 " + std::to_string(Damage) + " 데미지!",
-        ELogImportance::DISPLAY
-    );*/
     PushLog(Def->GetName() + "에게 " + std::to_string(Damage) + " 데미지!", EBattleLogType::Important);
 }
 
@@ -274,10 +291,6 @@ void BattleManager::ProcessAOEAttack(const std::string& skillName, int damage, I
     GameManager* gm = GameManager::GetInstance();
     const auto& party = gm->GetParty();
 
-    /*PrintManager::GetInstance()->PrintLogLine(
-        "🌪️ " + attacker->GetName() + "의 " + skillName + "! 🌪️",
-        ELogImportance::DISPLAY
-    );*/
     PushLog("🌪️ " + attacker->GetName() + "의 " + skillName + "! 🌪️", EBattleLogType::Important);
 
     // 파티 전체에 데미지
@@ -286,10 +299,10 @@ void BattleManager::ProcessAOEAttack(const std::string& skillName, int damage, I
         if (member && !member->IsDead())
         {
             int actualDamage = member->TakeDamage(attacker, damage);
-            /*PrintManager::GetInstance()->PrintLogLine(
-                "  → " + member->GetName() + "에게 " + std::to_string(actualDamage) + " 데미지!",
-                ELogImportance::DISPLAY
-            );*/
+
+            // 광역 공격 피격 시 어그로 -10
+            member->ModifyAggro(-10);
+
             PushLog("  → " + member->GetName() + "에게 " + std::to_string(actualDamage) + " 데미지!", EBattleLogType::Important);
         }
     }
@@ -301,10 +314,6 @@ void BattleManager::ProcessDebuff(const std::string& skillName, ICharacter* atta
     GameManager* gm = GameManager::GetInstance();
     const auto& party = gm->GetParty();
 
-    /*PrintManager::GetInstance()->PrintLogLine(
-        "😱 " + attacker->GetName() + "의 " + skillName + "! 😱",
-        ELogImportance::DISPLAY
-    );*/
     PushLog("😱 " + attacker->GetName() + "의 " + skillName + "! 😱", EBattleLogType::Important);
 
     // 파티 전체에 공격력 디버프 (-30%, 2라운드)
@@ -315,10 +324,6 @@ void BattleManager::ProcessDebuff(const std::string& skillName, ICharacter* atta
             int debuffAmount = -static_cast<int>(member->GetAtk() * 0.3f);
             member->ApplyTempAtkBuff(debuffAmount, 2);
 
-            /*PrintManager::GetInstance()->PrintLogLine(
-                "  → " + member->GetName() + "의 공격력이 감소했다! (" + std::to_string(debuffAmount) + ", 2라운드)",
-                ELogImportance::DISPLAY
-            );*/
             PushLog("  → " + member->GetName() + "의 공격력이 감소했다! (" + std::to_string(debuffAmount) + ", 2라운드)", EBattleLogType::Important);
         }
     }
@@ -352,17 +357,13 @@ void BattleManager::CalculateReward(Player* P, IMonster* M)
     {
         if (party.size() > 1)
         {
-            //PrintManager::GetInstance()->PrintLog("파티원 모두 ");
             PushLog("파티원 모두 ", EBattleLogType::Important);
         }
         else
         {
-            //PrintManager::GetInstance()->PrintLog(mainPlayer->GetName() + "은(는) ");
             PushLog(mainPlayer->GetName() + "은(는) ", EBattleLogType::Important);
         }
-        /*PrintManager::GetInstance()->PrintColorText(std::to_string(Exp), ETextColor::LIGHT_GREEN);
-        PrintManager::GetInstance()->PrintLogLine("의 경험치를 획득했습니다.");*/
-        PushLog(std::to_string(Exp)+ "의 경험치를 획득했습니다.", EBattleLogType::Important);
+        PushLog(std::to_string(Exp) + "의 경험치를 획득했습니다.", EBattleLogType::Important);
 
         // 파티 전체에 경험치 분배
         for (const auto& member : party)
@@ -370,10 +371,6 @@ void BattleManager::CalculateReward(Player* P, IMonster* M)
             if (member)
             {
                 member->GainExp(Exp);
-                /*PrintManager::GetInstance()->PrintLogLine(
-                    member->GetName() + "의 EXP: " +
-                    std::to_string(member->GetExp()) + "/" +
-                    std::to_string(member->GetMaxExp()));*/
                 PushLog(member->GetName() + "의 EXP: " +
                     std::to_string(member->GetExp()) + "/" +
                     std::to_string(member->GetMaxExp()), EBattleLogType::Important);
@@ -385,15 +382,9 @@ void BattleManager::CalculateReward(Player* P, IMonster* M)
     // ===== 골드: 메인 플레이어만 획득 =====
     if (Gold > 0 && mainPlayer)
     {
-        /*PrintManager::GetInstance()->PrintLog(mainPlayer->GetName() + "은(는) ");
-        PrintManager::GetInstance()->PrintColorText(std::to_string(Gold), ETextColor::YELLOW);
-        PrintManager::GetInstance()->PrintLogLine("G를 획득했습니다.");*/
-        PushLog(mainPlayer->GetName() + "은(는) "+ std::to_string(Gold)+ "G를 획득했습니다.", EBattleLogType::Important);
+        PushLog(mainPlayer->GetName() + "은(는) " + std::to_string(Gold) + "G를 획득했습니다.", EBattleLogType::Important);
         mainPlayer->GainGold(Gold);
-        /*PrintManager::GetInstance()->PrintLog(mainPlayer->GetName() + "의 소지 골드량은 ");
-        PrintManager::GetInstance()->PrintColorText(std::to_string(mainPlayer->GetGold()) + " G", ETextColor::YELLOW);
-        PrintManager::GetInstance()->PrintLogLine("입니다.");*/
-        PushLog(mainPlayer->GetName() + "의 소지 골드량은 "+ std::to_string(mainPlayer->GetGold()) + " G"+ "입니다.", EBattleLogType::Important);
+        PushLog(mainPlayer->GetName() + "의 소지 골드량은 " + std::to_string(mainPlayer->GetGold()) + " G" + "입니다.", EBattleLogType::Important);
     }
 
     // ===== 아이템: 메인 플레이어 인벤토리에만 추가 =====
@@ -405,11 +396,7 @@ void BattleManager::CalculateReward(Player* P, IMonster* M)
         Inventory* inventory = nullptr;
         if (!mainPlayer->TryGetInventory(inventory))
         {
-            /*PrintManager::GetInstance()->PrintLogLine(
-                mainPlayer->GetName() + "은(는) 인벤토리가 없어 아이템을 얻지 못했습니다.",
-                ELogImportance::WARNING);*/
             PushLog(mainPlayer->GetName() + "은(는) 인벤토리가 없어 아이템을 얻지 못했습니다.", EBattleLogType::Important);
-            //PrintManager::GetInstance()->PrintLogLine("");
             PushLog("", EBattleLogType::Important);
             return;
         }
@@ -417,19 +404,12 @@ void BattleManager::CalculateReward(Player* P, IMonster* M)
         int Remain;
         if (inventory->AddItem(std::move(DroppedItem), 1, Remain))
         {
-            /*PrintManager::GetInstance()->PrintLogLine(
-                mainPlayer->GetName() + "은(는) " + ItemName + "을 보상으로 얻었습니다.",
-                ELogImportance::DISPLAY);*/
             PushLog(mainPlayer->GetName() + "은(는) " + ItemName + "을 보상으로 얻었습니다.", EBattleLogType::Important);
         }
         else
         {
-            /*PrintManager::GetInstance()->PrintLogLine(
-                mainPlayer->GetName() + "은(는) 인벤토리가 가득 차 있어 아이템을 얻지 못했습니다.",
-                ELogImportance::WARNING);*/
             PushLog(mainPlayer->GetName() + "은(는) 인벤토리가 가득 차 있어 아이템을 얻지 못했습니다.", EBattleLogType::Important);
         }
-        //PrintManager::GetInstance()->PrintLogLine("");
         PushLog("", EBattleLogType::Important);
     }
 }
@@ -564,12 +544,12 @@ void BattleManager::EndBattle()
         if (!reservation.IsActive)
             continue;
 
-        Player* user = reservation.User;
-        if (!user)
+        Player* owner = reservation.Owner;
+        if (!owner)
             continue;
 
         Inventory* inventory = nullptr;
-        if (!user->TryGetInventory(inventory))
+        if (!owner->TryGetInventory(inventory))
             continue;
 
         IItem* item = inventory->GetItemAtSlot(reservation.SlotIndex);
@@ -590,7 +570,6 @@ void BattleManager::EndBattle()
 
 bool BattleManager::ProcessBattleTurn()
 {
-    // 한 턴 처리 함수, 플레이어 > 몬스터 순서로 진행, 배틀 종료 시 false 반환
     // 1. 전투 중이 아니거나 몬스터가 없으면 false 반환
     if (!_IsBattleActive || !_CurrentMonster)
         return false;
@@ -598,66 +577,49 @@ bool BattleManager::ProcessBattleTurn()
     // 2. _CurrentRound++ (라운드 증가)
     SetCurrentRound(_CurrentRound + 1);
 
-    // 3. TODO: BattleScene에서 라운드 시작 로그 표시
-
-    // 4. GameManager에서 메인 플레이어 가져오기
+    // 3. GameManager에서 메인 플레이어 가져오기
     GameManager* gm = GameManager::GetInstance();
     Player* mainPlayer = gm->GetMainPlayer().get();
 
-    // 5. 플레이어 턴: ProcessTurn(Monster)
+    // 4. 플레이어 턴: ProcessTurn(Monster)
     ProcessTurn(_CurrentMonster.get());
 
-    // 6. 몬스터 사망 확인
+    // 5. 몬스터 사망 확인
     if (_CurrentMonster->IsDead())
     {
         _Result.Victory = true;
         _Result.IsCompleted = true;
-        /*PrintManager::GetInstance()->PrintLogLine(
-            "몬스터를 물리쳤습니다! 전투에서 승리했습니다!",
-            ELogImportance::DISPLAY
-        );*/
         PushLog("몬스터를 물리쳤습니다! 전투에서 승리했습니다!", EBattleLogType::Important);
         return false;
     }
 
-    // 7. 몬스터 턴: 타겟 선정 후 공격
+    // 6. 몬스터 턴: 타겟 선정 후 공격
     Player* target = SelectMonsterTarget();
 
-    // TODO: BattleScene에서 "=== 몬스터 턴 ===" 로그 표시
-    /*PrintManager::GetInstance()->EndLine();
-    PrintManager::GetInstance()->PrintLogLine(
-        "=== 몬스터 턴 ===",
-        ELogImportance::DISPLAY
-    );*/
     PushLog("=== 몬스터 턴 ===", EBattleLogType::Important);
 
     ProcessAttack(_CurrentMonster.get(), target);
 
-    // 8. 메인 플레이어 사망 확인 (게임 오버 조건)
+    // 7. 메인 플레이어 사망 확인 (게임 오버 조건)
     if (mainPlayer->IsDead())
     {
         _Result.Victory = false;
         _Result.IsCompleted = true;
-        /*PrintManager::GetInstance()->PrintLogLine(
-            "용사의 여정이 끝났습니다... 전투에서 패배했습니다.",
-            ELogImportance::DISPLAY
-        );*/
         PushLog("용사의 여정이 끝났습니다... 전투에서 패배했습니다.", EBattleLogType::Important);
         return false;
     }
 
-    // 9. 라운드 종료 처리: 파티 전체 버프 감소 + 스킬 쿨타임 감소
+    // 8. 라운드 종료 처리: 파티 전체 버프 감소 + 스킬 쿨타임 감소
     const auto& party = gm->GetParty();
     for (const auto& member : party)
     {
         if (member && !member->IsDead())
         {
             member->ProcessRoundEnd();  // 버프 라운드 감소
-            member->ProcessSkillCooldowns();  // 스킬 쿨타임 감소
         }
     }
 
-    // 10. 전투 계속: true 반환
+    // 9. 전투 계속: true 반환
     return true;
 }
 
@@ -665,85 +627,71 @@ bool BattleManager::ProcessBattleTurn()
 // ===== 아이템 예약 시스템 =====
 // ========================================
 
-bool BattleManager::ReserveItemUse(Player* player, int slotIndex)
+bool BattleManager::ReserveItemUse(Player* owner, Player* target, int slotIndex)
 {
-    if (!player) {
-        //PrintManager::GetInstance()->PrintLogLine("플레이어가 유효하지 않습니다.", ELogImportance::WARNING);
+    if (!owner || !target)
+    {
         PushLog("플레이어가 유효하지 않습니다.", EBattleLogType::Important);
         return false;
     }
 
-    // 인벤토리 확인
+    // 인벤토리 확인 (소유자 = 메인 플레이어)
     Inventory* inventory = nullptr;
-    if (!player->TryGetInventory(inventory)) {
-        //PrintManager::GetInstance()->PrintLogLine("인벤토리가 없습니다.", ELogImportance::WARNING);
+    if (!owner->TryGetInventory(inventory))
+    {
         PushLog("인벤토리가 없습니다.", EBattleLogType::Important);
         return false;
     }
 
     // 슬롯 유효성 검증
     IItem* item = inventory->GetItemAtSlot(slotIndex);
-    if (!item) {
-        //PrintManager::GetInstance()->PrintLogLine("해당 슬롯에 아이템이 없습니다.", ELogImportance::WARNING);
+    if (!item)
+    {
         PushLog("해당 슬롯에 아이템이 없습니다.", EBattleLogType::Important);
         return false;
     }
 
     // 이미 예약되어 있는지 확인
-    if (item->IsReserved()) {
-        /*PrintManager::GetInstance()->PrintLogLine(
-            item->GetName() + "은(는) 이미 예약되어 있습니다.",
-            ELogImportance::WARNING
-        );*/
+    if (item->IsReserved())
+    {
         PushLog(item->GetName() + "은(는) 이미 예약되어 있습니다.", EBattleLogType::Important);
         return false;
     }
 
     // 예약 등록
     item->Reserve(_CurrentRound);
-    _ItemReservations.push_back({ slotIndex, player, true });
+    _ItemReservations.push_back({ slotIndex, owner, target, true });
 
-    /*PrintManager::GetInstance()->PrintLogLine(
-        item->GetName() + " 사용 예약 완료! (조건: " +
-        item->GetUseConditionDescription() + ")",
-        ELogImportance::DISPLAY
-    );*/
-    PushLog(item->GetName() + " 사용 예약 완료! (조건: " +
-        item->GetUseConditionDescription() + ")", EBattleLogType::Important);
+    PushLog(item->GetName() + " 사용 예약 완료! (대상: " + target->GetName() +
+        ", 조건: " + item->GetUseConditionDescription() + ")", EBattleLogType::Important);
 
     return true;
 }
 
-bool BattleManager::CancelItemReservation(Player* player, int slotIndex)
+bool BattleManager::CancelItemReservation(Player* owner, int slotIndex)
 {
-    if (!player) return false;
+    if (!owner) return false;
 
     Inventory* inventory = nullptr;
-    if (!player->TryGetInventory(inventory)) return false;
+    if (!owner->TryGetInventory(inventory)) return false;
 
     IItem* item = inventory->GetItemAtSlot(slotIndex);
-    if (!item || !item->IsReserved()) {
-        /*PrintManager::GetInstance()->PrintLogLine(
-            "해당 슬롯에 예약된 아이템이 없습니다.",
-            ELogImportance::WARNING
-        );*/
-        PushLog("해당 슬롯에 예약된 아이템이 없습니다.",EBattleLogType::Important);
+    if (!item || !item->IsReserved())
+    {
+        PushLog("해당 슬롯에 예약된 아이템이 없습니다.", EBattleLogType::Important);
         return false;
     }
 
     // 예약 목록에서 제거
-    for (auto& reservation : _ItemReservations) {
-        if (reservation.User == player &&
+    for (auto& reservation : _ItemReservations)
+    {
+        if (reservation.Owner == owner &&
             reservation.SlotIndex == slotIndex &&
-            reservation.IsActive) {
-
+            reservation.IsActive)
+        {
             reservation.IsActive = false;
             item->CancelReservation();
 
-            /*PrintManager::GetInstance()->PrintLogLine(
-                item->GetName() + " 예약이 취소되었습니다.",
-                ELogImportance::DISPLAY
-            );*/
             PushLog(item->GetName() + " 예약이 취소되었습니다.", EBattleLogType::Important);
             return true;
         }
@@ -757,50 +705,47 @@ bool BattleManager::TryUseReservedItem(Player* player)
 {
     if (!player) return false;
 
-    Inventory* inventory = nullptr;
-    if (!player->TryGetInventory(inventory)) return false;
-
-    // 해당 플레이어의 예약만 찾기
+    // 해당 플레이어가 "대상"인 예약 찾기
     for (auto& reservation : _ItemReservations)
     {
-        if (!reservation.IsActive || reservation.User != player)
+        if (!reservation.IsActive || reservation.Target != player)
             continue;
+
+        // 소유자의 인벤토리에서 아이템 가져오기
+        Inventory* inventory = nullptr;
+        if (!reservation.Owner->TryGetInventory(inventory) || !inventory)
+        {
+            PushLog(reservation.Owner->GetName() + "의 인벤토리가 없습니다.", EBattleLogType::Important);
+            reservation.IsActive = false;
+            continue;
+        }
 
         // 아이템 가져오기
         IItem* item = inventory->GetItemAtSlot(reservation.SlotIndex);
         if (!item)
         {
             // 아이템이 사라짐 → 예약 취소
-            /*PrintManager::GetInstance()->PrintLogLine(
-                player->GetName() + "의 예약 아이템(슬롯 " + std::to_string(reservation.SlotIndex) + ")이 사라졌습니다.",
-                ELogImportance::WARNING
-            );*/
             PushLog(player->GetName() + "의 예약 아이템(슬롯 " + std::to_string(reservation.SlotIndex) + ")이 사라졌습니다.", EBattleLogType::Important);
             reservation.IsActive = false;
             continue;
         }
 
         // ===== 조건 체크 (IItem::CanUse) =====
+        // **중요: player는 "대상"이므로 조건 체크 시 사용**
         if (!item->CanUse(*player, _CurrentRound))
         {
             // 조건 불만족 → 예약 유지, 일반 공격 진행
-  // TODO: BattleScene에서 "조건 미달, 공격 진행" 로그 표시
             return false;
         }
 
         // ===== 조건 만족 → 자동 사용 =====
-        /*PrintManager::GetInstance()->PrintLogLine(
-            ">>> " + player->GetName() + "의 " + item->GetName() + " 자동 사용! (" +
-            item->GetUseConditionDescription() + " 만족)",
-            ELogImportance::DISPLAY
-        );*/
-        PushLog(">>> " + player->GetName() + "의 " + item->GetName() + " 자동 사용! (" +
+        PushLog(">>> " + player->GetName() + "에게 " + item->GetName() + " 자동 사용! (" +
             item->GetUseConditionDescription() + " 만족)", EBattleLogType::Important);
 
-        // 효과 적용
+        // **효과 적용 - player(대상)에게 적용**
         item->ApplyEffect(*player);
 
-        // 인벤토리에서 제거
+        // 인벤토리에서 제거 (소유자의 인벤토리)
         inventory->RemoveItem(reservation.SlotIndex, 1);
 
         // 예약 취소
@@ -817,8 +762,6 @@ bool BattleManager::ProcessReservedItems()
 {
     if (_ItemReservations.empty()) return false;
 
-    // TODO: BattleScene에서 "=== 예약된 아이템 처리 중 ===" 로그 표시
-
     bool anyItemUsed = false;
 
     // 활성화된 예약만 처리
@@ -826,46 +769,37 @@ bool BattleManager::ProcessReservedItems()
     {
         if (!reservation.IsActive) continue;
 
-        Player* user = reservation.User;
+        Player* owner = reservation.Owner;
+        Player* target = reservation.Target;
         Inventory* inventory = nullptr;
 
-        if (!user->TryGetInventory(inventory)) continue;
+        if (!owner->TryGetInventory(inventory)) continue;
 
         // 아이템 가져오기
         IItem* item = inventory->GetItemAtSlot(reservation.SlotIndex);
         if (!item)
         {
             // 아이템이 사라짐 → 예약 취소
-            /*PrintManager::GetInstance()->PrintLogLine(
-                "슬롯 [" + std::to_string(reservation.SlotIndex) + "]의 아이템이 없어져 예약이 취소되었습니다.",
-                ELogImportance::WARNING
-            );*/
             PushLog("슬롯 [" + std::to_string(reservation.SlotIndex) + "]의 아이템이 없어져 예약이 취소되었습니다.", EBattleLogType::Important);
             reservation.IsActive = false;
             continue;
         }
 
-        // ===== 조건 체크 (IItem::CanUse) =====
-        if (!item->CanUse(*user, _CurrentRound))
+        // ===== 조건 체크 (IItem::CanUse) - 대상 기준 =====
+        if (!item->CanUse(*target, _CurrentRound))
         {
             // 조건 불만족 → 예약 유지 (다음 턴 재시도)
-             // TODO: BattleScene에서 "조건 미달, 대기 중" 로그 표시
             continue;
         }
 
         // ===== 조건 만족 → 자동 사용 =====
-        /*PrintManager::GetInstance()->PrintLogLine(
-            ">>> " + user->GetName() + "의 " + item->GetName() + " 자동 사용! (" +
-            item->GetUseConditionDescription() + " 만족)",
-            ELogImportance::DISPLAY
-        );*/
-        PushLog(">>> " + user->GetName() + "의 " + item->GetName() + " 자동 사용! (" +
+        PushLog(">>> " + target->GetName() + "에게 " + item->GetName() + " 자동 사용! (" +
             item->GetUseConditionDescription() + " 만족)", EBattleLogType::Important);
 
-        // 효과 적용
-        item->ApplyEffect(*user);
+        // 효과 적용 - 대상에게
+        item->ApplyEffect(*target);
 
-        // 인벤토리에서 제거
+        // 인벤토리에서 제거 - 소유자의 인벤토리
         inventory->RemoveItem(reservation.SlotIndex, 1);
 
         // 예약 취소
@@ -883,18 +817,6 @@ bool BattleManager::ProcessReservedItems()
     );
 
     return anyItemUsed;
-}
-
-// 직업 우선순위 반환 함수 (전역 함수)
-// Archer(0) > Priest(1) > Warrior(2) > Mage(3)
-int GetJobPriority(ICharacter* character)
-{
-    if (dynamic_cast<Archer*>(character))  return 0;
-    if (dynamic_cast<Priest*>(character))  return 1;
-    if (dynamic_cast<Warrior*>(character)) return 2;
-    if (dynamic_cast<Mage*>(character))    return 3;
-
-    return 99; // 예외 / 알 수 없는 타입
 }
 
 void BattleManager::PushLog(const std::string& msg, EBattleLogType type)

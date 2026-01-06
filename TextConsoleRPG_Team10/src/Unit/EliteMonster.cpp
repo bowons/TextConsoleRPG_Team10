@@ -36,12 +36,12 @@ EliteMonster::EliteMonster(const MonsterSpawnData& Data)
     _Stats._Dex = Data.dex;
     _Stats._Luk = Data.luk;
 
-  _Stats._CriticalRate = static_cast<float>(Data.crit_rate);
+    _Stats._CriticalRate = static_cast<float>(Data.crit_rate);
     _ExpReward = Data.exp;
     _GoldReward = Data.gold;
 
-  // ===== CSV에서 공격명 로드 =====
- _AttackName = Data.attack_name;
+    // ===== CSV에서 공격명 로드 =====
+    _AttackName = Data.attack_name;
 
     // ===== 임시 스탯은 기본 0 =====
     _Stats._TempAtk = 0;
@@ -50,7 +50,7 @@ EliteMonster::EliteMonster(const MonsterSpawnData& Data)
     _Stats._TempLuk = 0;
     _Stats._TempCriticalRate = 0.0f;
 
- // ===== Elite 전용 초기화 =====
+    // ===== Elite 전용 초기화 =====
     _TurnCounter = 0;
     InitializeSkills();
 }
@@ -89,16 +89,33 @@ std::tuple<std::string, int> EliteMonster::Attack(ICharacter* Target) const
     // 턴 카운터 증가 (공격할 때마다)
     _TurnCounter++;
 
-  // 3턴마다 스킬 사용
+    // 3턴마다 스킬 사용
     if (_TurnCounter % 3 == 0 && !_Skills.empty())
     {
-   // Elite 강공격 스킬 사용 (첫 번째 스킬)
+        // Elite 강공격 스킬 사용 (첫 번째 스킬)
         // 스킬 데미지 계산 (기본 공격력 × 1.8배)
         int skillDamage = static_cast<int>(_Stats._Atk * 1.8f);
         return { "강력한 일격", skillDamage };
     }
 
-    // 일반 공격 - CSV에서 로드한 공격명 사용
+    // ===== 치명타 판정 (LUK 반영) =====
+    // 치명타율 = 기본 치명타율 + (총 LUK * 0.1%)
+    int totalLuk = _Stats._Luk + _Stats._TempLuk;
+    float lukBonus = totalLuk * 0.001f;  // LUK 1당 0.1% (0.001)
+    float totalCritRate = _Stats._CriticalRate + _Stats._TempCriticalRate + lukBonus;
+
+    // 확률 계산 (1~100 사이)
+    int critRoll = std::uniform_int_distribution<>(1, 100)(gen);
+    float critThreshold = totalCritRate * 100.0f;
+
+    if (critRoll <= static_cast<int>(critThreshold))
+    {
+        // ===== 치명타 발동! (데미지 2배) =====
+        int critDamage = _Stats._Atk * 2;
+        return { _AttackName + " 치명타!", critDamage };
+    }
+
+    // ===== 일반 공격 - CSV에서 로드한 공격명 사용 =====
     return { _AttackName, _Stats._Atk };
 }
 

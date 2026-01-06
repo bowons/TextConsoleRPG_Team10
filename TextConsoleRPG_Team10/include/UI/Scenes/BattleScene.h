@@ -1,11 +1,12 @@
-﻿#pragma once
+#pragma once
 #include "../UIScene.h"
+#include "../IBattleAnimationCallback.h"
 #include <vector>
 #include <string>
-#include <Windows.h>  // WORD 타입 정의
+#include <Windows.h>
 
 // 전투 Scene
-class BattleScene : public UIScene
+class BattleScene : public UIScene, public IBattleAnimationCallback
 {
 private:
     // ===== 전투 상태 =====
@@ -15,17 +16,18 @@ private:
     int _SelectedTarget;   // 선택한 대상 인덱스
     bool _BattleEnd;       // 전투 종료 여부
 
-  // ===== 시스템 로그 =====
-    std::vector<std::string> _SystemLogs;  // 로그 버퍼
+    // ===== 시스템 로그 =====
+    std::vector<std::string> _SystemLogs;
 
     // ===== 인벤토리 UI =====
     int _SelectedItemSlot;  // 선택된 인벤토리 슬롯 (0~4)
     bool _IsSelectingItem;  // 아이템 선택 모드 활성화 여부
+    int _SelectedPartyIndex; // 선택된 파티원 인덱스 (0~3)
+    bool _IsCancelMode;    // 예약 취소 모드 여부
 
-  // ===== 애니메이션 =====
-    bool _IsPlayingAnimation;  // 애니메이션 재생 중
-    float _AnimationTimer;     // 애니메이션 타이머
-    std::string _CurrentAnimationName;  // 현재 재생 중인 애니메이션 이름
+    // ===== 애니메이션 (간소화) =====
+    bool _IsWaitingForAnimation;
+    float _AnimationWaitTimer;
 
 public:
     BattleScene();
@@ -36,12 +38,25 @@ public:
     void Update() override;
     void Render() override;
     void HandleInput() override;
+    
+    // ===== IBattleAnimationCallback 구현 (간소화) =====
+    void SetPanelAnimation(const std::string& panelName,
+     const std::string& animJsonFile,
+      float duration = 0.0f) override;
+    
+    void SetPanelArt(const std::string& panelName,
+        const std::string& artTxtFile) override;
+    
+    void UpdatePartyDisplay() override;
+    void UpdateMonsterDisplay() override;
+    void RefreshBattleUI() override;
 
 private:
-    // ===== UI 업데이트 함수 (StageSelectScene 패턴) =====
-    
-    // 시스템 로그 업데이트
+    // ===== UI 업데이트 함수 =====
     void UpdateSystemLog(class Panel* systemPanel, const std::vector<std::string>& messages);
+    
+    // 커맨드 패널 업데이트
+    void UpdateCommandPanel();
     
     // 인벤토리 패널 업데이트
     void UpdateInventoryPanel(class Panel* inventoryPanel);
@@ -59,17 +74,7 @@ private:
     
     // 캐릭터 인덱스로 색상 가져오기 (0=메인, 1~3=동료)
     WORD GetCharacterColor(int partyIndex) const;
-    
-    // 플레이어 포인터로 파티 인덱스 찾기
-    int GetPartyIndex(Player* player) const;
-
-    // ===== 애니메이션 =====
-    
-    // 애니메이션 재생
-    void PlayAnimation(const std::string& animationName, float duration = 1.0f);
-    
-    // 애니메이션 정지
-    void StopAnimation();
+    int GetPartyIndex(class Player* player) const;
 
     // ===== 전투 로직 연동 =====
     

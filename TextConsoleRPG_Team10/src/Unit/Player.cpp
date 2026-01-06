@@ -35,6 +35,9 @@ Player::Player(const std::string& Name, bool enableInventory)
 
     // 어그로 초기화 (전투 시작 시 ResetAggro에서 직업별로 설정)
     _AggroValue = 0;
+    _IsAggroLocked = false;
+    _AggroLockRoundsRemaining = 0;
+    _LockedAggroValue = 0;
 
     // 숙련도 초기화
     _HPProficiency = 0;
@@ -83,6 +86,9 @@ Player::Player(const ClassData& data, const std::string& playerName, bool enable
 
     // 어그로 초기화 (전투 시작 시 ResetAggro에서 직업별로 설정)
     _AggroValue = 0;
+    _IsAggroLocked = false;
+    _AggroLockRoundsRemaining = 0;
+    _LockedAggroValue = 0;
 
     // 숙련도 초기화
     _HPProficiency = 0;
@@ -131,16 +137,49 @@ std::tuple<std::string, int> Player::Attack(ICharacter* Target) const
 {
     if (!Target)
     {
-        return std::make_tuple("", 0);
+    return std::make_tuple("", 0);
     }
 
-    // 버프 포함한 총 공격력으로 공격
-    int TotalDamage = _Stats._Atk + _Stats._TempAtk;
-    int ActualDamage = Target->TakeDamage(
+    // ===== 치명타 판정 (LUK 반영) =====
+    // 치명타율 = 기본 치명타율 + (총 LUK * 0.1%)
+    int totalLuk = GetTotalLuk();
+    float lukBonus = totalLuk * 0.001f;  // LUK 1당 0.1% (0.001)
+    float totalCritRate = GetTotalCriticalRate() + lukBonus;
+    
+    // 확률 계산 (0~100 사이)
+    int critRoll = std::rand() % 100 + 1;
+    float critThreshold = totalCritRate * 100.0f;
+    
+    // 버프 포함한 총 공격력
+    int baseDamage = _Stats._Atk + _Stats._TempAtk;
+    
+    if (critRoll <= static_cast<int>(critThreshold))
+    {
+        // ===== 치명타 발동! =====
+        int critDamage = baseDamage * 2;
+        
+        // 치명타 추적 (숙련도 시스템용)
+    const_cast<Player*>(this)->TrackCriticalHit();
+      
+        // 어그로 증가 (치명타 시 +15, 일반 공격보다 높음)
+    const_cast<Player*>(this)->ModifyAggro(15);
+ 
+        int actualDamage = Target->TakeDamage(
+            const_cast<ICharacter*>(static_cast<const ICharacter*>(this)),
+            critDamage);
+        
+        return std::make_tuple("치명타!", actualDamage);
+    }
+    
+    // ===== 일반 공격 =====
+    // 어그로 증가 (일반 공격 시 +10)
+    const_cast<Player*>(this)->ModifyAggro(10);
+    
+    int actualDamage = Target->TakeDamage(
         const_cast<ICharacter*>(static_cast<const ICharacter*>(this)),
-        TotalDamage);
-
-    return std::make_tuple("일반 공격", ActualDamage);
+        baseDamage);
+    
+    return std::make_tuple("일반 공격", actualDamage);
 }
 
 std::string Player::GetAttackNarration() const
@@ -418,6 +457,22 @@ void Player::ProcessRoundEnd()
         }
     }
 
+    // 어그로 고정 처리
+    if (_IsAggroLocked && _AggroLockRoundsRemaining > 0)
+    {
+        _AggroLockRoundsRemaining--;
+        if (_AggroLockRoundsRemaining == 0)
+        {
+            // 어그로 고정 해제 및 0으로 초기화
+            UnlockAggro();
+        }
+        else
+        {
+            // 고정 유지
+            _AggroValue = _LockedAggroValue;
+        }
+    }
+
     // 스킬 쿨타임 처리
     ProcessSkillCooldowns();
 }
@@ -434,6 +489,11 @@ void Player::ResetBuffs()
     _DexBuffRoundsRemaining = 0;
     _LukBuffRoundsRemaining = 0;
     _CriticalRateBuffRoundsRemaining = 0;
+
+    // 어그로 고정 상태도 초기화
+    _IsAggroLocked = false;
+    _AggroLockRoundsRemaining = 0;
+    _LockedAggroValue = 0;
 }
 
 // 버프 포함 총 스탯 조회 메서드들
@@ -623,6 +683,10 @@ int Player::GetSkillCooldown(const std::string& skillName) const
 
 void Player::ModifyAggro(int amount)
 {
+    // 어그로가 고정되어 있으면 변경 불가
+    if (_IsAggroLocked)
+        return;
+
     _AggroValue += amount;
 
     // 0~100 범위 제한
@@ -640,6 +704,26 @@ void Player::ResetAggro()
 {
     // 기본값 0 (전사는 자식 클래스에서 30으로 오버라이드)
     _AggroValue = 0;
+
+    // 어그로 고정 상태 초기화
+    _IsAggroLocked = false;
+    _AggroLockRoundsRemaining = 0;
+    _LockedAggroValue = 0;
+}
+
+void Player::LockAggro(int value, int rounds)
+{
+    _IsAggroLocked = true;
+    _AggroLockRoundsRemaining = rounds;
+    _LockedAggroValue = value;
+    _AggroValue = value;  // 즉시 어그로 변경
+}
+
+void Player::UnlockAggro()
+{
+    _IsAggroLocked = false;
+    _AggroLockRoundsRemaining = 0;
+    _AggroValue = 0;  // 어그로 0으로 초기화
 }
 
 std::string Player::GetAggroMaxDialogue() const
@@ -691,8 +775,6 @@ void Player::ProcessBattleEndProficiency()
     PrintManager* pm = PrintManager::GetInstance();
 
     // ===== 1. HP 숙련도 (전사, 모든 직업) =====
-    // 기획서: 전투 종료 시 잃은 체력 비례 판정
-    // 구현: 피해 50당 Max HP +2~5 증가
     if (_DamageTakenThisBattle >= 50)
     {
         int hpGrowthChances = _DamageTakenThisBattle / 50;
@@ -700,7 +782,7 @@ void Player::ProcessBattleEndProficiency()
 
         for (int i = 0; i < hpGrowthChances; ++i)
         {
-            int growth = 2 + (rand() % 4);  // 2~5 랜덤
+            int growth = 2 + (rand() % 4);
             _Stats._MaxHP += growth;
             totalHPGain += growth;
         }
@@ -715,15 +797,11 @@ void Player::ProcessBattleEndProficiency()
     }
 
     // ===== 2. MP/지력 숙련도 (마법사, 사제) =====
-    // 기획서: 스킬 사용으로 소모한 MP 50당 1포인트
-    // Mage: Max MP +2 또는 ATK(마법) +0.5
- // Priest: Max MP +2
     if (_MPSpentThisBattle >= 50)
     {
         int mpPoints = _MPSpentThisBattle / 50;
-        _MagicProficiency += mpPoints;  // 마법 숙련도 포인트 저장
+        _MagicProficiency += mpPoints;
 
-        // 기본 구현: Max MP +2 (직업별 추가 효과는 ApplyProficiencyGrowth에서)
         int mpGain = mpPoints * 2;
         _Stats._MaxMP += mpGain;
 
@@ -734,16 +812,12 @@ void Player::ProcessBattleEndProficiency()
     }
 
     // ===== 3. 민첩/치명타 숙련도 (궁수) =====
-       // 기획서: 치명타 발생 횟수 5회당 1포인트
-       // DEX +1 또는 Crit Rate +0.1%
     if (_CriticalHitsThisBattle >= 5)
     {
         int critPoints = _CriticalHitsThisBattle / 5;
 
-        // DEX +1
         _Stats._Dex += critPoints;
 
-        // Crit Rate +0.1% (0.001f)
         float critRateGain = critPoints * 0.001f;
         _Stats._CriticalRate += critRateGain;
 
@@ -755,14 +829,10 @@ void Player::ProcessBattleEndProficiency()
     }
 
     // ===== 4. 회복 숙련도 (사제 전용) =====
-    // 기획서: 아군 체력을 1000 이상 회복(누적) 시
-    // 힐링 스킬의 고정 회복량 +10
     if (_HealingDoneThisBattle >= 1000)
     {
         int healPoints = _HealingDoneThisBattle / 1000;
 
-        // 사제 클래스에서 ApplyProficiencyGrowth로 힐링 스킬 강화
-     // 마법 숙련도로 포인트 저장
         _MagicProficiency += (healPoints * 10);
 
         pm->PrintLogLine(
@@ -771,11 +841,6 @@ void Player::ProcessBattleEndProficiency()
         );
     }
 
-    // ===== 직업별 특화 성장 호출 =====
-    // - Warrior: HP 숙련도 추가 보너스
-    // - Mage: MP/지력 숙련도로 공격력 증가
-    // - Archer: 민첩/치명타 숙련도 활용
-    // - Priest: 회복 숙련도로 힐링 스킬 강화
     ApplyProficiencyGrowth();
 
     // 전투 추적 초기화
@@ -808,11 +873,11 @@ void Player::TrackHealing(int amount)
 void Player::CheckProficiencyGrowth()
 {
     // 기본 Player 클래스에서는 빈 구현
-      // 각 직업 클래스에서 오버라이드하여 세부 구현
-      // 
-      // 구현 예시:
-      // - Warrior: HP 숙련도가 일정 수치 도달 시 추가 방어력 증가
-      // - Mage: 마법 숙련도로 스킬 데미지 증가
-      // - Archer: 민첩 숙련도로 회피율 증가
-      // - Priest: 마법 숙련도(회복)로 힐링 스킬 강화
+    // 각 직업 클래스에서 오버라이드하여 세부 구현
+    // 
+    // 구현 예시:
+    // - Warrior: HP 숙련도가 일정 수치 도달 시 추가 방어력 증가
+    // - Mage: 마법 숙련도로 스킬 데미지 증가
+    // - Archer: 민첩 숙련도로 회피율 증가
+    // - Priest: 마법 숙련도(회복)로 힐링 스킬 강화
 }

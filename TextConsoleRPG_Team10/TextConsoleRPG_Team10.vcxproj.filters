@@ -228,6 +228,9 @@
     <ClInclude Include="include\UI\InputBridge.h">
       <Filter>Header Files\UI</Filter>
     </ClInclude>
+    <ClInclude Include="include\UI\IBattleAnimationCallback.h">
+      <Filter>Header Files\UI</Filter>
+    </ClInclude>
     <!-- UI Scene Headers -->
     <ClInclude Include="include\UI\Scenes\MainMenuScene.h">
       <Filter>Header Files\UI\Scenes</Filter>
@@ -443,5 +446,6 @@
     <None Include="Resources\Monsters\Enemy_Elite.csv" />
     <None Include="Resources\Monsters\Enemy_Boss.csv" />
     <None Include="docs\StageSelectScene_Guide.md" />
+    <None Include="docs\AnimationCallbackGuide.md" />
   </ItemGroup>
 </Project>

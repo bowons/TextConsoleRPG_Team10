@@ -175,6 +175,7 @@
     <ClInclude Include="include\Skill\WarriorSkills.h" />
     <!-- UI -->
     <ClInclude Include="include\UI\AsciiArtRenderer.h" />
+    <ClInclude Include="include\UI\IBattleAnimationCallback.h" />
     <ClInclude Include="include\UI\IContentRenderer.h" />
     <ClInclude Include="include\UI\InputBridge.h" />
     <ClInclude Include="include\UI\Panel.h" />
@@ -215,6 +216,7 @@
     <ClCompile Include="src\Skill\MonsterSkills.cpp" />
     <ClCompile Include="src\Skill\PriestSkills.cpp" />
     <ClCompile Include="src\Skill\WarriorSkills.cpp" />
+    <ClCompile Include="src\UI\Scenes\BattleScene.cpp" />
     <ClCompile Include="src\UI\Scenes\StageSelectScene.cpp" />
     <ClCompile Include="src\Unit\Archer.cpp" />
     <ClCompile Include="src\Unit\EliteMonster.cpp" />
@@ -253,7 +255,6 @@
     <ClCompile Include="src\UI\UIDrawer.cpp" />
     <ClCompile Include="src\UI\UIScene.cpp" />
     <!-- UI Scenes -->
-    <ClCompile Include="src\UI\Scenes\BattleScene.cpp" />
     <ClCompile Include="src\UI\Scenes\CharacterSelectScene.cpp" />
     <ClCompile Include="src\UI\Scenes\CompanionRecruitScene.cpp" />
     <ClCompile Include="src\UI\Scenes\MainMenuScene.cpp" />
@@ -268,6 +269,7 @@
   </ItemGroup>
   <!-- Documentation -->
   <ItemGroup>
+    <None Include="docs\AnimationCallbackGuide.md" />
     <None Include="docs\StageSelectScene_Guide.md" />
     <None Include="ITEM_RESERVATION_USAGE.md" />
     <None Include="PROJECT_GUIDELINE.md" />
