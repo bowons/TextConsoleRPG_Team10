@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "../Singleton.h"
 #include "../Unit/IMonster.h"
 #include <memory>
@@ -126,6 +126,10 @@ public:
     // 사망한 동료 제거 (GameManager::RemoveDeadCompanions)
     // 전투 상태 초기화
     void EndBattle();
+
+    // 전투 상태 완전 리셋 (게임 재시작용)
+    // 모든 내부 상태, 예약, 로그, 턴 정보 초기화
+    void ResetAll();
 
     // 1턴 실행 (Scene의 Update에서 호출)
     // 플레이어 턴: ProcessTurn(Player, Monster)

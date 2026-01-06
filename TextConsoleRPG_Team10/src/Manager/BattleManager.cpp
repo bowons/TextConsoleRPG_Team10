@@ -1,4 +1,4 @@
-﻿#include "../../include/Manager/BattleManager.h"
+#include "../../include/Manager/BattleManager.h"
 #include "../../include/Manager/PrintManager.h"
 #include "../../include/Unit/NormalMonster.h"
 #include "../../include/Unit/EliteMonster.h"
@@ -576,6 +576,40 @@ void BattleManager::EndBattle()
     _IsBattleActive = false;
 }
 
+// ===== 전투 상태 완전 리셋 =====
+void BattleManager::ResetAll()
+{
+    // 1. 활성 전투가 있으면 종료
+  if (_IsBattleActive)
+    {
+      EndBattle();
+    }
+
+    // 2. 모든 내부 상태 초기화
+    _CurrentMonster.reset();
+    _BattleType = EBattleType::None;
+    _IsBattleActive = false;
+  _Result = BattleResult{};
+
+    // 3. 턴 시스템 초기화
+    _CurrentRound = 0;
+    _CurrentPartyMemberIndex = 0;
+    _TurnOrder.clear();
+    _IsPlayerTurn = true;
+
+ // 4. 아이템 예약 정리
+    _ItemReservations.clear();
+
+    // 5. 로그 정리
+    _BattleLogs.clear();
+
+    // 6. 애니메이션 콜백 해제
+    _AnimationCallback = nullptr;
+
+    // 7. 플러시 콜백 해제
+    _flushCallback = nullptr;
+}
+
 bool BattleManager::ProcessBattleTurn()
 {
     // 한 턴 처리 함수, 플레이어 > 몬스터 순서로 진행, 배틀 종료 시 false 반환
@@ -584,13 +618,13 @@ bool BattleManager::ProcessBattleTurn()
         return false;
 
     // 2. _CurrentRound++ (라운드 증가)
-    SetCurrentRound(_CurrentRound + 1);
+    //SetCurrentRound(_CurrentRound + 1);
 
     // 3. TODO: BattleScene에서 라운드 시작 로그 표시
 
     if (_IsPlayerTurn)
     {
-        SetCurrentRound(_CurrentRound + 1);
+        SetCurrentRound(_CurrentRound + 1); // 플레이어 턴에 라운드 증가
         // 4. 플레이어 턴: ProcessTurn(Monster)
         ProcessTurn(_CurrentMonster.get());
 
