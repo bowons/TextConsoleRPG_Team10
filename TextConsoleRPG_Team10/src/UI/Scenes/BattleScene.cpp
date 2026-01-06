@@ -1,4 +1,4 @@
-#include "../../../include/UI/Scenes/BattleScene.h"
+﻿#include "../../../include/UI/Scenes/BattleScene.h"
 #include "../../../include/UI/UIDrawer.h"
 #include "../../../include/UI/Panel.h"
 #include "../../../include/UI/TextRenderer.h"
@@ -84,7 +84,7 @@ void BattleScene::Enter() {
     UpdateCommandPanel();
 
     // ===== 캐릭터 아스키 아트 패널 (왼쪽, 4명 2x2 배치) =====
-    int charArtStartX = 0;
+    int charArtStartX = 15;
     int charArtStartY = 5;
     int charArtWidth = 24;
     int charArtHeight = 12;
@@ -156,9 +156,9 @@ void BattleScene::Enter() {
         {
             // 빈 슬롯
             auto emptyText = std::make_unique<TextRenderer>();
+            /*emptyText->AddLine("");
             emptyText->AddLine("");
-            emptyText->AddLine("");
-            emptyText->AddLine("     [빈 슬롯]");
+            emptyText->AddLine("     [빈 슬롯]");*/
             emptyText->SetTextColor(
                 MakeColorAttribute(ETextColor::DARK_GRAY, EBackgroundColor::BLACK));
             charArtPanel->SetContentRenderer(std::move(emptyText));
@@ -196,8 +196,8 @@ void BattleScene::Enter() {
     animPanel->Redraw();
 
     // ===== 몬스터 이미지 패널 (오른쪽) =====
-    Panel* enemyPanel = _Drawer->CreatePanel("Enemy", 110, 8, 40, 17);
-    enemyPanel->SetBorder(true, ETextColor::WHITE);
+    Panel* enemyPanel = _Drawer->CreatePanel("Enemy", 95, 8, 40, 17);
+    enemyPanel->SetBorder(false, ETextColor::WHITE);
     UpdateMonsterInfoPanel();
 
     // ===== 시스템 로그 패널 (하단 좌측-중앙), 내부 우측에 커맨드 통합 =====

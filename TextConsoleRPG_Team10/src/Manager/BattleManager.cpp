@@ -1,4 +1,4 @@
-#include "../../include/Manager/BattleManager.h"
+﻿#include "../../include/Manager/BattleManager.h"
 #include "../../include/Manager/PrintManager.h"
 #include "../../include/Unit/NormalMonster.h"
 #include "../../include/Unit/EliteMonster.h"
@@ -133,7 +133,7 @@ void BattleManager::ProcessTurn(ICharacter* Def)
     // ===== 현재 턴의 파티원 가져오기 =====
     Player* currentPlayer = _TurnOrder[_CurrentPartyMemberIndex];
 
-    PushLog("=== " + currentPlayer->GetName() + "의 턴 ===", EBattleLogType::Important);
+    //PushLog("=== " + currentPlayer->GetName() + "의 턴 ===", EBattleLogType::Important);
 
     // 1️⃣ 예약 아이템 체크
     if (TryUseReservedItem(currentPlayer))
