@@ -669,8 +669,9 @@ void BattleScene::UpdateMonsterInfoPanel()
     }
     else
     {
-        // 로드 실패 시 기본 텍스트 + 스탯 표시
+        // 로드 실패 시 기본 텍스트
         auto fallbackText = std::make_unique<TextRenderer>();
+        fallbackText->AddLine("");
         fallbackText->AddLine("");
         fallbackText->AddLineWithColor("  [ " + monster->GetName() + " ]",
             MakeColorAttribute(ETextColor::LIGHT_RED, EBackgroundColor::BLACK));
