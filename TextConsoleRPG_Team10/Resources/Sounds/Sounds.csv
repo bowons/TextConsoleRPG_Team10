@@ -78,7 +78,7 @@ LivingStatue_Hit,GolemHit.wav,0.328,1
 BigRat_Attack,RatAttack.wav,1.202,0.5
 BigRat_Dead,RatDead.wav,1.138,1
 BigRat_Hit,RatHitted.wav,0.508,0.7
-GoblinRabblemaster?‹â€?_Attack,GobinAttack.wav,0.589,0.8
+GoblinRabblemaster?ï¿½ï¿½?_Attack,GobinAttack.wav,0.589,0.8
 GoblinRabblemaste_Dead,GoblinDead.wav,0.48,0.5
 GoblinRabblemaste_Hit,GoblinHitted.wav,0.231,0.8
 SkeletonKnight_Attack,SkeletonKnightAttack.wav,0.514,0.9

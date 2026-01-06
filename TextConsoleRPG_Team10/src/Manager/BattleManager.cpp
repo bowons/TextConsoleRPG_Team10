@@ -1,4 +1,4 @@
-#include "../../include/Manager/BattleManager.h"
+﻿#include "../../include/Manager/BattleManager.h"
 #include "../../include/Manager/PrintManager.h"
 #include "../../include/Unit/NormalMonster.h"
 #include "../../include/Unit/EliteMonster.h"
@@ -133,12 +133,14 @@ void BattleManager::ProcessTurn(ICharacter* Def)
     // ===== 현재 턴의 파티원 가져오기 =====
     Player* currentPlayer = _TurnOrder[_CurrentPartyMemberIndex];
 
-    PushLog("=== " + currentPlayer->GetName() + "의 턴 ===", EBattleLogType::Important);
+    //PushLog("=== " + currentPlayer->GetName() + "의 턴 ===", EBattleLogType::Important);
 
     // 1️⃣ 예약 아이템 체크
     if (TryUseReservedItem(currentPlayer))
     {
         PushLog(currentPlayer->GetName() + "은(는) 아이템 사용으로 턴 종료", EBattleLogType::Important);
+        RequestFlush(EBattleFlushType::PlayerItem);
+        // ⭐ 아이템 사용 후 공격하지 않고 턴 종료
     }
     else
     {
@@ -180,6 +182,7 @@ void BattleManager::ProcessAttack(ICharacter* Atk, ICharacter* Def)
                     if (!result.Message.empty())
                     {
                         PushLog(result.Message, EBattleLogType::Important);
+                        RequestFlush(EBattleFlushType::PlayerSkill);
                     }
                     return;
                 }
@@ -580,16 +583,16 @@ void BattleManager::EndBattle()
 void BattleManager::ResetAll()
 {
     // 1. 활성 전투가 있으면 종료
-  if (_IsBattleActive)
+    if (_IsBattleActive)
     {
-      EndBattle();
+        EndBattle();
     }
 
     // 2. 모든 내부 상태 초기화
     _CurrentMonster.reset();
     _BattleType = EBattleType::None;
     _IsBattleActive = false;
-  _Result = BattleResult{};
+    _Result = BattleResult{};
 
     // 3. 턴 시스템 초기화
     _CurrentRound = 0;
@@ -597,7 +600,7 @@ void BattleManager::ResetAll()
     _TurnOrder.clear();
     _IsPlayerTurn = true;
 
- // 4. 아이템 예약 정리
+    // 4. 아이템 예약 정리
     _ItemReservations.clear();
 
     // 5. 로그 정리
@@ -617,17 +620,21 @@ bool BattleManager::ProcessBattleTurn()
     if (!_IsBattleActive || !_CurrentMonster)
         return false;
 
-    // 2. _CurrentRound++ (라운드 증가)
-    //SetCurrentRound(_CurrentRound + 1);
-
-    // 3. TODO: BattleScene에서 라운드 시작 로그 표시
+    // ⚠️ 몬스터가 이미 죽었는지 체크 (중복 호출 방지)
+    if (_CurrentMonster->IsDead())
+    {
+        _Result.Victory = true;
+        _Result.IsCompleted = true;
+        return false;
+    }
 
     if (_IsPlayerTurn)
     {
-        SetCurrentRound(_CurrentRound + 1); // 플레이어 턴에 라운드 증가
+        // ⭐ 플레이어 턴 시작 시 라운드 증가 (한 번만!)
+        SetCurrentRound(_CurrentRound + 1);
+
         // 4. 플레이어 턴: ProcessTurn(Monster)
         ProcessTurn(_CurrentMonster.get());
-
 
         // 5. 몬스터 사망 확인
         if (_CurrentMonster->IsDead())
@@ -639,21 +646,20 @@ bool BattleManager::ProcessBattleTurn()
         }
         _IsPlayerTurn = false;   // ⭐ 다음은 몬스터
         return true;             // ⭐ 여기서 끊는다
-
     }
-        
     else
     {
-    // 6. 몬스터 턴: 타겟 선정 후 공격
+        // 6. 몬스터 턴: 타겟 선정 후 공격
         Player* target = SelectMonsterTarget();
         GameManager* gm = GameManager::GetInstance();
         ProcessAttack(_CurrentMonster.get(), target);
+
         // 7. 메인 플레이어 사망 확인 (게임 오버 조건)
         if (gm->GetMainPlayer()->IsDead())
         {
             _Result.Victory = false;
             _Result.IsCompleted = true;
-          
+
             SoundPlayer::GetInstance()->PlaySFX("Player_Dead");
             PushLog("용사의 여정이 끝났습니다... 전투에서 패배했습니다.", EBattleLogType::Important);
             return false;

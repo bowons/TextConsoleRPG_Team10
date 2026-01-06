@@ -1,4 +1,4 @@
-#include "../../../include/UI/Scenes/BattleScene.h"
+﻿#include "../../../include/UI/Scenes/BattleScene.h"
 #include "../../../include/UI/UIDrawer.h"
 #include "../../../include/UI/Panel.h"
 #include "../../../include/UI/TextRenderer.h"
@@ -19,6 +19,11 @@
 #include "../../../include/Item/Inventory.h"
 #include "../../../include/Item/IItem.h"
 #include <Windows.h>
+#include <fstream>
+#include "../../../include/nlohmann/json.hpp"
+
+static const std::string ANIM_ROOT_PATH =
+"Resources/Animations/";
 
 BattleScene::BattleScene()
     : UIScene("Battle")
@@ -79,17 +84,29 @@ void BattleScene::Enter() {
     UpdateCommandPanel();
 
     // ===== 캐릭터 아스키 아트 패널 (왼쪽, 4명 2x2 배치) =====
-    int charArtStartX = 0;
+    int charArtStartX = 15;
     int charArtStartY = 5;
     int charArtWidth = 24;
     int charArtHeight = 12;
 
     auto party = gameMgr->GetParty();
 
+    // ===== 배치 순서 매핑: 4 2 / 3 1 =====
+    // party[0] → 우하단 (row=1, col=1)
+    // party[1] → 좌하단 (row=1, col=0)
+    // party[2] → 우상단 (row=0, col=1)
+    // party[3] → 좌상단 (row=0, col=0)
+    int layoutMap[4][2] = {
+        {1, 1},  // party[0] → 우하단 (1,1)
+        {1, 0},  // party[1] → 좌하단 (1,0)
+        {0, 1},  // party[2] → 우상단 (0,1)
+        {0, 0}   // party[3] → 좌상단 (0,0)
+    };
+
     for (int i = 0; i < 4; ++i)
     {
-        int row = i / 2;
-        int col = i % 2;
+        int row = layoutMap[i][0];
+        int col = layoutMap[i][1];
         int xPos = charArtStartX + col * charArtWidth;
         int yPos = charArtStartY + row * charArtHeight;
 
@@ -97,7 +114,7 @@ void BattleScene::Enter() {
 
         Panel* charArtPanel =
             _Drawer->CreatePanel(panelName, xPos, yPos, charArtWidth, charArtHeight);
-        charArtPanel->SetBorder(true, ETextColor::WHITE);
+        charArtPanel->SetBorder(false, ETextColor::WHITE); // 테스트 후 가리기
 
         // 캐릭터별 아스키 아트 로드
         if (i < party.size() && party[i])
@@ -129,7 +146,7 @@ void BattleScene::Enter() {
             if (charArt->LoadFromFile(charactersPath, artFileName))
             {
                 charArt->SetAlignment(ArtAlignment::CENTER);
-                charArt->SetColor(ETextColor::WHITE);
+                charArt->SetColor(ETextColor::LIGHT_CYAN); //캐릭터 색상
                 charArtPanel->SetContentRenderer(std::move(charArt));
             }
             else
@@ -151,9 +168,9 @@ void BattleScene::Enter() {
         {
             // 빈 슬롯
             auto emptyText = std::make_unique<TextRenderer>();
+            /*emptyText->AddLine("");
             emptyText->AddLine("");
-            emptyText->AddLine("");
-            emptyText->AddLine("     [빈 슬롯]");
+            emptyText->AddLine("     [빈 슬롯]");*/
             emptyText->SetTextColor(
                 MakeColorAttribute(ETextColor::DARK_GRAY, EBackgroundColor::BLACK));
             charArtPanel->SetContentRenderer(std::move(emptyText));
@@ -182,17 +199,17 @@ void BattleScene::Enter() {
 
     // ===== 애니메이션 영역 (중앙) =====
     Panel* animPanel = _Drawer->CreatePanel("Animation", 48, 5, 62, 24);
-    animPanel->SetBorder(true, ETextColor::WHITE);
+    animPanel->SetBorder(false, ETextColor::WHITE); //x 테스트 후 가리기
 
     auto animArt = std::make_unique<AsciiArtRenderer>();
     animArt->SetAlignment(ArtAlignment::CENTER);
-    animArt->SetColor(ETextColor::WHITE);
+    animArt->SetColor(ETextColor::WHITE); //애니메이션 색상
     animPanel->SetContentRenderer(std::move(animArt));
     animPanel->Redraw();
 
     // ===== 몬스터 이미지 패널 (오른쪽) =====
-    Panel* enemyPanel = _Drawer->CreatePanel("Enemy", 110, 8, 40, 17);
-    enemyPanel->SetBorder(true, ETextColor::WHITE);
+    Panel* enemyPanel = _Drawer->CreatePanel("Enemy", 95, 8, 40, 17);
+    enemyPanel->SetBorder(false, ETextColor::WHITE);
     UpdateMonsterInfoPanel();
 
     // ===== 시스템 로그 패널 (하단 좌측-중앙), 내부 우측에 커맨드 통합 =====
@@ -217,6 +234,38 @@ void BattleScene::Enter() {
         [this](EBattleFlushType type)
         {
             this->CollectBattleLogs();
+            switch (type)
+            {
+            case EBattleFlushType::PlayerAttack:
+                SetPanelAnimation("PlayerAttack", "PlayerAttack.json", 1.0f);
+                //SetPanelAnimation("Animation", "test.json", 1.0f);
+                break;
+            case EBattleFlushType::PlayerSkill:
+                SetPanelAnimation("PlayerSkill", "PlayerSkill.json", 1.0f);
+                //SetPanelAnimation("Animation", "test.json", 1.0f);
+                break;
+
+            case EBattleFlushType::PlayerItem:
+                SetPanelAnimation("PlayerItem", "PlayerItem.json", 1.0f);
+                //SetPanelAnimation("Animation", "test.json", 1.0f);
+                break;
+
+            case EBattleFlushType::MonsterAttack:
+                SetPanelAnimation("MonsterAttack", "MonsterAttack.json", 1.0f);
+                //SetPanelAnimation("Animation", "test.json", 1.0f);
+                break;
+
+            case EBattleFlushType::BossAttack:
+                SetPanelAnimation("BossAttack", "BossAttack.json", 1.0f);
+                //SetPanelAnimation("Animation", "test.json", 1.0f);
+                break;
+
+            case EBattleFlushType::BossDebuff:
+                // 애니메이션 대기 설정
+                _IsWaitingForAnimation = true;
+                //_AnimationWaitTimer = 1.0f; // 1초 대기
+                break;
+            }
         }
     );
 }
@@ -224,7 +273,9 @@ void BattleScene::Enter() {
 void BattleScene::Exit()
 {
     // 🔥 중요: Flush 콜백 해제
-    BattleManager::GetInstance()->SetFlushCallback(nullptr);
+    BattleManager* bm = BattleManager::GetInstance();
+    bm->SetFlushCallback(nullptr);
+    bm->SetAnimationCallback(nullptr); // 🔥 이거 필수
 
     _Drawer->RemoveAllPanels();
     _SystemLogs.clear();
@@ -233,27 +284,62 @@ void BattleScene::Exit()
 
 void BattleScene::Update()
 {
+    float deltaTime = 0.016f; // 60FPS 가정
+
+    // ===============================
+    // 1️⃣ 애니메이션 처리
+    // ===============================
+    if (_IsWaitingForAnimation && !_CurrentAnimation.Frames.empty())
+    {
+        _AnimElapsedTime += deltaTime * 1000.0f; // ms
+
+        if (_CurrentAnimFrame + 1 < _CurrentAnimation.TimestampsMs.size())
+        {
+            int nextTime = _CurrentAnimation.TimestampsMs[_CurrentAnimFrame + 1];
+
+            if (_AnimElapsedTime >= nextTime)
+            {
+                _CurrentAnimFrame++;
+                UpdateAnimationPanel(); // ⭐ 핵심
+            }
+        }
+        else
+        {
+            // ✅ 애니메이션 완전 종료
+            _IsWaitingForAnimation = false;
+            _CurrentAnimation = {};
+            _CurrentAnimFrame = 0;
+            _AnimElapsedTime = 0.0f;
+            ClearAnimationPanel();   // ⭐ 자동 삭제
+
+            FlushConsoleInputBuffer(GetStdHandle(STD_INPUT_HANDLE));
+        }
+    }
+
+    // ===============================
+    // 2️⃣ 씬 업데이트
+    // ===============================
     if (_IsActive)
     {
         _Drawer->Update();
 
-        // 애니메이션 대기 타이머 업데이트
-        if (_IsWaitingForAnimation)
+        // 애니메이션 중엔 입력 차단
+        if (!_IsWaitingForAnimation)
         {
-            _AnimationWaitTimer -= 0.016f;// ~60 FPS
-            if (_AnimationWaitTimer <= 0.0f)
-            {
-                _IsWaitingForAnimation = false;
-            }
+            HandleInput();
         }
-
-        HandleInput();
     }
 }
 
 void BattleScene::Render()
 {
-    // UIDrawer::Update()에서 자동 렌더링
+    //// UIDrawer::Update()에서 자동 렌더링
+    //if (_IsWaitingForAnimation && !_CurrentAnimation.Frames.empty())
+    //{
+    //    system("cls");
+    //    //std::cout << _CurrentAnimation.Frames[_CurrentAnimFrame] << std::endl;
+    //    return;
+    //}
 }
 
 // ===== UI 업데이트 함수 (StageSelectScene 패턴) =====
@@ -601,15 +687,15 @@ void BattleScene::UpdateMonsterInfoPanel()
     // ===== 몬스터 이름 → 파일명 매핑 (Monsters.csv 기준) =====
     if (monsterName.find("슬라임") != std::string::npos || monsterName.find("망령") != std::string::npos) {
         fileName = "Slime.txt";
+    } 
+	else if (monsterName.find("박쥐") != std::string::npos) {
+        fileName = "Bat.txt";
     }
     else if (monsterName.find("쥐") != std::string::npos) {
         fileName = "Mouse.txt";
     }
     else if (monsterName.find("고블린") != std::string::npos) {
         fileName = "Goblin.txt";
-    }
-    else if (monsterName.find("박쥐") != std::string::npos) {
-        fileName = "Bat.txt";
     }
     else if (monsterName.find("해골") != std::string::npos || monsterName.find("스켈레톤") != std::string::npos) {
         fileName = "Skeleton.txt";
@@ -664,7 +750,7 @@ void BattleScene::UpdateMonsterInfoPanel()
     if (monsterArt->LoadFromFile(monstersPath, fileName))
     {
         monsterArt->SetAlignment(ArtAlignment::CENTER);
-        monsterArt->SetColor(ETextColor::WHITE);
+        monsterArt->SetColor(ETextColor::LIGHT_YELLOW); // 몬스터 색상
         enemyPanel->SetContentRenderer(std::move(monsterArt));
     }
     else
@@ -764,6 +850,11 @@ void BattleScene::UpdateBattleInfoPanel()
 
 void BattleScene::HandleInput()
 {
+    if (_IsWaitingForAnimation)
+        return;
+
+    /*if (_InputState != EBattleInputState::Playing)
+        return;*/
     InputManager* input = InputManager::GetInstance();
     if (!input->IsKeyPressed()) return;
 
@@ -1316,27 +1407,16 @@ void BattleScene::SetPanelAnimation(const std::string& panelName,
     const std::string& animJsonFile,
     float duration)
 {
-    Panel* panel = _Drawer->GetPanel(panelName);
-    if (!panel) return;
+    if (_IsWaitingForAnimation)
+        return; // 🔥 중복 애니메이션 방지
 
-    // 애니메이션 로더
-    auto animRenderer = std::make_unique<AsciiArtRenderer>();
-    std::string animPath = DataManager::GetInstance()->GetAnimationsPath();
+    if (!LoadAnimationFromJson(animJsonFile))
+        return;
 
-    if (animRenderer->LoadAnimationFromJson(animPath, animJsonFile))
-    {
-        animRenderer->SetAlignment(ArtAlignment::CENTER);
-        animRenderer->StartAnimation();
-        panel->SetContentRenderer(std::move(animRenderer));
-        panel->Redraw();
-        _Drawer->Render();
-
-        // duration > 0이면 블로킹 대기
-        if (duration > 0.0f)
-        {
-            Sleep(static_cast<DWORD>(duration * 1000));
-        }
-    }
+    _IsWaitingForAnimation = true;
+    _CurrentAnimFrame = 0;
+    _AnimElapsedTime = 0.0f;
+    UpdateAnimationPanel();
 }
 
 void BattleScene::SetPanelArt(const std::string& panelName,
@@ -1400,4 +1480,76 @@ void BattleScene::RefreshBattleUI()
     UpdateCommandPanel();
 
     _Drawer->Render();
+}
+ConsoleAnimation BattleScene::LoadAnimation(const std::string& animFile)
+{
+    ConsoleAnimation anim;
+
+    std::string fullPath = ANIM_ROOT_PATH + animFile;
+
+    std::ifstream file(fullPath);
+    if (!file.is_open())
+        return anim;
+
+    nlohmann::json j;
+    file >> j;
+
+    for (auto& f : j["frames"])
+        anim.Frames.push_back(f.get<std::string>());
+
+    for (auto& t : j["timestamps_ms"])
+        anim.TimestampsMs.push_back(t.get<int>());
+
+    return anim;
+}
+
+bool BattleScene::LoadAnimationFromJson(const std::string& fileName)
+{
+    std::string fullPath = ANIM_ROOT_PATH + fileName;
+    std::ifstream file(fullPath);
+    if (!file.is_open())
+        return false;
+
+    nlohmann::json j;
+    file >> j;
+
+    _CurrentAnimation = {};
+    _CurrentAnimFrame = 0;
+    _AnimElapsedTime = 0.0f;
+
+    for (const auto& f : j["frames"])
+        _CurrentAnimation.Frames.push_back(f.get<std::string>());
+
+    for (const auto& t : j["timestamps_ms"])
+        _CurrentAnimation.TimestampsMs.push_back(t.get<int>());
+
+    return !_CurrentAnimation.Frames.empty();
+}
+void BattleScene::UpdateAnimationPanel()
+{
+    Panel* panel = _Drawer->GetPanel("Animation");
+    if (!panel || _CurrentAnimation.Frames.empty())
+        return;
+
+    panel->ClearRenderers();
+
+    auto art = std::make_unique<AsciiArtRenderer>();
+    art->SetAlignment(ArtAlignment::CENTER);
+    art->SetColor(ETextColor::WHITE);
+
+    art->LoadFromString(
+        _CurrentAnimation.Frames[_CurrentAnimFrame]
+    );
+
+    panel->SetContentRenderer(std::move(art));
+    panel->Redraw();
+}
+void BattleScene::ClearAnimationPanel()
+{
+    Panel* animPanel = _Drawer->GetPanel("Animation");
+    if (!animPanel) return;
+
+    animPanel->ClearRenderers();   // 💥 핵심
+    animPanel->SetDirty();
+    animPanel->Redraw();
 }

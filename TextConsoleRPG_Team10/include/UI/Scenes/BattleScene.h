@@ -4,6 +4,8 @@
 #include <vector>
 #include <string>
 #include <Windows.h>
+#include <fstream>
+#include "../../nlohmann/json.hpp"
 
 // ===== 전투 입력 상태 =====
 enum class EBattleInputState
@@ -12,6 +14,20 @@ enum class EBattleInputState
     ResultShown,    // 전투 종료, 결과 로그 표시 중
     EndWaiting      // 결과 확인 완료, 씬 이동 대기
 };
+
+// 애니메이션 구조체
+struct ConsoleAnimation
+{
+    std::vector<std::string> Frames;
+    std::vector<int> TimestampsMs;
+};
+
+//ConsoleAnimation _CurrentAnimation;
+//size_t _CurrentAnimFrame = 0;
+//float _AnimElapsedTime = 0.0f;
+extern unsigned __int64 _CurrentAnimFrame;
+extern float _AnimElapsedTime;
+extern ConsoleAnimation _CurrentAnimation;
 
 // 전투 Scene
 class BattleScene : public UIScene, public IBattleAnimationCallback
@@ -51,8 +67,7 @@ public:
     
     // ===== IBattleAnimationCallback 구현 (간소화) =====
     void SetPanelAnimation(const std::string& panelName,
-     const std::string& animJsonFile,
-      float duration = 0.0f) override;
+     const std::string& animJsonFile, float duration) override;
     
     void SetPanelArt(const std::string& panelName,
         const std::string& artTxtFile) override;
@@ -96,4 +111,14 @@ private:
 
     // 로그 받기
     void CollectBattleLogs();
+
+    //  ===== 애니메이션 로드 함수 =====
+    ConsoleAnimation LoadAnimation(const std::string& path);
+    bool LoadAnimationFromJson(const std::string& fileName);
+    void UpdateAnimationPanel();
+    void ClearAnimationPanel();
+
+    unsigned __int64 _CurrentAnimFrame = 0;
+    float _AnimElapsedTime = 0.0f;
+    ConsoleAnimation _CurrentAnimation;
 };

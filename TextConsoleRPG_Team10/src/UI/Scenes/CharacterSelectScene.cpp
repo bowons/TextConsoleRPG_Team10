@@ -1,4 +1,4 @@
-#include "../../../include/UI/Scenes/CharacterSelectScene.h"
+﻿#include "../../../include/UI/Scenes/CharacterSelectScene.h"
 #include "../../../include/UI/UIDrawer.h"
 #include "../../../include/UI/Panel.h"
 #include "../../../include/UI/TextRenderer.h"
@@ -272,7 +272,7 @@ void CharacterSelectScene::UpdateClassImage(int selection)
     if (loaded)
     {
         artRenderer->SetAlignment(ArtAlignment::CENTER);
-        artRenderer->SetColor(ETextColor::WHITE);
+        artRenderer->SetColor(ETextColor::LIGHT_CYAN);
 
         imagePanel->SetContentRenderer(std::move(artRenderer));
     }
