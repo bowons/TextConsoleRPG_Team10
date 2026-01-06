@@ -259,6 +259,8 @@
     <ClInclude Include="include\UI\Scenes\ResultScene.h">
       <Filter>Header Files\UI\Scenes</Filter>
     </ClInclude>
+    <ClInclude Include="include\Data\CompanionData.h" />
+    <ClInclude Include="include\nlohmann\json.hpp" />
   </ItemGroup>
   <ItemGroup>
     <!-- Item Sources -->
