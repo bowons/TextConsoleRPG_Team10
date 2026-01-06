@@ -5,7 +5,7 @@
 #include <string>
 #include <vector>
 #include <optional>
-
+#include <functional>
 
 class Player;
 class ICharacter;
@@ -176,11 +176,30 @@ public:
     // 아이템: 메인 플레이어 인벤토리에 추가
     // BattleResult 업데이트
     void CalculateReward(Player* P, IMonster* M);
-
+    // ===== 전투 로그 시스템 =====
 private:
     std::vector<BattleLog> _BattleLogs;
 
 public:
     void PushLog(const std::string& msg, EBattleLogType type = EBattleLogType::Normal);
     std::vector<BattleLog> ConsumeLogs(); // BattleScene에서 가져감
+
+    // ===== 씬 콜백 =====
+    public:
+        using FlushCallback = std::function<void()>;
+
+        void SetFlushCallback(FlushCallback cb)
+        {
+            _flushCallback = cb;
+        }
+
+        void RequestFlush()
+        {
+            if (_flushCallback)
+                _flushCallback();
+        }
+
+private:
+    FlushCallback _flushCallback;
+    bool _IsPlayerTurn = true;
 };

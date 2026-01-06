@@ -23,6 +23,7 @@
 #include <algorithm>
 #include <Windows.h>
 #include <optional>
+#include "../../include/UI/Scenes/BattleScene.h"
 
 // TODO: 로그 찍기, CalculateReward 내부 구현
 
@@ -196,7 +197,7 @@ void BattleManager::ProcessAttack(ICharacter* Atk, ICharacter* Def)
                         ELogImportance::DISPLAY
                     );
                 }
-
+                RequestFlush();
                 return;  // 스킬 사용 성공 → 일반 공격 스킵
             }
             // 스킬 사용 실패 (MP 부족 등) → 일반 공격으로 폴백
@@ -216,6 +217,7 @@ void BattleManager::ProcessAttack(ICharacter* Atk, ICharacter* Def)
         if (attackType == "어둠의 폭풍")
         {
             ProcessAOEAttack(attackType, baseDamage, boss);
+            RequestFlush();
             return;
         }
 
@@ -223,6 +225,7 @@ void BattleManager::ProcessAttack(ICharacter* Atk, ICharacter* Def)
         if (attackType == "공포의 속삭임")
         {
             ProcessDebuff(attackType, boss);
+            RequestFlush();
             return;
         }
     }
@@ -266,6 +269,8 @@ void BattleManager::ProcessAttack(ICharacter* Atk, ICharacter* Def)
         ELogImportance::DISPLAY
     );*/
     PushLog(Def->GetName() + "에게 " + std::to_string(Damage) + " 데미지!", EBattleLogType::Important);
+
+    RequestFlush();
 }
 
 // ===== 광역 공격 처리 (Boss 전용) =====
@@ -293,6 +298,7 @@ void BattleManager::ProcessAOEAttack(const std::string& skillName, int damage, I
             PushLog("  → " + member->GetName() + "에게 " + std::to_string(actualDamage) + " 데미지!", EBattleLogType::Important);
         }
     }
+    RequestFlush();
 }
 
 // ===== 디버프 처리 (Boss 전용) =====
@@ -322,6 +328,7 @@ void BattleManager::ProcessDebuff(const std::string& skillName, ICharacter* atta
             PushLog("  → " + member->GetName() + "의 공격력이 감소했다! (" + std::to_string(debuffAmount) + ", 2라운드)", EBattleLogType::Important);
         }
     }
+    RequestFlush();
 }
 
 void BattleManager::CalculateReward(Player* P, IMonster* M)
@@ -590,76 +597,53 @@ void BattleManager::EndBattle()
 
 bool BattleManager::ProcessBattleTurn()
 {
-    // 한 턴 처리 함수, 플레이어 > 몬스터 순서로 진행, 배틀 종료 시 false 반환
-    // 1. 전투 중이 아니거나 몬스터가 없으면 false 반환
     if (!_IsBattleActive || !_CurrentMonster)
         return false;
 
-    // 2. _CurrentRound++ (라운드 증가)
-    SetCurrentRound(_CurrentRound + 1);
-
-    // 3. TODO: BattleScene에서 라운드 시작 로그 표시
-
-    // 4. GameManager에서 메인 플레이어 가져오기
     GameManager* gm = GameManager::GetInstance();
-    Player* mainPlayer = gm->GetMainPlayer().get();
 
-    // 5. 플레이어 턴: ProcessTurn(Monster)
-    ProcessTurn(_CurrentMonster.get());
-
-    // 6. 몬스터 사망 확인
-    if (_CurrentMonster->IsDead())
+    if (_IsPlayerTurn)
     {
-        _Result.Victory = true;
-        _Result.IsCompleted = true;
-        /*PrintManager::GetInstance()->PrintLogLine(
-            "몬스터를 물리쳤습니다! 전투에서 승리했습니다!",
-            ELogImportance::DISPLAY
-        );*/
-        //PushLog("몬스터를 물리쳤습니다! 전투에서 승리했습니다!", EBattleLogType::Important);
-        return false;
-    }
+        SetCurrentRound(_CurrentRound + 1);
+        // 🧑 플레이어 턴
+        ProcessTurn(_CurrentMonster.get());
 
-    // 7. 몬스터 턴: 타겟 선정 후 공격
-    Player* target = SelectMonsterTarget();
-
-    // TODO: BattleScene에서 "=== 몬스터 턴 ===" 로그 표시
-    /*PrintManager::GetInstance()->EndLine();
-    PrintManager::GetInstance()->PrintLogLine(
-        "=== 몬스터 턴 ===",
-        ELogImportance::DISPLAY
-    );*/
-    //PushLog("=== 몬스터 턴 ===", EBattleLogType::Important);
-    PushLog("", EBattleLogType::Important);
-
-    ProcessAttack(_CurrentMonster.get(), target);
-
-    // 8. 메인 플레이어 사망 확인 (게임 오버 조건)
-    if (mainPlayer->IsDead())
-    {
-        _Result.Victory = false;
-        _Result.IsCompleted = true;
-        /*PrintManager::GetInstance()->PrintLogLine(
-            "용사의 여정이 끝났습니다... 전투에서 패배했습니다.",
-            ELogImportance::DISPLAY
-        );*/
-        PushLog("용사의 여정이 끝났습니다... 전투에서 패배했습니다.", EBattleLogType::Important);
-        return false;
-    }
-
-    // 9. 라운드 종료 처리: 파티 전체 버프 감소 + 스킬 쿨타임 감소
-    const auto& party = gm->GetParty();
-    for (const auto& member : party)
-    {
-        if (member && !member->IsDead())
+        if (_CurrentMonster->IsDead())
         {
-            member->ProcessRoundEnd();  // 버프 라운드 감소
-            member->ProcessSkillCooldowns();  // 스킬 쿨타임 감소
+            _Result.Victory = true;
+            _Result.IsCompleted = true;
+            return false;
         }
-    }
 
-    // 10. 전투 계속: true 반환
-    return true;
+        _IsPlayerTurn = false;   // ⭐ 다음은 몬스터
+        return true;             // ⭐ 여기서 끊는다
+    }
+    else
+    {
+        // 👹 몬스터 턴
+        Player* target = SelectMonsterTarget();
+        ProcessAttack(_CurrentMonster.get(), target);
+
+        if (gm->GetMainPlayer()->IsDead())
+        {
+            _Result.Victory = false;
+            _Result.IsCompleted = true;
+            return false;
+        }
+        // ⭐ 라운드 종료 처리 (여기가 정답)
+        const auto& party = gm->GetParty();
+        for (const auto& member : party)
+        {
+            if (member && !member->IsDead())
+            {
+                member->ProcessRoundEnd();
+                member->ProcessSkillCooldowns();
+            }
+        }
+
+        _IsPlayerTurn = true;    // ⭐ 다시 플레이어
+        return true;
+    }
 }
 
 // ========================================
@@ -909,3 +893,5 @@ std::vector<BattleLog> BattleManager::ConsumeLogs()
     _BattleLogs.clear();
     return result;
 }
+
+//RequestFlush();
