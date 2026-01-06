@@ -241,12 +241,13 @@ void BattleManager::ProcessAttack(ICharacter* Atk, ICharacter* Def)
     // 실제 데미지 적용
     int Damage = 0;
 
-    // Player의 Attack()은 내부에서 이미 TakeDamage 호출됨
+    // Player's Attack() already calls TakeDamage internally
+    // If it's a Player, use the damage from Attack()'s return value
     if (dynamic_cast<Player*>(Atk))
     {
-        Damage = baseDamage;  // Attack()의 반환값 사용
+        Damage = baseDamage;
     }
-    // Monster만 여기서 TakeDamage 호출
+    // For Monsters, explicitly call TakeDamage
     else if (IMonster* monster = dynamic_cast<IMonster*>(Atk))
     {
         Damage = Def->TakeDamage(Atk, baseDamage);
@@ -284,7 +285,7 @@ void BattleManager::ProcessAttack(ICharacter* Atk, ICharacter* Def)
     PushLog(Def->GetName() + "에게 " + std::to_string(Damage) + " 데미지!", EBattleLogType::Important);
 }
 
-// ===== 광역 공격 처리 (Boss 전用) =====
+// ===== 광역 공격 처리 (Boss 전용) =====
 void BattleManager::ProcessAOEAttack(const std::string& skillName, int damage, ICharacter* attacker)
 {
     GameManager* gm = GameManager::GetInstance();
@@ -543,12 +544,12 @@ void BattleManager::EndBattle()
         if (!reservation.IsActive)
             continue;
 
-        Player* user = reservation.User;
-        if (!user)
+        Player* owner = reservation.Owner;
+        if (!owner)
             continue;
 
         Inventory* inventory = nullptr;
-        if (!user->TryGetInventory(inventory))
+        if (!owner->TryGetInventory(inventory))
             continue;
 
         IItem* item = inventory->GetItemAtSlot(reservation.SlotIndex);
@@ -615,7 +616,6 @@ bool BattleManager::ProcessBattleTurn()
         if (member && !member->IsDead())
         {
             member->ProcessRoundEnd();  // 버프 라운드 감소
-            member->ProcessSkillCooldowns();  // 스킬 쿨타임 감소
         }
     }
 
@@ -627,17 +627,17 @@ bool BattleManager::ProcessBattleTurn()
 // ===== 아이템 예약 시스템 =====
 // ========================================
 
-bool BattleManager::ReserveItemUse(Player* player, int slotIndex)
+bool BattleManager::ReserveItemUse(Player* owner, Player* target, int slotIndex)
 {
-    if (!player)
+    if (!owner || !target)
     {
         PushLog("플레이어가 유효하지 않습니다.", EBattleLogType::Important);
         return false;
     }
 
-    // 인벤토리 확인
+    // 인벤토리 확인 (소유자 = 메인 플레이어)
     Inventory* inventory = nullptr;
-    if (!player->TryGetInventory(inventory))
+    if (!owner->TryGetInventory(inventory))
     {
         PushLog("인벤토리가 없습니다.", EBattleLogType::Important);
         return false;
@@ -660,20 +660,20 @@ bool BattleManager::ReserveItemUse(Player* player, int slotIndex)
 
     // 예약 등록
     item->Reserve(_CurrentRound);
-    _ItemReservations.push_back({ slotIndex, player, true });
+    _ItemReservations.push_back({ slotIndex, owner, target, true });
 
-    PushLog(item->GetName() + " 사용 예약 완료! (조건: " +
-        item->GetUseConditionDescription() + ")", EBattleLogType::Important);
+    PushLog(item->GetName() + " 사용 예약 완료! (대상: " + target->GetName() +
+        ", 조건: " + item->GetUseConditionDescription() + ")", EBattleLogType::Important);
 
     return true;
 }
 
-bool BattleManager::CancelItemReservation(Player* player, int slotIndex)
+bool BattleManager::CancelItemReservation(Player* owner, int slotIndex)
 {
-    if (!player) return false;
+    if (!owner) return false;
 
     Inventory* inventory = nullptr;
-    if (!player->TryGetInventory(inventory)) return false;
+    if (!owner->TryGetInventory(inventory)) return false;
 
     IItem* item = inventory->GetItemAtSlot(slotIndex);
     if (!item || !item->IsReserved())
@@ -685,7 +685,7 @@ bool BattleManager::CancelItemReservation(Player* player, int slotIndex)
     // 예약 목록에서 제거
     for (auto& reservation : _ItemReservations)
     {
-        if (reservation.User == player &&
+        if (reservation.Owner == owner &&
             reservation.SlotIndex == slotIndex &&
             reservation.IsActive)
         {
@@ -705,14 +705,20 @@ bool BattleManager::TryUseReservedItem(Player* player)
 {
     if (!player) return false;
 
-    Inventory* inventory = nullptr;
-    if (!player->TryGetInventory(inventory)) return false;
-
-    // 해당 플레이어의 예약만 찾기
+    // 해당 플레이어가 "대상"인 예약 찾기
     for (auto& reservation : _ItemReservations)
     {
-        if (!reservation.IsActive || reservation.User != player)
+        if (!reservation.IsActive || reservation.Target != player)
             continue;
+
+        // 소유자의 인벤토리에서 아이템 가져오기
+        Inventory* inventory = nullptr;
+        if (!reservation.Owner->TryGetInventory(inventory) || !inventory)
+        {
+            PushLog(reservation.Owner->GetName() + "의 인벤토리가 없습니다.", EBattleLogType::Important);
+            reservation.IsActive = false;
+            continue;
+        }
 
         // 아이템 가져오기
         IItem* item = inventory->GetItemAtSlot(reservation.SlotIndex);
@@ -725,6 +731,7 @@ bool BattleManager::TryUseReservedItem(Player* player)
         }
 
         // ===== 조건 체크 (IItem::CanUse) =====
+        // **중요: player는 "대상"이므로 조건 체크 시 사용**
         if (!item->CanUse(*player, _CurrentRound))
         {
             // 조건 불만족 → 예약 유지, 일반 공격 진행
@@ -732,13 +739,13 @@ bool BattleManager::TryUseReservedItem(Player* player)
         }
 
         // ===== 조건 만족 → 자동 사용 =====
-        PushLog(">>> " + player->GetName() + "의 " + item->GetName() + " 자동 사용! (" +
+        PushLog(">>> " + player->GetName() + "에게 " + item->GetName() + " 자동 사용! (" +
             item->GetUseConditionDescription() + " 만족)", EBattleLogType::Important);
 
-        // 효과 적용
+        // **효과 적용 - player(대상)에게 적용**
         item->ApplyEffect(*player);
 
-        // 인벤토리에서 제거
+        // 인벤토리에서 제거 (소유자의 인벤토리)
         inventory->RemoveItem(reservation.SlotIndex, 1);
 
         // 예약 취소
@@ -762,10 +769,11 @@ bool BattleManager::ProcessReservedItems()
     {
         if (!reservation.IsActive) continue;
 
-        Player* user = reservation.User;
+        Player* owner = reservation.Owner;
+        Player* target = reservation.Target;
         Inventory* inventory = nullptr;
 
-        if (!user->TryGetInventory(inventory)) continue;
+        if (!owner->TryGetInventory(inventory)) continue;
 
         // 아이템 가져오기
         IItem* item = inventory->GetItemAtSlot(reservation.SlotIndex);
@@ -777,21 +785,21 @@ bool BattleManager::ProcessReservedItems()
             continue;
         }
 
-        // ===== 조건 체크 (IItem::CanUse) =====
-        if (!item->CanUse(*user, _CurrentRound))
+        // ===== 조건 체크 (IItem::CanUse) - 대상 기준 =====
+        if (!item->CanUse(*target, _CurrentRound))
         {
             // 조건 불만족 → 예약 유지 (다음 턴 재시도)
             continue;
         }
 
         // ===== 조건 만족 → 자동 사용 =====
-        PushLog(">>> " + user->GetName() + "의 " + item->GetName() + " 자동 사용! (" +
+        PushLog(">>> " + target->GetName() + "에게 " + item->GetName() + " 자동 사용! (" +
             item->GetUseConditionDescription() + " 만족)", EBattleLogType::Important);
 
-        // 효과 적용
-        item->ApplyEffect(*user);
+        // 효과 적용 - 대상에게
+        item->ApplyEffect(*target);
 
-        // 인벤토리에서 제거
+        // 인벤토리에서 제거 - 소유자의 인벤토리
         inventory->RemoveItem(reservation.SlotIndex, 1);
 
         // 예약 취소

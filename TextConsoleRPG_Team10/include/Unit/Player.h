@@ -117,8 +117,8 @@ public:
     void ApplyTempDexBuff(int Amount, int Rounds);
     void ApplyTempLukBuff(int Amount, int Rounds);
     void ApplyTempCriticalRateBuff(float Amount, int Rounds);
-    void ProcessRoundEnd();
-    void ResetBuffs();
+    virtual void ProcessRoundEnd();
+    virtual void ResetBuffs();
 
     // 버프 포함 총 스탯 조회 메서드
     int GetTotalAtk() const;

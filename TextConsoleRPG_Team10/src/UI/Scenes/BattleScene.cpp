@@ -301,16 +301,16 @@ void BattleScene::UpdateInventoryPanel(Panel* inventoryPanel)
     {
         IItem* item = inventory->GetItemAtSlot(i);
 
-        // 예약 여부 체크 + 예약한 캐릭터 찾기
+        // 예약 여부 체크 + 예약 대상 찾기
         bool isReserved = false;
-        Player* reservedBy = nullptr;
+        Player* reservedTarget = nullptr;
 
         for (const auto& res : reservations)
         {
             if (res.IsActive && res.SlotIndex == i)
             {
                 isReserved = true;
-                reservedBy = res.User;
+                reservedTarget = res.Target;
                 break;
             }
         }
@@ -322,9 +322,9 @@ void BattleScene::UpdateInventoryPanel(Panel* inventoryPanel)
 
             // Reservation 상태에 따라 색상 변경
             WORD itemColor = MakeColorAttribute(ETextColor::WHITE, EBackgroundColor::BLACK);
-            if (isReserved && reservedBy)
+            if (isReserved && reservedTarget)
             {
-                int partyIdx = GetPartyIndex(reservedBy);
+                int partyIdx = GetPartyIndex(reservedTarget);
                 itemColor = GetCharacterColor(partyIdx);
             }
 
@@ -373,13 +373,13 @@ void BattleScene::UpdateCommandPanel()
     {
         if (!res.IsActive) continue;
 
-        Player* user = res.User;
+        Player* target = res.Target;
         int slotIndex = res.SlotIndex;
 
-        int partyIdx = GetPartyIndex(user);
+        int partyIdx = GetPartyIndex(target);
         WORD userColor = (partyIdx != -1) ? GetCharacterColor(partyIdx) : MakeColorAttribute(ETextColor::WHITE, EBackgroundColor::BLACK);
 
-        commandText->AddLineWithColor("  [아이템 예약] " + user->GetName() + " - 슬롯 " + std::to_string(slotIndex + 1),
+        commandText->AddLineWithColor("  [아이템 예약] " + target->GetName() + " - 슬롯 " + std::to_string(slotIndex + 1),
             userColor);
     }
 
@@ -423,7 +423,8 @@ void BattleScene::UpdatePartyPanels()
             {
                 for (const auto& res : reservations)
                 {
-                    if (res.IsActive && res.User == party[i].get())
+                    // Target이 현재 파티원과 일치하는지 확인
+                    if (res.IsActive && res.Target == party[i].get())
                     {
                         hasReservation = true;
                         break;
@@ -444,7 +445,7 @@ void BattleScene::UpdatePartyPanels()
         if (i < party.size() && party[i])
         {
             std::string name = party[i]->GetName();
-            
+
             // ===== 직업 판별 =====
             std::string className = "Unknown";
             if (dynamic_cast<Warrior*>(party[i].get())) {
@@ -665,9 +666,10 @@ void BattleScene::HandleInput()
                 int cancelCount = 0;
                 for (const auto& res : reservations)
                 {
-                    if (res.IsActive && res.User == selectedPlayer)
+                    // 예약 대상이 선택된 파티원인지 확인
+                    if (res.IsActive && res.Target == selectedPlayer)
                     {
-                        if (battleMgr->CancelItemReservation(selectedPlayer, res.SlotIndex))
+                        if (battleMgr->CancelItemReservation(mainPlayer, res.SlotIndex))
                         {
                             cancelCount++;
                         }
@@ -716,7 +718,7 @@ void BattleScene::HandleInput()
                             // 예약 취소 후 재예약
                             if (battleMgr->CancelItemReservation(mainPlayer, _SelectedItemSlot))
                             {
-                                if (battleMgr->ReserveItemUse(targetPlayer, _SelectedItemSlot))
+                                if (battleMgr->ReserveItemUse(mainPlayer, targetPlayer, _SelectedItemSlot))
                                 {
                                     _SystemLogs.push_back("[안내] " + item->GetName() + " 예약 대상을 " +
                                         targetPlayer->GetName() + "으로 변경했습니다.");
@@ -730,7 +732,7 @@ void BattleScene::HandleInput()
                         else
                         {
                             // 새 예약
-                            if (battleMgr->ReserveItemUse(targetPlayer, _SelectedItemSlot))
+                            if (battleMgr->ReserveItemUse(mainPlayer, targetPlayer, _SelectedItemSlot))
                             {
                                 _SystemLogs.push_back("[안내] " + item->GetName() + " 예약 완료! (대상: " +
                                     targetPlayer->GetName() + ", " + item->GetUseConditionDescription() + ")");
@@ -810,21 +812,21 @@ void BattleScene::HandleInput()
         // ===== 이미 예약된 아이템인지 확인 =====
         if (item->IsReserved())
         {
-            // 예약한 사용자 찾기
+            // 예약 대상 찾기
             const auto& reservations = battleMgr->GetActiveReservations();
-            std::string reservedByName = "알 수 없음";
+            std::string reservedTargetName = "알 수 없음";
 
             for (const auto& res : reservations)
             {
-                if (res.IsActive && res.SlotIndex == slotIndex && res.User)
+                if (res.IsActive && res.SlotIndex == slotIndex && res.Target)
                 {
-                    reservedByName = res.User->GetName();
+                    reservedTargetName = res.Target->GetName();
                     break;
                 }
             }
 
             _SystemLogs.push_back("[안내] " + item->GetName() + "은(는) 이미 " +
-                reservedByName + "에게 예약되어 있습니다.");
+                reservedTargetName + "에게 예약되어 있습니다.");
 
             Panel* logPanel = _Drawer->GetPanel("SystemLog");
             if (logPanel) UpdateSystemLog(logPanel, _SystemLogs);
@@ -1070,7 +1072,7 @@ void BattleScene::SetPanelAnimation(const std::string& panelName,
     float duration)
 {
     Panel* panel = _Drawer->GetPanel(panelName);
-if (!panel) return;
+    if (!panel) return;
 
     // 애니메이션 로더
     auto animRenderer = std::make_unique<AsciiArtRenderer>();
@@ -1081,11 +1083,11 @@ if (!panel) return;
         animRenderer->SetAlignment(ArtAlignment::CENTER);
         animRenderer->StartAnimation();
         panel->SetContentRenderer(std::move(animRenderer));
-   panel->Redraw();
-    _Drawer->Render();
+        panel->Redraw();
+        _Drawer->Render();
 
         // duration > 0이면 블로킹 대기
-     if (duration > 0.0f)
+        if (duration > 0.0f)
         {
             Sleep(static_cast<DWORD>(duration * 1000));
         }
@@ -1096,7 +1098,7 @@ void BattleScene::SetPanelArt(const std::string& panelName,
     const std::string& artTxtFile)
 {
     Panel* panel = _Drawer->GetPanel(panelName);
-  if (!panel) return;
+    if (!panel) return;
 
     // 정적 아스키 아트 로더
     auto artRenderer = std::make_unique<AsciiArtRenderer>();
@@ -1105,7 +1107,7 @@ void BattleScene::SetPanelArt(const std::string& panelName,
     // 패널 이름으로 폴더 자동 감지
     if (panelName == "Enemy")
     {
-    folderPath = DataManager::GetInstance()->GetMonstersPath();
+        folderPath = DataManager::GetInstance()->GetMonstersPath();
     }
     else if (panelName.find("CharArt") == 0)
     {
@@ -1113,21 +1115,21 @@ void BattleScene::SetPanelArt(const std::string& panelName,
     }
     else
     {
-     folderPath = DataManager::GetInstance()->GetAnimationsPath();
+        folderPath = DataManager::GetInstance()->GetAnimationsPath();
     }
 
     if (artRenderer->LoadFromFile(folderPath, artTxtFile))
     {
         artRenderer->SetAlignment(ArtAlignment::CENTER);
- panel->SetContentRenderer(std::move(artRenderer));
+        panel->SetContentRenderer(std::move(artRenderer));
         panel->Redraw();
         _Drawer->Render();
-  }
+    }
 }
 
 void BattleScene::UpdatePartyDisplay()
 {
-  UpdatePartyPanels();
+    UpdatePartyPanels();
     _Drawer->Render();
 }
 
@@ -1148,7 +1150,7 @@ void BattleScene::RefreshBattleUI()
     if (logPanel) UpdateSystemLog(logPanel, _SystemLogs);
 
     Panel* inventoryPanel = _Drawer->GetPanel("Inventory");
-  if (inventoryPanel) UpdateInventoryPanel(inventoryPanel);
+    if (inventoryPanel) UpdateInventoryPanel(inventoryPanel);
 
     UpdateCommandPanel();
 

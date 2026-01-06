@@ -50,9 +50,10 @@ struct BattleLog
 // ===== 아이템 예약 구조체 =====
 struct ItemReservation
 {
-    int SlotIndex;      // 인벤토리 슬롯 인덱스
-    Player* User; // 사용자
-    bool IsActive; // 예약 활성화 여부
+    int SlotIndex;          // 인벤토리 슬롯 인덱스
+    Player* Owner;        // 아이템 소유자 (메인 플레이어)
+    Player* Target;         // 사용 대상 (파티원)
+    bool IsActive;     // 예약 활성화 여부
 };
 
 class BattleManager : public Singleton<BattleManager>
@@ -144,16 +145,17 @@ public:
     // ===== 아이템 예약 시스템 인터페이스 =====
 
     // 아이템 사용 예약
-    // player: 사용자
+    // owner: 아이템을 소유한 플레이어 (메인 플레이어)
+    // target: 아이템을 사용받을 대상 (파티원)
     // slotIndex: 예약할 슬롯 인덱스
     // return: 예약 성공 시 true
-    bool ReserveItemUse(Player* player, int slotIndex);
+    bool ReserveItemUse(Player* owner, Player* target, int slotIndex);
 
     // 아이템 예약 취소
-    // player: 사용자
+    // owner: 아이템을 소유한 플레이어 (메인 플레이어)
     // slotIndex: 취소할 슬롯
     // return: 취소 성공 시 true
-    bool CancelItemReservation(Player* player, int slotIndex);
+    bool CancelItemReservation(Player* owner, int slotIndex);
 
     // 현재 예약된 아이템 목록 조회 (UI 표시용)
     // return: 활성화된 예약 목록
