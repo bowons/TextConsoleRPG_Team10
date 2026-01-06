@@ -124,3 +124,4 @@ BGM_Shop,BGM_Shop.wav,64,0.8
 BossVoice_1,BossVoice_IamDeath.wav,0.557,0.5
 BossVoice_2,BossVoice_IamTheDarkness.wav,1.779,0.5
 BossVoice_3,BossVoice_YouCannotEscapeDeath.wav,2.44,0.5
+Boss_Dead,Boss_Dead,,
