@@ -183,7 +183,7 @@ void GameManager::EndGame()
 void GameManager::RestartGame()
 {
     PrintManager::GetInstance()->PrintLogLine(
-    "게임을 재시작합니다...",
+        "게임을 재시작합니다...",
         ELogImportance::DISPLAY
     );
 
@@ -192,7 +192,7 @@ void GameManager::RestartGame()
     StageManager* stageMgr = StageManager::GetInstance();
     if (stageMgr && stageMgr->IsInitialized())
     {
-stageMgr->StartNewGame();
+        stageMgr->StartNewGame();
     }
 
     _IsGameOver = false;

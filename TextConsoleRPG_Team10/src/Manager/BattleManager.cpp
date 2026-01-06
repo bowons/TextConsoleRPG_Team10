@@ -337,26 +337,26 @@ void BattleManager::CalculateReward(Player* P, IMonster* M)
     {
         if (party.size() > 1)
         {
-     PrintManager::GetInstance()->PrintLog("파티원 모두 ");
-    }
+            PrintManager::GetInstance()->PrintLog("파티원 모두 ");
+        }
         else
         {
-   PrintManager::GetInstance()->PrintLog(mainPlayer->GetName() + "은(는) ");
+            PrintManager::GetInstance()->PrintLog(mainPlayer->GetName() + "은(는) ");
         }
-    PrintManager::GetInstance()->PrintColorText(std::to_string(Exp), ETextColor::LIGHT_GREEN);
+        PrintManager::GetInstance()->PrintColorText(std::to_string(Exp), ETextColor::LIGHT_GREEN);
         PrintManager::GetInstance()->PrintLogLine("의 경험치를 획득했습니다.");
 
         // 파티 전체에 경험치 분배
         for (const auto& member : party)
         {
-   if (member)
+            if (member)
             {
                 member->GainExp(Exp);
-     PrintManager::GetInstance()->PrintLogLine(
-         member->GetName() + "의 EXP: " +
-            std::to_string(member->GetExp()) + "/" +
-    std::to_string(member->GetMaxExp()));
-       }
+                PrintManager::GetInstance()->PrintLogLine(
+                    member->GetName() + "의 EXP: " +
+                    std::to_string(member->GetExp()) + "/" +
+                    std::to_string(member->GetMaxExp()));
+            }
         }
         PrintManager::GetInstance()->EndLine();
     }
@@ -371,39 +371,39 @@ void BattleManager::CalculateReward(Player* P, IMonster* M)
         PrintManager::GetInstance()->PrintLog(mainPlayer->GetName() + "의 소지 골드량은 ");
         PrintManager::GetInstance()->PrintColorText(std::to_string(mainPlayer->GetGold()) + " G", ETextColor::YELLOW);
         PrintManager::GetInstance()->PrintLogLine("입니다.");
-  }
+    }
 
     // ===== 아이템: 메인 플레이어 인벤토리에만 추가 =====
- if (DroppedItem && mainPlayer)
+    if (DroppedItem && mainPlayer)
     {
-   std::string ItemName = DroppedItem->GetName();
+        std::string ItemName = DroppedItem->GetName();
 
         // 메인 플레이어 인벤토리 접근
         Inventory* inventory = nullptr;
-   if (!mainPlayer->TryGetInventory(inventory))
+        if (!mainPlayer->TryGetInventory(inventory))
         {
             PrintManager::GetInstance()->PrintLogLine(
-             mainPlayer->GetName() + "은(는) 인벤토리가 없어 아이템을 얻지 못했습니다.",
-        ELogImportance::WARNING);
-     PrintManager::GetInstance()->PrintLogLine("");
-     return;
+                mainPlayer->GetName() + "은(는) 인벤토리가 없어 아이템을 얻지 못했습니다.",
+                ELogImportance::WARNING);
+            PrintManager::GetInstance()->PrintLogLine("");
+            return;
         }
 
         int Remain;
         if (inventory->AddItem(std::move(DroppedItem), 1, Remain))
         {
             PrintManager::GetInstance()->PrintLogLine(
-           mainPlayer->GetName() + "은(는) " + ItemName + "을 보상으로 얻었습니다.",
-     ELogImportance::DISPLAY);
+                mainPlayer->GetName() + "은(는) " + ItemName + "을 보상으로 얻었습니다.",
+                ELogImportance::DISPLAY);
         }
         else
         {
-        PrintManager::GetInstance()->PrintLogLine(
-     mainPlayer->GetName() + "은(는) 인벤토리가 가득 차 있어 아이템을 얻지 못했습니다.",
-           ELogImportance::WARNING);
+            PrintManager::GetInstance()->PrintLogLine(
+                mainPlayer->GetName() + "은(는) 인벤토리가 가득 차 있어 아이템을 얻지 못했습니다.",
+                ELogImportance::WARNING);
         }
-     PrintManager::GetInstance()->PrintLogLine("");
-}
+        PrintManager::GetInstance()->PrintLogLine("");
+    }
 }
 
 // ========================================
@@ -579,26 +579,26 @@ bool BattleManager::ProcessBattleTurn()
     // 5. 플레이어 턴: ProcessTurn(Monster)
     ProcessTurn(_CurrentMonster.get());
 
-  // 6. 몬스터 사망 확인
+    // 6. 몬스터 사망 확인
     if (_CurrentMonster->IsDead())
-{
+    {
         _Result.Victory = true;
-     _Result.IsCompleted = true;
+        _Result.IsCompleted = true;
         PrintManager::GetInstance()->PrintLogLine(
-         "몬스터를 물리쳤습니다! 전투에서 승리했습니다!",
-      ELogImportance::DISPLAY
+            "몬스터를 물리쳤습니다! 전투에서 승리했습니다!",
+            ELogImportance::DISPLAY
         );
-      return false;
+        return false;
     }
 
     // 7. 몬스터 턴: 타겟 선정 후 공격
     Player* target = SelectMonsterTarget();
-    
+
     // TODO: BattleScene에서 "=== 몬스터 턴 ===" 로그 표시
     PrintManager::GetInstance()->EndLine();
     PrintManager::GetInstance()->PrintLogLine(
-   "=== 몬스터 턴 ===",
-  ELogImportance::DISPLAY
+        "=== 몬스터 턴 ===",
+        ELogImportance::DISPLAY
     );
 
     ProcessAttack(_CurrentMonster.get(), target);
@@ -607,10 +607,10 @@ bool BattleManager::ProcessBattleTurn()
     if (mainPlayer->IsDead())
     {
         _Result.Victory = false;
-     _Result.IsCompleted = true;
-  PrintManager::GetInstance()->PrintLogLine(
-      "용사의 여정이 끝났습니다... 전투에서 패배했습니다.",
-        ELogImportance::DISPLAY
+        _Result.IsCompleted = true;
+        PrintManager::GetInstance()->PrintLogLine(
+            "용사의 여정이 끝났습니다... 전투에서 패배했습니다.",
+            ELogImportance::DISPLAY
         );
         return false;
     }
@@ -621,9 +621,9 @@ bool BattleManager::ProcessBattleTurn()
     {
         if (member && !member->IsDead())
         {
- member->ProcessRoundEnd();  // 버프 라운드 감소
+            member->ProcessRoundEnd();  // 버프 라운드 감소
             member->ProcessSkillCooldowns();  // 스킬 쿨타임 감소
-     }
+        }
     }
 
     // 10. 전투 계속: true 반환
@@ -637,29 +637,29 @@ bool BattleManager::ProcessBattleTurn()
 bool BattleManager::ReserveItemUse(Player* player, int slotIndex)
 {
     if (!player) {
-      PrintManager::GetInstance()->PrintLogLine("플레이어가 유효하지 않습니다.", ELogImportance::WARNING);
-      return false;
+        PrintManager::GetInstance()->PrintLogLine("플레이어가 유효하지 않습니다.", ELogImportance::WARNING);
+        return false;
     }
 
     // 인벤토리 확인
     Inventory* inventory = nullptr;
     if (!player->TryGetInventory(inventory)) {
-      PrintManager::GetInstance()->PrintLogLine("인벤토리가 없습니다.", ELogImportance::WARNING);
+        PrintManager::GetInstance()->PrintLogLine("인벤토리가 없습니다.", ELogImportance::WARNING);
         return false;
     }
 
     // 슬롯 유효성 검증
     IItem* item = inventory->GetItemAtSlot(slotIndex);
     if (!item) {
-      PrintManager::GetInstance()->PrintLogLine("해당 슬롯에 아이템이 없습니다.", ELogImportance::WARNING);
+        PrintManager::GetInstance()->PrintLogLine("해당 슬롯에 아이템이 없습니다.", ELogImportance::WARNING);
         return false;
     }
 
     // 이미 예약되어 있는지 확인
     if (item->IsReserved()) {
-   PrintManager::GetInstance()->PrintLogLine(
-         item->GetName() + "은(는) 이미 예약되어 있습니다.",
-         ELogImportance::WARNING
+        PrintManager::GetInstance()->PrintLogLine(
+            item->GetName() + "은(는) 이미 예약되어 있습니다.",
+            ELogImportance::WARNING
         );
         return false;
     }
@@ -687,27 +687,27 @@ bool BattleManager::CancelItemReservation(Player* player, int slotIndex)
     IItem* item = inventory->GetItemAtSlot(slotIndex);
     if (!item || !item->IsReserved()) {
         PrintManager::GetInstance()->PrintLogLine(
-      "해당 슬롯에 예약된 아이템이 없습니다.",
+            "해당 슬롯에 예약된 아이템이 없습니다.",
             ELogImportance::WARNING
         );
-     return false;
+        return false;
     }
 
     // 예약 목록에서 제거
     for (auto& reservation : _ItemReservations) {
         if (reservation.User == player &&
             reservation.SlotIndex == slotIndex &&
-  reservation.IsActive) {
+            reservation.IsActive) {
 
             reservation.IsActive = false;
-    item->CancelReservation();
+            item->CancelReservation();
 
-          PrintManager::GetInstance()->PrintLogLine(
-            item->GetName() + " 예약이 취소되었습니다.",
-  ELogImportance::DISPLAY
- );
+            PrintManager::GetInstance()->PrintLogLine(
+                item->GetName() + " 예약이 취소되었습니다.",
+                ELogImportance::DISPLAY
+            );
             return true;
-}
+        }
     }
 
     return false;
@@ -721,23 +721,23 @@ bool BattleManager::TryUseReservedItem(Player* player)
     Inventory* inventory = nullptr;
     if (!player->TryGetInventory(inventory)) return false;
 
- // 해당 플레이어의 예약만 찾기
+    // 해당 플레이어의 예약만 찾기
     for (auto& reservation : _ItemReservations)
     {
         if (!reservation.IsActive || reservation.User != player)
-     continue;
+            continue;
 
-      // 아이템 가져오기
-  IItem* item = inventory->GetItemAtSlot(reservation.SlotIndex);
-   if (!item)
+        // 아이템 가져오기
+        IItem* item = inventory->GetItemAtSlot(reservation.SlotIndex);
+        if (!item)
         {
-    // 아이템이 사라짐 → 예약 취소
-      PrintManager::GetInstance()->PrintLogLine(
-      player->GetName() + "의 예약 아이템(슬롯 " + std::to_string(reservation.SlotIndex) + ")이 사라졌습니다.",
+            // 아이템이 사라짐 → 예약 취소
+            PrintManager::GetInstance()->PrintLogLine(
+                player->GetName() + "의 예약 아이템(슬롯 " + std::to_string(reservation.SlotIndex) + ")이 사라졌습니다.",
                 ELogImportance::WARNING
-        );
+            );
             reservation.IsActive = false;
-   continue;
+            continue;
         }
 
         // ===== 조건 체크 (IItem::CanUse) =====
@@ -745,18 +745,18 @@ bool BattleManager::TryUseReservedItem(Player* player)
         {
             // 조건 불만족 → 예약 유지, 일반 공격 진행
   // TODO: BattleScene에서 "조건 미달, 공격 진행" 로그 표시
-     return false;
+            return false;
         }
 
         // ===== 조건 만족 → 자동 사용 =====
         PrintManager::GetInstance()->PrintLogLine(
-">>> " + player->GetName() + "의 " + item->GetName() + " 자동 사용! (" +
-         item->GetUseConditionDescription() + " 만족)",
-    ELogImportance::DISPLAY
+            ">>> " + player->GetName() + "의 " + item->GetName() + " 자동 사용! (" +
+            item->GetUseConditionDescription() + " 만족)",
+            ELogImportance::DISPLAY
         );
 
-   // 효과 적용
-   item->ApplyEffect(*player);
+        // 효과 적용
+        item->ApplyEffect(*player);
 
         // 인벤토리에서 제거
         inventory->RemoveItem(reservation.SlotIndex, 1);
@@ -784,56 +784,56 @@ bool BattleManager::ProcessReservedItems()
     {
         if (!reservation.IsActive) continue;
 
-     Player* user = reservation.User;
+        Player* user = reservation.User;
         Inventory* inventory = nullptr;
 
         if (!user->TryGetInventory(inventory)) continue;
 
         // 아이템 가져오기
-   IItem* item = inventory->GetItemAtSlot(reservation.SlotIndex);
-    if (!item)
- {
-    // 아이템이 사라짐 → 예약 취소
+        IItem* item = inventory->GetItemAtSlot(reservation.SlotIndex);
+        if (!item)
+        {
+            // 아이템이 사라짐 → 예약 취소
             PrintManager::GetInstance()->PrintLogLine(
-             "슬롯 [" + std::to_string(reservation.SlotIndex) + "]의 아이템이 없어져 예약이 취소되었습니다.",
-     ELogImportance::WARNING
-      );
-     reservation.IsActive = false;
-         continue;
+                "슬롯 [" + std::to_string(reservation.SlotIndex) + "]의 아이템이 없어져 예약이 취소되었습니다.",
+                ELogImportance::WARNING
+            );
+            reservation.IsActive = false;
+            continue;
         }
 
         // ===== 조건 체크 (IItem::CanUse) =====
         if (!item->CanUse(*user, _CurrentRound))
         {
-      // 조건 불만족 → 예약 유지 (다음 턴 재시도)
-       // TODO: BattleScene에서 "조건 미달, 대기 중" 로그 표시
-        continue;
+            // 조건 불만족 → 예약 유지 (다음 턴 재시도)
+             // TODO: BattleScene에서 "조건 미달, 대기 중" 로그 표시
+            continue;
         }
 
         // ===== 조건 만족 → 자동 사용 =====
         PrintManager::GetInstance()->PrintLogLine(
             ">>> " + user->GetName() + "의 " + item->GetName() + " 자동 사용! (" +
-    item->GetUseConditionDescription() + " 만족)",
-    ELogImportance::DISPLAY
+            item->GetUseConditionDescription() + " 만족)",
+            ELogImportance::DISPLAY
         );
 
         // 효과 적용
         item->ApplyEffect(*user);
 
-   // 인벤토리에서 제거
+        // 인벤토리에서 제거
         inventory->RemoveItem(reservation.SlotIndex, 1);
 
         // 예약 취소
         item->CancelReservation();
         reservation.IsActive = false;
-        
+
         anyItemUsed = true;
     }
 
     // 비활성화된 예약 정리
     _ItemReservations.erase(
         std::remove_if(_ItemReservations.begin(), _ItemReservations.end(),
-         [](const ItemReservation& r) { return !r.IsActive; }),
+            [](const ItemReservation& r) { return !r.IsActive; }),
         _ItemReservations.end()
     );
 
