@@ -50,6 +50,7 @@ void BattleScene::Enter() {
     _SelectedItemSlot = 0;
     _IsSelectingItem = false;
     _BattleEnd = false;
+    _InputState = EBattleInputState::Playing;
 
     BattleManager* battleMgr = BattleManager::GetInstance();
     GameManager* gameMgr = GameManager::GetInstance();
