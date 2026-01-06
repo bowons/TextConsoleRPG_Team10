@@ -32,11 +32,11 @@ void StoryProgressScene::Enter()
     _IsActive = true;
 
     // 출력할 스토리 텍스트 가져오기
-    int Floor = StageManager::GetInstance()->GetCurrentFloor();
-    GetStoriesData(Floor);
+    _Floor = StageManager::GetInstance()->GetCurrentFloor();
+    GetStoriesData(_Floor);
 
     // BGM 변경
-    std::string BGMID = "BGM_" + std::to_string(Floor);
+    std::string BGMID = "BGM_" + std::to_string(_Floor);
     SoundPlayer::GetInstance()->PlayBGM(BGMID);
 
     // =============================================================================
@@ -75,7 +75,7 @@ void StoryProgressScene::Enter()
     std::string UIPath = DataManager::GetInstance()->GetResourcePath("UI");
     
      // _CurrentStoryIndex에 따라 파일명 결정 (예: "Story1.txt", "Story2.txt")
-    std::string FileName = "Story" + std::to_string(Floor) + ".txt";
+    std::string FileName = "Story" + std::to_string(_Floor) + ".txt";
     if (ArtRenderer->LoadFromFile(UIPath, FileName)) {
         ArtRenderer->SetAlignment(ArtAlignment::CENTER);
         ArtRenderer->SetColor(ETextColor::LIGHT_CYAN);
@@ -116,8 +116,6 @@ void StoryProgressScene::Enter()
     // 타이핑 효과 활성화
     StoryText->EnableTypingEffect(true);
     StoryText->SetTypingSpeed(ETypingSpeed::Normal);
-    StoryText->AddLineWithColor("Hello, Test.",
-        MakeColorAttribute(ETextColor::WHITE, EBackgroundColor::BLACK));
     TextPanel->SetContentRenderer(std::move(StoryText));
     UpdateUIWithCurrentStory();
     TextPanel->Redraw();
@@ -171,6 +169,11 @@ void StoryProgressScene::HandleInput() {
             _CurrentStoryIndex++;
             if (_CurrentStoryIndex < _StoryTexts.size()) {
                 UpdateUIWithCurrentStory();
+
+                if (_Floor == 0)
+                {
+                    CheckArtUpdate();
+                }
             }
             else {
                 // 더 이상 보여줄 데이터가 없으면 다음 씬으로
@@ -178,6 +181,9 @@ void StoryProgressScene::HandleInput() {
             }
         }
         _Drawer->Render();
+    }
+    else if (keyCode == VK_ESCAPE) {  // ESC - 스토리 스킵
+        SceneManager::GetInstance()->ChangeScene(ESceneType::StageSelect);
     }
 }
 
@@ -189,20 +195,8 @@ void StoryProgressScene::UpdateUIWithCurrentStory()
     Panel* Panel = _Drawer->GetPanel("StoryText");
     auto* Renderer = static_cast<TextRenderer*>(Panel->GetContentRenderer());
 
-    // CSV 구조: 0:ID, 1:Floor, 2:Type, 3:Speaker, 4:Content
-    const auto& Row = _StoryTexts[_CurrentStoryIndex];
-    std::string Speaker = Row[3];
-    std::string Content = Row[4];
-    
-    // 화자 이름 포맷팅 (예: [System] : ...)
-    std::string Prefix = (Speaker == "System") ? "" : "[" + Speaker + "] : ";
-
-    std::vector<std::string> Lines;
-    SplitText(Lines, Content, "\\n");
-
-    for (const auto& Line : Lines) {
-        Renderer->AddLineWithTyping(Prefix + Line, (Row[2] == "Desc" ? 14 : 15));
-    }
+    Renderer->AddLineWithTyping(_StoryTexts[_CurrentStoryIndex],
+        _LineColor[_CurrentStoryIndex]);
 }
 
 // 아예 데이터를 가져오는 단계에서 걸러서 가져오기
@@ -215,12 +209,13 @@ void StoryProgressScene::GetStoriesData(int FloorIndex)
             "Stories.csv");
         // 현재 파티 내부의 직업 및 그 이름 체크
         // 0 : Warrior 이름들, 1 : Mage 이름들, 2 : Archer 이름들, 3 : Priest 이름들
-        std::vector<std::vector<std::string>> NamePerJob(4,std::vector<std::string>());
+        std::vector<std::vector<std::string>> NamePerJob(4, std::vector<std::string>());
         // Todo - GameManager::GetInstance()->GetParty()와 dynamic_cast를 사용해 분류하기
         
         // 0번째는 Column 이름
         for (int i = 1; i < Datas.size(); ++i)
         {
+            // CSV 구조: 0:ID, 1:Floor, 2:Type, 3:Speaker, 4:Content
             if (stoi(Datas[i][1]) == FloorIndex)
             {
                 if (Datas[i][2] == "Solo" && GameManager::GetInstance()->GetPartySize() != 1) continue;
@@ -230,7 +225,32 @@ void StoryProgressScene::GetStoriesData(int FloorIndex)
                 else if (Datas[i][3] == "Archer" && NamePerJob[2].size() == 0) continue;
                 else if (Datas[i][3] == "Priest" && NamePerJob[3].size() == 0) continue;
 
-                _StoryTexts.push_back(Datas[i]);
+               
+                const std::string& Speaker = Datas[i][3];
+                const std::string& Content = Datas[i][4];
+
+                // 화자 이름 포맷팅 (예: [System] : ...)
+                std::string Prefix = (Speaker == "System") ? "" : "[" + Speaker + "] : ";
+
+                std::vector<std::string> Lines;
+                SplitText(Lines, Content, "\\n");
+                for (std::string& Line : Lines)
+                {
+                    Line = Prefix + Line;
+                }
+
+                for (const std::string& Line : Lines)
+                {
+                    if (Speaker == "System")
+                    {
+                        _LineColor.push_back(14);
+                    }
+                    else
+                    {
+                        _LineColor.push_back(15);
+                    }
+                    _StoryTexts.push_back(Line);
+                }
             }
         }
     }
@@ -289,5 +309,47 @@ std::vector<std::vector<std::string>>  StoryProgressScene::CheckPartyInfo()
     //}
 
     return NamePerJob;
+}
+
+void StoryProgressScene::SetArtImage(std::string FileName)
+{
+    if (Panel* Panel = _Drawer->GetPanel("StoryImage"))
+    {
+        if (auto* Renderer = static_cast<AsciiArtRenderer*>(Panel->GetContentRenderer()))
+        {
+            std::string UIPath = DataManager::GetInstance()->GetResourcePath("UI");
+            if (Renderer->LoadFromFile(UIPath, FileName)) {
+                Renderer->SetAlignment(ArtAlignment::CENTER);
+                Renderer->SetColor(ETextColor::LIGHT_CYAN);
+                Panel->Redraw();
+            }
+        }
+    }
+}
+
+void StoryProgressScene::CheckArtUpdate()
+{
+    std::string FileName = "Story" + std::to_string(_Floor);
+    if (_Floor == 0)
+    {
+        if (_CurrentStoryIndex == 8)
+        {
+            FileName.append("_2");
+        }
+        else if (_CurrentStoryIndex == 14)
+        {
+            FileName.append("_3");
+        }
+        else if (_CurrentStoryIndex == 24)
+        {
+            FileName.append("_4");
+        }
+        else
+        {
+            return;
+        }
+    }
+    FileName.append(".txt");
+    SetArtImage(FileName);
 }
 
