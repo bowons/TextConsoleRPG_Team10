@@ -25,7 +25,7 @@ void SoundPlayer::Play(const std::string& FileName, float Volume) {
         // 2. 볼륨 설정
         SetVolume(Alias, Volume);
         // 3. 처음부터 재생
-std::string PlayCmd = "play " + Alias + " from 0";
+        std::string PlayCmd = "play " + Alias + " from 0";
         mciSendStringA(PlayCmd.c_str(), NULL, 0, NULL);
 
         _ActiveSounds[Alias] = std::make_shared<SoundInstance>(Alias, false, Volume);
@@ -52,7 +52,7 @@ void SoundPlayer::PlayLoop(const std::string& FileName, const std::string& Uniqu
     // 3. 볼륨 설정
     SetVolume(UniqueAlias, Volume);
 
-  // 4. 반복 재생 명령 실행 (repeat 키워드 추가)
+    // 4. 반복 재생 명령 실행 (repeat 키워드 추가)
     std::string PlayCmd = "play " + UniqueAlias + " repeat";
     err = mciSendStringA(PlayCmd.c_str(), NULL, 0, NULL);
 
@@ -72,8 +72,8 @@ void SoundPlayer::Update() {
 
         // 재생이 멈췄고 루프 사운드가 아니라면 장치를 닫음
         if (std::string(buffer) == "stopped" && !it->second->bIsLoop) {
-       mciSendStringA(("close " + it->first).c_str(), NULL, 0, NULL);
-         it = _ActiveSounds.erase(it);
+            mciSendStringA(("close " + it->first).c_str(), NULL, 0, NULL);
+            it = _ActiveSounds.erase(it);
         }
         else {
             ++it;
@@ -87,7 +87,7 @@ float SoundPlayer::PlaySFX(const std::string& EffectID)
     float PlayTime = 0.0f;
     float Volume = 0.0f;
 
-    if (GetSoundData(EffectID,FileName,PlayTime,Volume))
+    if (GetSoundData(EffectID, FileName, PlayTime, Volume))
     {
         Play(FileName, Volume);
     }
@@ -143,7 +143,7 @@ void SoundPlayer::StopAll()
         mciSendStringA(("stop " + it->first).c_str(), NULL, 0, NULL);
         mciSendStringA(("close " + it->first).c_str(), NULL, 0, NULL);
         it = _ActiveSounds.erase(it);
-}
+    }
 }
 
 std::string SoundPlayer::GetFullSoundPath(const std::string& FileName) {

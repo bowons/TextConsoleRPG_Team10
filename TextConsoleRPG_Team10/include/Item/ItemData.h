@@ -12,4 +12,8 @@ struct ItemData
     int MaxCount = 1;          // 최대 스택 수
     int Stock = 0;             // 상점 초기 재고
     std::string AsciiFile;     // 아스키 아트 파일 경로 (예: "Items/Potion.txt")
+
+    // ===== 확장 필드 (몬스터 드롭 및 상점 출현 시스템용) =====
+    float MonsterDropRate = 0.0f;  // 몬스터 드롭 확률 (0.0 ~ 1.0)
+    float ShopAppearRate = 0.0f;   // 상점 출현 확률 (0.0 ~ 1.0)
 };

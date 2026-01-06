@@ -8,6 +8,8 @@
 #include "../../include/Item/Inventory.h"
 #include "../../include/Config.h"
 #include <memory>
+#include <random>
+#include <algorithm>
 
 using namespace std;
 
@@ -32,8 +34,62 @@ bool ShopManager::ReopenShop(const std::string& csvFileName)
         return false;  // 로드 실패
     }
 
-    // CSV 데이터 기반으로 상점 재고 구성
+    std::vector<ItemData> availableItems;
+    std::vector<float> weights;
+    float totalWeight = 0.0f;
+
+    // 판매 가능한 아이템과 그 가중치를 가져온다.
     for (const auto& data : itemDataList)
+    {
+        if (data.ShopAppearRate > 0.0f)
+        {
+            availableItems.push_back(data);
+            weights.push_back(data.ShopAppearRate);
+            totalWeight += data.ShopAppearRate;
+        }
+    }
+
+    if (availableItems.empty())
+    {
+        // 판매 가능한 아이템이 없으면 기본 아이템으로 구성
+        _SellList.push_back({ std::make_unique<HealPotion>(), 8, "Items/Potion.txt" });
+        _SellList.push_back({ std::make_unique<FairyEssence>(), 8, "Items/Potion.txt" });
+        return false;  // 로드 실패
+    }
+
+    std::vector<ItemData> selectedItems;
+    std::vector<bool> used(availableItems.size(), false);
+    int itemsToSelect = std::min(3, static_cast<int>(availableItems.size()));
+
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    
+    // 아이템을 무작위로 선택 - 가중치 누적합? 알고리즘이라고 한다
+    // 게임 회사처럼 테이블에 있는 확률표대로 아이템을 뽑아내기!!
+    for (int i = 0; i < itemsToSelect; ++i)
+    {
+        std::uniform_real_distribution<float> dist(0.0f, totalWeight);
+        float randomValue = dist(gen);
+
+        // 가중치 누적합으로 아이템 선택
+        float currentSum = 0.0f;
+        for (size_t j = 0; j < availableItems.size(); ++j)
+        {
+            if (used[j]) continue; // 이미 선택된 아이템은 건너뜀
+
+            currentSum += weights[j];
+            if (randomValue <= currentSum)
+            {
+                selectedItems.push_back(availableItems[j]); 
+                used[j] = true;
+                totalWeight -= weights[j]; // 선택된 아이템 가중치 제거
+                break;
+            }
+        }
+    }
+
+    // 선택된 아이템으로 상점 재고 구성
+    for (const auto& data : selectedItems)
     {
         // CreateFromData 사용 - CSV 데이터 기반 아이템 생성
         auto item = _ItemFactory->CreateFromData(data);

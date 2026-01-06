@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "../Singleton.h"
 #include "../Config.h"
 #include "../../include/Item/MonsterSpawnData.h"
@@ -11,6 +11,8 @@ struct ItemData;
 struct MonsterSpawnData;
 struct StageFloorData;
 struct NodeData;
+struct ClassData;  // 추가
+struct FloorScalingData;  // 추가
 
 class DataManager : public Singleton<DataManager>
 {
@@ -38,6 +40,9 @@ private:
         return out;
     }
 
+public:
+    bool Initialize();
+
     // ===== 리소스 폴더 경로 Getter =====
     inline std::string GetAnimationsPath() const { return JoinPath(std::string(DEFAULT_RESOURCE_PATH), ANIMATIONS_FOLDER); }
     inline std::string GetCharactersPath() const { return JoinPath(std::string(DEFAULT_RESOURCE_PATH), CHARACTERS_FOLDER); }
@@ -47,9 +52,6 @@ private:
     inline std::string GetItemsPath() const { return JoinPath(std::string(DEFAULT_RESOURCE_PATH), ITEMS_FOLDER); }
     inline std::string GetSoundPath() const { return JoinPath(std::string(DEFAULT_RESOURCE_PATH), Sound_FOLDER); }
     inline std::string GetStagesPath() const { return JoinPath(std::string(DEFAULT_RESOURCE_PATH), STAGES_FOLDER); }
-
-public:
-    bool Initialize();
 
     // ===== 범용 파일 I/O (폴더 경로를 명시적으로 받음) =====
     std::string LoadTextFile(const std::string& folderPath, const std::string& fileName);
@@ -65,6 +67,24 @@ public:
     std::optional<MonsterSpawnData>
         GetMonster(const std::string& fileName, int floor);
 
+    // ===== FloorScaling 데이터 로딩 =====
+    // FloorScaling.csv 로드
+    // return: 층별 스케일링 데이터 (1~10층)
+    std::vector<FloorScalingData> LoadFloorScaling(const std::string& fileName = "FloorScaling.csv");
+    
+    // 특정 층의 스케일링 데이터 조회
+    // floor: 층 번호 (1~10)
+    // return: 해당 층의 스케일링 데이터 (없으면 nullopt)
+    std::optional<FloorScalingData> GetFloorScaling(int floor, const std::string& fileName = "FloorScaling.csv");
+
+    // ===== 직업 데이터 로딩 =====
+    // Class.csv 전체 로드
+  std::vector<ClassData> LoadAllClassData(const std::string& fileName = "Class.csv");
+    
+    // 특정 직업 데이터 로드 (class_id로 검색)
+    // classId: "warrior", "mage", "archer", "priest"
+    // return: 찾으면 ClassData, 못 찾으면 std::nullopt
+std::optional<ClassData> GetClassData(const std::string& classId, const std::string& fileName = "Class.csv");
 
     // ===== Stage 데이터 로딩 =====
     // 특정 층의 노드 데이터 로드 (예: Floor1.csv)

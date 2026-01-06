@@ -33,6 +33,10 @@ void ShopScene::Enter()
     _Drawer->Activate();
     _IsActive = true;
 
+    _SystemLogs.clear();
+    _SystemLogs.push_back("[상점 주인] 어서오게 용사. 통신에는 이상 없네, 원하는 물건을 골라보게.");
+    _SystemLogs.push_back("");
+
     // 상점 재개장 (CSV에서 상품 로드)
     ShopManager::GetInstance()->ReopenShop("Items.csv");
 
@@ -42,7 +46,7 @@ void ShopScene::Enter()
 
     // ===== 타이틀 패널 (상단) - Stage와 공통 =====
     Panel* titlePanel = _Drawer->CreatePanel("Title", 2, 1, 120, 5);
-    titlePanel->SetBorder(true, ETextColor::LIGHT_YELLOW);
+    titlePanel->SetBorder(true, ETextColor::WHITE);
 
     auto titleText = std::make_unique<TextRenderer>();
     titleText->AddLineWithColor("[ 에테르 환영거울 - 상점 통신중... ]",
@@ -53,13 +57,13 @@ void ShopScene::Enter()
 
     // ===== 안내 패널 (상단 중앙) =====
     Panel* guidePanel = _Drawer->CreatePanel("Guide", 2, 6, 120, 5);
-    guidePanel->SetBorder(true, ETextColor::YELLOW);
+    guidePanel->SetBorder(true, ETextColor::WHITE);
 
     UpdateGuidePanel(guidePanel);
 
     // ===== 아이템 이미지 패널 (중앙 좌측) =====
     Panel* shopImagePanel = _Drawer->CreatePanel("ShopImage", 2, 11, 50, 23);
-    shopImagePanel->SetBorder(true, ETextColor::CYAN);
+    shopImagePanel->SetBorder(true, ETextColor::WHITE);
 
     auto imageText = std::make_unique<TextRenderer>();
     std::string uiPath = DataManager::GetInstance()->GetResourcePath("UI");
@@ -75,7 +79,7 @@ void ShopScene::Enter()
 
     // ===== 상품 목록 패널 (중앙 우측) =====
     Panel* itemListPanel = _Drawer->CreatePanel("ItemList", 54, 11, 68, 23);
-    itemListPanel->SetBorder(true, ETextColor::GREEN);
+    itemListPanel->SetBorder(true, ETextColor::WHITE);
 
     UpdateItemListPanel(itemListPanel);
 
@@ -114,11 +118,7 @@ void ShopScene::Enter()
     Panel* systemPanel = _Drawer->CreatePanel("System", 2, 34, 100, 11);
     systemPanel->SetBorder(true, ETextColor::WHITE);
 
-    std::vector<std::string> initialLogs = {
-        "[상점 주인] 어서오게 용사. 통신에는 이상 없네, 원하는 물건을 골라보게.",
-        "",
-    };
-    UpdateSystemLog(systemPanel, initialLogs);
+    UpdateSystemLog(systemPanel, _SystemLogs);
 
     // ===== 인벤토리 패널 (하단 우측) - Stage와 공통 =====
     Panel* inventoryPanel = _Drawer->CreatePanel("Inventory", 102, 34, 47, 11);
@@ -153,15 +153,20 @@ void ShopScene::UpdateSystemLog(Panel* systemPanel, const std::vector<std::strin
 {
     if (!systemPanel) return;
 
+    systemPanel->ClearRenderers();
+    systemPanel->SetDirty();
+
     auto logText = std::make_unique<TextRenderer>();
     logText->AddLineWithColor("[ 시스템 로그 ]",
         MakeColorAttribute(ETextColor::LIGHT_YELLOW, EBackgroundColor::BLACK));
 
     int maxLines = 8;
     int messageSize = static_cast<int>(messages.size());
-    int displayCount = (messageSize < maxLines) ? messageSize : maxLines;
 
-    for (int i = 0; i < displayCount; ++i)
+    int startIndex = (messageSize > maxLines) ? (messageSize - maxLines) : 0;
+    int displayCount = (messageSize > maxLines) ? maxLines : messageSize;
+
+    for (int i = startIndex; i < startIndex + displayCount; ++i)
     {
         if (messages[i].empty())
         {
@@ -184,7 +189,6 @@ void ShopScene::UpdateSystemLog(Panel* systemPanel, const std::vector<std::strin
         logText->AddLineWithColor(messages[i], color);
     }
 
-    systemPanel->ClearRenderers();
     systemPanel->AddRenderer(0, 0, 98, 9, std::move(logText));
     systemPanel->Redraw();
 }
@@ -429,13 +433,13 @@ void ShopScene::UpdateItemImage(int itemIndex)
     else
     {
         // 아스키 아트 로드 시도
-        std::string uiPath = DataManager::GetInstance()->GetResourcePath("UI");
+        std::string uiPath = DataManager::GetInstance()->GetItemsPath();
         auto artRenderer = std::make_unique<AsciiArtRenderer>();
 
         if (artRenderer->LoadFromFile(uiPath, asciiFile))
         {
             artRenderer->SetAlignment(ArtAlignment::CENTER);
-            artRenderer->SetColor(ETextColor::LIGHT_YELLOW);
+            artRenderer->SetColor(ETextColor::WHITE);
             imagePanel->SetContentRenderer(std::move(artRenderer));
         }
         else
@@ -486,20 +490,19 @@ void ShopScene::HandleInput()
         UpdateItemListPanel(itemListPanel);
         UpdateInventoryPanel(inventoryPanel);
 
-        std::vector<std::string> logs;
         if (_IsBuyMode)
-        {
-            logs.push_back("[안내] 구매 모드로 전환되었습니다.");
+    {
+       _SystemLogs.push_back("[안내] 구매 모드로 전환되었습니다.");
         }
         else
         {
-            logs.push_back("[안내] 판매 모드로 전환되었습니다.");
+  _SystemLogs.push_back("[안내] 판매 모드로 전환되었습니다.");
         }
 
-        Panel* systemPanel = _Drawer->GetPanel("System");
-        UpdateSystemLog(systemPanel, logs);
+     Panel* systemPanel = _Drawer->GetPanel("System");
+    UpdateSystemLog(systemPanel, _SystemLogs);
 
-        _Drawer->Render();
+  _Drawer->Render();
         return;
     }
 
@@ -569,57 +572,53 @@ void ShopScene::HandleInput()
         auto player = GameManager::GetInstance()->GetMainPlayer();
         if (!player)
         {
-            std::vector<std::string> logs = { "[오류] 플레이어 정보를 불러올 수 없습니다." };
-            Panel* systemPanel = _Drawer->GetPanel("System");
-            UpdateSystemLog(systemPanel, logs);
-            return;
+      _SystemLogs.push_back("[오류] 플레이어 정보를 불러올 수 없습니다.");
+          Panel* systemPanel = _Drawer->GetPanel("System");
+    UpdateSystemLog(systemPanel, _SystemLogs);
+   return;
         }
 
-        std::vector<std::string> logs;
-
-        if (_IsBuyMode)
-        {
-            // 구매 처리
-            auto [success, message, goldChange, itemName] =
-                ShopManager::GetInstance()->BuyItem(player.get(), _SelectedItemIndex);
+  if (_IsBuyMode)
+    {
+     auto [success, message, goldChange, itemName] =
+          ShopManager::GetInstance()->BuyItem(player.get(), _SelectedItemIndex);
 
             if (success)
-            {
-                logs.push_back("[성공] 구매 완료: " + itemName);
-                logs.push_back("[정보] 소지금 변동: " + std::to_string(goldChange) + " G");
+{
+           _SystemLogs.push_back("[성공] 구매 완료: " + itemName);
+                _SystemLogs.push_back("[정보] 소지금 변동: " + std::to_string(goldChange) + " G");
             }
-            else
-            {
-                logs.push_back("[경고] 구매 실패: " + message);
-            }
-
-            Panel* itemListPanel = _Drawer->GetPanel("ItemList");
-            UpdateItemListPanel(itemListPanel);
-        }
-        else
+    else
         {
-            // 판매 처리
-            auto [success, message, goldChange, itemName] =
-                ShopManager::GetInstance()->SellItem(player.get(), _PlayerInventorySlot);
+_SystemLogs.push_back("[경고] 구매 실패: " + message);
+       }
 
-            if (success)
-            {
-                logs.push_back("[성공] 판매 완료: " + itemName);
-                logs.push_back("[정보] 소지금 변동: +" + std::to_string(goldChange) + " G");
-            }
-            else
-            {
-                logs.push_back("[경고] 판매 실패: " + message);
-            }
+    Panel* itemListPanel = _Drawer->GetPanel("ItemList");
+   UpdateItemListPanel(itemListPanel);
+        }
+else
+   {
+     auto [success, message, goldChange, itemName] =
+        ShopManager::GetInstance()->SellItem(player.get(), _PlayerInventorySlot);
+
+if (success)
+   {
+        _SystemLogs.push_back("[성공] 판매 완료: " + itemName);
+            _SystemLogs.push_back("[정보] 소지금 변동: +" + std::to_string(goldChange) + " G");
+   }
+          else
+      {
+      _SystemLogs.push_back("[경고] 판매 실패: " + message);
+      }
         }
 
-        Panel* systemPanel = _Drawer->GetPanel("System");
+     Panel* systemPanel = _Drawer->GetPanel("System");
         Panel* inventoryPanel = _Drawer->GetPanel("Inventory");
 
-        UpdateSystemLog(systemPanel, logs);
-        UpdateInventoryPanel(inventoryPanel);
+  UpdateSystemLog(systemPanel, _SystemLogs);
+   UpdateInventoryPanel(inventoryPanel);
 
-        _Drawer->Render();
-        return;
+   _Drawer->Render();
+      return;
     }
 }

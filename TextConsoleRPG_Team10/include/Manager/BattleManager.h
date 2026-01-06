@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "../Singleton.h"
 #include "../Unit/IMonster.h"
 #include <memory>
@@ -9,6 +9,10 @@
 
 class Player;
 class ICharacter;
+
+// ===== 전역 함수 선언 =====
+// 직업 우선순위 반환 (Archer=0, Priest=1, Warrior=2, Mage=3)
+int GetJobPriority(ICharacter* character);
 
 // ===== 전투 결과 구조체 =====
 // Scene에서 전투 종료 후 결과를 조회하기 위한 데이터
@@ -123,6 +127,15 @@ public:
 
     // ===== 내부 로직 =====
 
+    // 특정 플레이어의 예약 아이템 체크 및 사용 시도
+    // player: 대상 플레이어
+    // return: 아이템 사용 시 true (턴 소모), 아니면 false
+    bool TryUseReservedItem(Player* player);
+
+    // 몬스터 타겟 선정 (어그로 최댓값 기준)
+    // return: 가장 어그로가 높은 생존 파티원 (없으면 메인 플레이어)
+    Player* SelectMonsterTarget();
+
     // 턴 처리 (아이템 사용 + 공격)
     // Player: 체력/공격력 포션 자동 사용 판단 → ProcessAttack 호출
     // Monster: 즉시 ProcessAttack 호출
@@ -134,13 +147,21 @@ public:
     // PrintManager로 전투 로그 출력
     void ProcessAttack(ICharacter* Atk, ICharacter* Def);
 
+    // 광역 공격 처리 (Boss 페이즈 2용)
+    // skillName: 스킬명 (예: "어둠의 폭풍")
+ // damage: 기본 데미지
+    // attacker: 공격자
+    void ProcessAOEAttack(const std::string& skillName, int damage, ICharacter* attacker);
+
+    // 디버프 처리 (Boss 페이즈 2용)
+    // skillName: 스킬명
+    // attacker: 공격자
+    void ProcessDebuff(const std::string& skillName, ICharacter* attacker);
+
     // 보상 계산 및 분배 (내부 호출용)
     // 경험치: 파티 전체 동일 수치 획득
     // 골드: 메인 플레이어만 획득
     // 아이템: 메인 플레이어 인벤토리에 추가
     // BattleResult 업데이트
     void CalculateReward(Player* P, IMonster* M);
-
-    // ===== 직업 우선 순위 헬퍼 =====
-    int GetJobPriority(ICharacter* character);
 };

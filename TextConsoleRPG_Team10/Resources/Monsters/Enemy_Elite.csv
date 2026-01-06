@@ -1,10 +1,10 @@
-enemy_id,name_kr,floor,hp,mp,atk,def,dex,luk,crit_rate,exp,gold,ascii_file
-Mouse_Elite,거대 시궁쥐,1,110,10,14,8,6,6,0.05,65,40,Monsters/Mouse.txt
-Goblin_Elite,고블린 대장,2,105,12,15,9,6,7,0.06,65,40,Monsters/Goblin.txt
-Skeleton_Elite,스켈레톤 나이트,3,130,8,15,12,5,5,0.05,65,40,Monsters/Skeleton.txt
-Yeti_Elite,옵시디언 골렘,4,180,6,16,16,3,3,0.04,75,50,Monsters/Yeti.txt
-Harpy_Elite,하피 퀸,5,120,10,16,8,9,7,0.07,65,40,Monsters/Harpy.txt
-Wolf_Elite,화이트 팽,6,115,8,15,9,8,6,0.06,65,40,Monsters/Wolf.txt
-Wolf_Blood_Elite,블러드 하운드,7,120,10,17,8,9,7,0.08,70,45,Monsters/Wolf.txt
-Chaos_Elite,카오스 아이,8,140,15,17,10,7,8,0.08,70,45,Monsters/Chaos.txt
-Butler_Elite,심연의 집사,9,125,18,16,11,6,7,0.07,70,45,Monsters/Butler.txt
+enemy_id,name_kr,floor,hp,mp,atk,def,dex,luk,crit_rate,exp,gold,ascii_file,attack_name
+Mouse_Elite,거대 시궁쥐,1,110,10,14,8,6,6,0.05,65,40,Monsters/Mouse.txt,맹렬한 연속 공격
+Goblin_Elite,고블린 대장,2,105,12,15,9,6,7,0.06,65,40,Monsters/Goblin.txt,야만적 타격
+Skeleton_Elite,스켈레톤 나이트,3,130,8,15,12,5,5,0.05,65,40,Monsters/Skeleton.txt,뼈 검 난무
+Yeti_Elite,옵시디언 골렘,4,180,6,16,16,3,3,0.04,75,50,Monsters/Yeti.txt,대지 강타
+Harpy_Elite,하피 퀸,5,120,10,16,8,9,7,0.07,65,40,Monsters/Harpy.txt,폭풍 날개
+Wolf_Elite,화이트 팽,6,115,8,15,9,8,6,0.06,65,40,Monsters/Wolf.txt,냉기 송곳니
+Wolf_Blood_Elite,블러드 하운드,7,120,10,17,8,9,7,0.08,70,45,Monsters/Wolf.txt,피의 광기
+Chaos_Elite,카오스 아이,8,140,15,17,10,7,8,0.08,70,45,Monsters/Chaos.txt,혼돈의 광선
+Butler_Elite,심연의 집사,9,125,18,16,11,6,7,0.07,70,45,Monsters/Butler.txt,어둠의 칼날

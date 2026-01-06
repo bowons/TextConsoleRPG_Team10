@@ -1,19 +1,19 @@
-enemy_id,name_kr,floor,hp,mp,atk,def,dex,luk,crit_rate,exp,gold,ascii_file
-Slime_Normal,오염된 슬라임,1,55,5,6,8,3,4,0.03,15,8,Monsters/Slime.txt
-Mouse_Normal,광폭한 쥐,1,32,5,8,4,9,7,0.08,15,8,Monsters/Mouse.txt
-Goblin_Normal,고블린 정찰병,2,40,8,8,5,7,6,0.06,15,8,Monsters/Goblin.txt
-Bat_Normal,박쥐 떼,2,28,6,7,3,10,5,0.09,15,8,Monsters/Bat.txt
-Skeleton_Normal,해골 병사,3,42,6,8,6,5,4,0.05,15,8,Monsters/Skeleton.txt
-Zombie_Normal,부패한 좀비,3,65,4,5,9,2,3,0.02,18,8,Monsters/Zombie.txt
-Gargoyle_Normal,석재 가고일,4,70,3,7,11,3,3,0.03,18,10,Monsters/Gargoyle.txt
-Butler_Normal,유적 수호자,4,45,12,8,6,6,7,0.06,20,12,Monsters/Butler.txt
-Harpy_Normal,하피,5,38,8,9,4,10,7,0.08,18,10,Monsters/Harpy.txt
-Basilisk_Normal,바실리스크,5,55,6,10,8,5,5,0.05,20,12,Monsters/Basilisk.txt
-Wolf_Normal,설원 늑대,6,40,5,9,5,9,6,0.07,18,10,Monsters/Wolf.txt
-Yeti_Normal,예티,6,75,4,11,12,3,3,0.04,22,14,Monsters/Yeti.txt
-Walker_Normal,보이드 워커,7,42,10,10,5,7,6,0.08,20,12,Monsters/Walker.txt
-Demmon_Normal,하급 데몬,7,48,12,11,6,6,7,0.09,22,14,Monsters/Demmon.txt
-Beholder_Normal,비홀더,8,36,15,12,4,6,8,0.10,24,16,Monsters/Beholder.txt
-Horror_Normal,엘드리치 호러,8,60,14,13,7,5,7,0.09,26,18,Monsters/Horror.txt
-Slime_Altar_Normal,공허의 망령,9,55,10,7,7,4,4,0.04,20,12,Monsters/Slime.txt
-Gargoyle_Altar_Normal,살아있는 조각상,9,78,4,8,12,3,3,0.03,22,14,Monsters/Gargoyle.txt
+enemy_id,name_kr,floor,hp,mp,atk,def,dex,luk,crit_rate,exp,gold,ascii_file,attack_name
+Slime_Normal,오염된 슬라임,1,55,5,6,8,3,4,0.03,15,8,Monsters/Slime.txt,끈적한 타격
+Mouse_Normal,광폭한 쥐,1,32,5,8,4,9,7,0.08,15,8,Monsters/Mouse.txt,물어뜯기
+Goblin_Normal,고블린 정찰병,2,40,8,8,5,7,6,0.06,15,8,Monsters/Goblin.txt,곤봉 휘두르기
+Bat_Normal,박쥐 떼,2,28,6,7,3,10,5,0.09,15,8,Monsters/Bat.txt,급강하 공격
+Skeleton_Normal,해골 병사,3,42,6,8,6,5,4,0.05,15,8,Monsters/Skeleton.txt,뼈 검 베기
+Zombie_Normal,부패한 좀비,3,65,4,5,9,2,3,0.02,18,8,Monsters/Zombie.txt,썩은 손톱 긁기
+Gargoyle_Normal,석재 가고일,4,70,3,7,11,3,3,0.03,18,10,Monsters/Gargoyle.txt,석화 박치기
+Butler_Normal,유적 수호자,4,45,12,8,6,6,7,0.06,20,12,Monsters/Butler.txt,마력 충격
+Harpy_Normal,하피,5,38,8,9,4,10,7,0.08,18,10,Monsters/Harpy.txt,날개 채찍질
+Basilisk_Normal,바실리스크,5,55,6,10,8,5,5,0.05,20,12,Monsters/Basilisk.txt,독침 공격
+Wolf_Normal,설원 늑대,6,40,5,9,5,9,6,0.07,18,10,Monsters/Wolf.txt,송곳니 물기
+Yeti_Normal,예티,6,75,4,11,12,3,3,0.04,22,14,Monsters/Yeti.txt,얼음 주먹
+Walker_Normal,보이드 워커,7,42,10,10,5,7,6,0.08,20,12,Monsters/Walker.txt,공허 베기
+Demmon_Normal,하급 데몬,7,48,12,11,6,6,7,0.09,22,14,Monsters/Demmon.txt,화염 폭발
+Beholder_Normal,비홀더,8,36,15,12,4,6,8,0.10,24,16,Monsters/Beholder.txt,사악한 시선
+Horror_Normal,엘드리치 호러,8,60,14,13,7,5,7,0.09,26,18,Monsters/Horror.txt,정신 파괴
+Slime_Altar_Normal,공허의 망령,9,55,10,7,7,4,4,0.04,20,12,Monsters/Slime.txt,영혼 흡수
+Gargoyle_Altar_Normal,살아있는 조각상,9,78,4,8,12,3,3,0.03,22,14,Monsters/Gargoyle.txt,돌 내려찍기

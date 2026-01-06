@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "IMonster.h"
 #include "../../include/Item/IItem.h"
 #include "../../include/Item/MonsterSpawnData.h"
@@ -7,6 +7,9 @@
 
 class NormalMonster : public IMonster
 {
+private:
+    std::string _AttackName;  // CSV에서 로드한 공격명
+
 public:
 
     //NormalMonster(const int PlayerLevel, std::string Stage, std::string Name); 

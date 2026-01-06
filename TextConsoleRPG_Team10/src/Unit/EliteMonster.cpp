@@ -1,4 +1,4 @@
-#include "../../include/Unit/NormalMonster.h"
+#include "../../include/Unit/EliteMonster.h"
 #include "../../include/Item/MonsterSpawnData.h"
 #include "../../include/Item/IItem.h"
 #include "../../include/Unit/IMonster.h"
@@ -12,12 +12,14 @@
 #include "../../include/Manager/GameManager.h"
 #include "../../include/Manager/DataManager.h"
 #include "../../include/Item/ItemData.h"
+#include "../../include/Skill/MonsterSkills.h"
+#include "../../include/Skill/ISkill.h"
 #include <random>
 #include <tuple>
 #include <memory>
 #include <vector>
 
-NormalMonster::NormalMonster(const MonsterSpawnData& Data)
+EliteMonster::EliteMonster(const MonsterSpawnData& Data)
 {
     _Name = Data.MonsterName;
     _Floor = Data.floor;
@@ -34,12 +36,12 @@ NormalMonster::NormalMonster(const MonsterSpawnData& Data)
     _Stats._Dex = Data.dex;
     _Stats._Luk = Data.luk;
 
-    _Stats._CriticalRate = static_cast<float>(Data.crit_rate);
+  _Stats._CriticalRate = static_cast<float>(Data.crit_rate);
     _ExpReward = Data.exp;
     _GoldReward = Data.gold;
 
-    // ===== CSV에서 공격명 로드 =====
-    _AttackName = Data.attack_name;
+  // ===== CSV에서 공격명 로드 =====
+ _AttackName = Data.attack_name;
 
     // ===== 임시 스탯은 기본 0 =====
     _Stats._TempAtk = 0;
@@ -47,13 +49,22 @@ NormalMonster::NormalMonster(const MonsterSpawnData& Data)
     _Stats._TempDex = 0;
     _Stats._TempLuk = 0;
     _Stats._TempCriticalRate = 0.0f;
+
+ // ===== Elite 전용 초기화 =====
+    _TurnCounter = 0;
+    InitializeSkills();
 }
 
+void EliteMonster::InitializeSkills()
+{
+    // Elite 강공격 스킬 추가
+    _Skills.push_back(std::make_unique<ElitePowerStrike>());
+}
 
-int NormalMonster::TakeDamage(ICharacter* Target, int Amount)
+int EliteMonster::TakeDamage(ICharacter* Target, int Amount)
 {
     // 데미지 받음
-    //회피율 = 5% + (피해자_DEX − 공격자_DEX) × 1.5%
+    // 회피율 = 5% + (피해자_DEX − 공격자_DEX) × 1.5%
     int Evasion = 5 + (Target->GetDex() - this->GetDex()) * 15 / 10;
     if (Evasion > 95) Evasion = 95; // 최대 회피율 95%
     if (std::uniform_int_distribution<>(1, 100)(gen) <= Evasion)
@@ -70,21 +81,33 @@ int NormalMonster::TakeDamage(ICharacter* Target, int Amount)
     return Amount;
 }
 
-std::tuple<std::string, int> NormalMonster::Attack(ICharacter* Target) const
+std::tuple<std::string, int> EliteMonster::Attack(ICharacter* Target) const
 {
-    if (!Target) 
-        return { "",0 };
+    if (!Target)
+        return { "", 0 };
 
-    // CSV에서 로드한 공격명 사용
+    // 턴 카운터 증가 (공격할 때마다)
+    _TurnCounter++;
+
+  // 3턴마다 스킬 사용
+    if (_TurnCounter % 3 == 0 && !_Skills.empty())
+    {
+   // Elite 강공격 스킬 사용 (첫 번째 스킬)
+        // 스킬 데미지 계산 (기본 공격력 × 1.8배)
+        int skillDamage = static_cast<int>(_Stats._Atk * 1.8f);
+        return { "강력한 일격", skillDamage };
+    }
+
+    // 일반 공격 - CSV에서 로드한 공격명 사용
     return { _AttackName, _Stats._Atk };
 }
 
-bool NormalMonster::IsDead() const
+bool EliteMonster::IsDead() const
 {
     return _Stats._CurrentHP <= 0;
 }
 
-std::tuple<int, int, std::unique_ptr<IItem>> NormalMonster::DropReward()
+std::tuple<int, int, std::unique_ptr<IItem>> EliteMonster::DropReward()
 {
     std::unique_ptr<IItem> DropItem = nullptr;
 
@@ -94,14 +117,16 @@ std::tuple<int, int, std::unique_ptr<IItem>> NormalMonster::DropReward()
 
     if (!items.empty())
     {
-        // 드롭 가능한 아이템 풀 생성 (MonsterDropRate > 0인 아이템만)
+        // Elite는 더 높은 확률로 드롭 (각 아이템 확률 × 1.5배)
         std::vector<std::pair<ItemData, float>> dropPool;
 
         for (const auto& item : items)
         {
             if (item.MonsterDropRate > 0.0f)
             {
-                dropPool.push_back({ item, item.MonsterDropRate });
+                // Elite는 1.5배 확률 (최대 1.0으로 제한)
+                float eliteDropRate = std::min(item.MonsterDropRate * 1.5f, 1.0f);
+                dropPool.push_back({ item, eliteDropRate });
             }
         }
 
@@ -156,7 +181,12 @@ std::tuple<int, int, std::unique_ptr<IItem>> NormalMonster::DropReward()
     return { _ExpReward, _GoldReward, std::move(DropItem) };
 }
 
-std::string NormalMonster::GetAttackNarration() const
+std::string EliteMonster::GetAttackNarration() const
 {
+    // 3턴마다 특별 연출
+    if (_TurnCounter % 3 == 0)
+    {
+        return "💥 " + _Name + "이(가) 강력한 일격을 준비한다! 💥";
+    }
     return _Name + "이(가) 사납게 공격을 내지릅니다!";
 }

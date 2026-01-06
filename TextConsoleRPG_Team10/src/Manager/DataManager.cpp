@@ -1,9 +1,11 @@
-﻿#include "../../include/Item/MonsterSpawnData.h"
+#include "../../include/Item/MonsterSpawnData.h"
 #include "../../include/Manager/DataManager.h"
 #include "../../include/Manager/PrintManager.h"
 #include "../../include/Item/ItemData.h"
 #include "../../include/Item/MonsterSpawnData.h"
 #include "../../include/Data/StageData.h"
+#include "../../include/Data/ClassData.h"  // 추가
+#include "../../include/Data/FloorScalingData.h"  // 추가
 #include "../../include/Manager/GameManager.h"
 
 #include <filesystem>
@@ -196,51 +198,51 @@ std::vector<std::vector<std::string>> DataManager::LoadCSVFile(const std::string
                     while (i < n)
                     {
                         if (line[i] == '"')
-            {
-              if (i + 1 < n && line[i + 1] == '"')
-              {
-                field.push_back('"');
-                i += 2;
-              }
-              else
-              {
-                ++i;
-                break;
-              }
+                        {
+                            if (i + 1 < n && line[i + 1] == '"')
+                            {
+                                field.push_back('"');
+                                i += 2;
+                            }
+                            else
+                            {
+                                ++i;
+                                break;
+                            }
+                        }
+                        else
+                        {
+                            field.push_back(line[i++]);
+                        }
+                    }
+                    while (i < n && line[i] != ',') ++i;
+                    if (i < n && line[i] == ',') ++i;
+                }
+                else
+                {
+                    while (i < n && line[i] != ',')
+                    {
+                        field.push_back(line[i++]);
+                    }
+                    if (i < n && line[i] == ',') ++i;
+                }
+
+                trim(field);
+                row.push_back(field);
             }
-            else
-            {
-              field.push_back(line[i++]);
-            }
-          }
-          while (i < n && line[i] != ',') ++i;
-          if (i < n && line[i] == ',') ++i;
+
+            if (!line.empty() && line.back() == ',')
+                row.push_back(std::string());
+
+            result.push_back(std::move(row));
         }
-        else
-        {
-          while (i < n && line[i] != ',')
-          {
-            field.push_back(line[i++]);
-          }
-          if (i < n && line[i] == ',') ++i;
-        }
-
-        trim(field);
-        row.push_back(field);
-      }
-
-      if (!line.empty() && line.back() == ',')
-        row.push_back(std::string());
-
-      result.push_back(std::move(row));
     }
-  }
-  catch (const std::exception& ex)
-  {
-    SafeLog("DataManager::LoadCSVFile exception: " + std::string(ex.what()));
-  }
+    catch (const std::exception& ex)
+    {
+        SafeLog("DataManager::LoadCSVFile exception: " + std::string(ex.what()));
+    }
 
-  return result;
+    return result;
 }
 
 bool DataManager::SaveTextFile(const std::string& folderPath, const std::string& fileName, const std::string& data)
@@ -364,7 +366,7 @@ std::vector<ItemData> DataManager::LoadItemData(const std::string& fileName)
             return result;
         }
 
-        // CSV 형식: ItemID,Name,Description,Price,EffectAmount,MaxCount,Stock,AsciiFile
+        // CSV 형식: ItemID,Name,Description,Price,EffectAmount,MaxCount,Stock,AsciiFile,MonsterDropRate,ShopAppearRate
         for (size_t i = 1; i < csv.size(); ++i)
         {
             const auto& row = csv[i];
@@ -389,6 +391,14 @@ std::vector<ItemData> DataManager::LoadItemData(const std::string& fileName)
                 data.MaxCount = std::stoi(row[5]);
                 data.Stock = std::stoi(row[6]);
                 data.AsciiFile = row[7];
+
+                // ===== 확장 필드 파싱 (옵션: 없으면 0.0) =====
+                if (row.size() > 8 && !row[8].empty()) {
+                    data.MonsterDropRate = std::stof(row[8]);
+                }
+                if (row.size() > 9 && !row[9].empty()) {
+                    data.ShopAppearRate = std::stof(row[9]);
+                }
 
                 result.push_back(data);
             }
@@ -453,6 +463,13 @@ std::vector<MonsterSpawnData> DataManager::LoadMonsterSpawnData(const std::strin
                 data.exp = std::stoi(row[10]);
                 data.gold = std::stoi(row[11]);
                 data.ascii_file = row[12];
+
+                // attack_name 파싱 (13번째 컬럼, 없으면 기본값 "공격")
+                if (row.size() > 13 && !row[13].empty()) {
+                    data.attack_name = row[13];
+                } else {
+                    data.attack_name = "공격";  // 기본값
+                }
 
                 result.push_back(data);
             }
@@ -550,8 +567,7 @@ std::vector<std::string> DataManager::GetFilesInDirectory(const std::string& fol
 }
 
 //몬스터 읽음
-std::optional<MonsterSpawnData>
-DataManager::GetMonster(const std::string& fileName, int floor)
+std::optional<MonsterSpawnData> DataManager::GetMonster(const std::string& fileName, int floor)
 {
     auto monsterData = LoadMonsterSpawnData(fileName);
 
@@ -567,7 +583,6 @@ DataManager::GetMonster(const std::string& fileName, int floor)
 
     std::uniform_int_distribution<size_t> dist(0, candidates.size() - 1);
     return candidates[dist(gen)];
-}
 }
 
 // ===== Stage 데이터 로딩 함수 구현 =====
@@ -736,4 +751,166 @@ std::vector<NodeData> DataManager::LoadStageNodes(int floor)
     }
 
     return result;
+}
+
+// ===== 직업 데이터 로딩 구현 =====
+
+std::vector<ClassData> DataManager::LoadAllClassData(const std::string& fileName)
+{
+    std::vector<ClassData> result;
+
+    try
+    {
+        // Characters 폴더에서 CSV 로드
+        std::vector<std::vector<std::string>> csv = LoadCSVFile(GetCharactersPath(), fileName);
+
+        if (csv.empty())
+        {
+            SafeLog("DataManager::LoadAllClassData - CSV file is empty: " + fileName);
+            return result;
+        }
+
+        // CSV 형식: class_id,role,role_desc,hp,mp,atk,def,dex,luk,crit_rate,ascii_file,ascii_file_select
+        for (size_t i = 1; i < csv.size(); ++i)
+        {
+            const auto& row = csv[i];
+
+            if (row.empty() || (row.size() == 1 && row[0].empty()))
+                continue;
+
+            if (row.size() < 12)
+            {
+                SafeLog("DataManager::LoadAllClassData - Invalid row at line " + std::to_string(i) + ": insufficient columns");
+                continue;
+            }
+
+            try
+            {
+                ClassData data;
+                data._ClassId = row[0];
+                data._Role = row[1];
+                data._RoleDesc = row[2];
+                data._HP = std::stoi(row[3]);
+                data._MP = std::stoi(row[4]);
+                data._Atk = std::stoi(row[5]);
+                data._Def = std::stoi(row[6]);
+                data._Dex = std::stoi(row[7]);
+                data._Luk = std::stoi(row[8]);
+                data._CriticalRate = std::stof(row[9]);
+                data._AsciiFile = row[10];
+                data._AsciiFileSelect = row[11];
+
+                result.push_back(data);
+            }
+            catch (const std::exception& ex)
+            {
+                SafeLog("DataManager::LoadAllClassData - Failed to parse row " + std::to_string(i) + ": " + std::string(ex.what()));
+                continue;
+            }
+        }
+
+        SafeLog("Loaded " + std::to_string(result.size()) + " classes from " + fileName, ELogImportance::DISPLAY);
+    }
+    catch (const std::exception& ex)
+    {
+        SafeLog("DataManager::LoadAllClassData exception: " + std::string(ex.what()));
+    }
+
+    return result;
+}
+
+std::optional<ClassData> DataManager::GetClassData(const std::string& classId, const std::string& fileName)
+{
+    auto allClasses = LoadAllClassData(fileName);
+
+    for (const auto& classData : allClasses)
+    {
+        if (classData._ClassId == classId)
+        {
+            return classData;
+        }
+    }
+
+    SafeLog("DataManager::GetClassData - Class not found: " + classId, ELogImportance::WARNING);
+    return std::nullopt;
+}
+
+// ===== FloorScaling 데이터 로딩 구현 =====
+
+std::vector<FloorScalingData> DataManager::LoadFloorScaling(const std::string& fileName)
+{
+    std::vector<FloorScalingData> result;
+
+    try
+    {
+        // Monsters 폴더에서 CSV 로드
+        std::vector<std::vector<std::string>> csv = LoadCSVFile(GetMonstersPath(), fileName);
+
+        if (csv.empty())
+        {
+            SafeLog("DataManager::LoadFloorScaling - CSV file is empty: " + fileName);
+            return result;
+        }
+
+        // CSV 형식: floor,hp_mul,mp_mul,atk_mul,def_mul,dex_mul,luk_mul,crit_mul,exp_mul,gold_mul
+        for (size_t i = 1; i < csv.size(); ++i)
+        {
+            const auto& row = csv[i];
+
+            if (row.empty() || (row.size() == 1 && row[0].empty()))
+                continue;
+
+            if (row.size() < 10)
+            {
+                SafeLog("DataManager::LoadFloorScaling - Invalid row at line " + std::to_string(i) + ": insufficient columns");
+                continue;
+            }
+
+            try
+            {
+                FloorScalingData data;
+                data.floor = std::stoi(row[0]);
+                data.hp_mul = std::stof(row[1]);
+                data.mp_mul = std::stof(row[2]);
+                data.atk_mul = std::stof(row[3]);
+                data.def_mul = std::stof(row[4]);
+                data.dex_mul = std::stof(row[5]);
+                data.luk_mul = std::stof(row[6]);
+                data.crit_mul = std::stof(row[7]);
+                data.exp_mul = std::stof(row[8]);
+                data.gold_mul = std::stof(row[9]);
+
+                result.push_back(data);
+            }
+            catch (const std::exception& ex)
+            {
+                SafeLog("DataManager::LoadFloorScaling - Failed to parse row " + std::to_string(i) + ": " + std::string(ex.what()));
+                continue;
+            }
+        }
+
+        SafeLog("Loaded " + std::to_string(result.size()) + " floor scaling entries from " + fileName, ELogImportance::DISPLAY);
+    }
+    catch (const std::exception& ex)
+    {
+        SafeLog("DataManager::LoadFloorScaling exception: " + std::string(ex.what()));
+    }
+
+    return result;
+}
+
+std::optional<FloorScalingData> DataManager::GetFloorScaling(int floor, const std::string& fileName)
+{
+    auto scalingData = LoadFloorScaling(fileName);
+
+    for (const auto& data : scalingData)
+    {
+        if (data.floor == floor)
+        {
+            return data;
+        }
+    }
+
+    SafeLog("DataManager::GetFloorScaling - Floor not found: " + std::to_string(floor), ELogImportance::WARNING);
+    return std::nullopt;
 }

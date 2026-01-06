@@ -25,16 +25,16 @@ CharacterSelectScene::~CharacterSelectScene()
 void CharacterSelectScene::LoadClassData()
 {
     _ClassDataList.clear();
-    
+
     // CSV 파일 로드
     std::string charactersPath = DataManager::GetInstance()->GetResourcePath("Characters");
     auto csvData = DataManager::GetInstance()->LoadCSVFile(charactersPath, "Class.csv");
-    
+
     // 헤더 스킵하고 데이터 파싱
     for (size_t i = 1; i < csvData.size(); ++i)
     {
         if (csvData[i].size() < 11) continue;
-        
+
         ClassData data;
         data._ClassId = csvData[i][0];
         data._Role = csvData[i][1];
@@ -48,7 +48,7 @@ void CharacterSelectScene::LoadClassData()
         data._CriticalRate = std::stof(csvData[i][9]);
         data._AsciiFile = csvData[i][10];
         data._AsciiFileSelect = csvData[i][11];
-        
+
         _ClassDataList.push_back(data);
     }
 }
@@ -56,7 +56,7 @@ void CharacterSelectScene::LoadClassData()
 void CharacterSelectScene::InitializeSkillData()
 {
     _SkillDataList.clear();
-    
+
     // Warrior 스킬
     ClassSkillData warrior;
     warrior._Skill1Name = "포효 (Roar)";
@@ -65,7 +65,7 @@ void CharacterSelectScene::InitializeSkillData()
     warrior._Skill2Desc = "방어력의 일부를 공격력에 더해 물리 타격을 가함.";
     warrior._GrowthDesc = "전투 종료 시, 잃은 체력의 10% 확률로 최대 HP가 1~5 추가 상승.";
     _SkillDataList.push_back(warrior);
-    
+
     // Mage 스킬
     ClassSkillData mage;
     mage._Skill1Name = "화염구 (Fireball)";
@@ -74,7 +74,7 @@ void CharacterSelectScene::InitializeSkillData()
     mage._Skill2Desc = "다음 턴 마법 공격력을 2배로 높이지만 MP 소모량 증가.";
     mage._GrowthDesc = "전투 중 소모한 MP 총량에 비례하여 최대 MP 및 마법 공격력 상승.";
     _SkillDataList.push_back(mage);
-    
+
     // Archer 스킬
     ClassSkillData archer;
     archer._Skill1Name = "정밀 조준 (Aim)";
@@ -83,7 +83,7 @@ void CharacterSelectScene::InitializeSkillData()
     archer._Skill2Desc = "적에게 3회 화살을 발사.";
     archer._GrowthDesc = "적을 처치하거나 치명타가 발생할 때마다 민첩성(DEX) 포인트 누적.";
     _SkillDataList.push_back(archer);
-    
+
     // Priest 스킬
     ClassSkillData priest;
     priest._Skill1Name = "치유의 빛 (Heal)";
@@ -104,7 +104,7 @@ void CharacterSelectScene::Enter()
     // 데이터 로드
     LoadClassData();
     InitializeSkillData();
-    
+
     if (_ClassDataList.empty())
     {
         // 데이터 로드 실패 시 기본값
@@ -159,7 +159,7 @@ void CharacterSelectScene::Enter()
     imagePanel->Redraw();
 
     // ===== 오른쪽 정보 패널들 (세로로 분리) =====
-    
+
     // 1. 직업 클래스명 패널
     Panel* classNamePanel = _Drawer->CreatePanel("ClassName", 77, 7, 63, 3);
     classNamePanel->SetBorder(true, ETextColor::WHITE);
@@ -168,7 +168,7 @@ void CharacterSelectScene::Enter()
         MakeColorAttribute(ETextColor::WHITE, EBackgroundColor::BLACK));
     classNamePanel->SetContentRenderer(std::move(classNameText));
     classNamePanel->Redraw();
-    
+
     // 2. 역할 패널
     Panel* rolePanel = _Drawer->CreatePanel("Role", 77, 10, 63, 3);
     rolePanel->SetBorder(true, ETextColor::WHITE);
@@ -177,7 +177,7 @@ void CharacterSelectScene::Enter()
         MakeColorAttribute(ETextColor::WHITE, EBackgroundColor::BLACK));
     rolePanel->SetContentRenderer(std::move(roleText));
     rolePanel->Redraw();
-    
+
     // 3. 특징 패널
     Panel* descPanel = _Drawer->CreatePanel("Description", 77, 13, 63, 4);
     descPanel->SetBorder(true, ETextColor::WHITE);
@@ -187,7 +187,7 @@ void CharacterSelectScene::Enter()
     descText->AddLine("  [직업 설명]");
     descPanel->SetContentRenderer(std::move(descText));
     descPanel->Redraw();
-    
+
     // 4. 초기 스탯 패널
     Panel* statsPanel = _Drawer->CreatePanel("Stats", 77, 17, 63, 7);
     statsPanel->SetBorder(true, ETextColor::WHITE);
@@ -200,7 +200,7 @@ void CharacterSelectScene::Enter()
     statsText->AddLine("  CRIT: --%");
     statsPanel->SetContentRenderer(std::move(statsText));
     statsPanel->Redraw();
-    
+
     // 5. 고유 스킬 패널
     Panel* skillsPanel = _Drawer->CreatePanel("Skills", 77, 24, 63, 4);
     skillsPanel->SetBorder(true, ETextColor::WHITE);
@@ -250,30 +250,30 @@ void CharacterSelectScene::Enter()
 void CharacterSelectScene::UpdateClassImage(int selection)
 {
     if (selection < 0 || selection >= static_cast<int>(_ClassDataList.size())) return;
-    
+
     Panel* imagePanel = _Drawer->GetPanel("ClassImage");
     if (!imagePanel) return;
-    
+
     auto artRenderer = std::make_unique<AsciiArtRenderer>();
     std::string resourcePath = DataManager::GetInstance()->GetResourcePath("Characters");
-    
+
     // CSV에서 읽은 파일명 사용
     std::string fileName = _ClassDataList[selection]._AsciiFileSelect;
-    
+
     // "Characters/" 접두사 제거
     if (fileName.find("Characters/") == 0)
     {
         fileName = fileName.substr(11);
     }
-    
+
     // 아스키 아트 로드 시도
     bool loaded = artRenderer->LoadFromFile(resourcePath, fileName);
-    
+
     if (loaded)
     {
         artRenderer->SetAlignment(ArtAlignment::CENTER);
         artRenderer->SetColor(ETextColor::WHITE);
-        
+
         imagePanel->SetContentRenderer(std::move(artRenderer));
     }
     else
@@ -289,10 +289,10 @@ void CharacterSelectScene::UpdateClassImage(int selection)
         fallbackText->AddLine("");
         fallbackText->AddLine("                  파일: " + fileName);
         fallbackText->SetTextColor(MakeColorAttribute(ETextColor::DARK_GRAY, EBackgroundColor::BLACK));
-        
+
         imagePanel->SetContentRenderer(std::move(fallbackText));
     }
-    
+
     imagePanel->Redraw();
 }
 
@@ -300,10 +300,10 @@ void CharacterSelectScene::UpdateClassInfo(int selection)
 {
     if (selection < 0 || selection >= static_cast<int>(_ClassDataList.size())) return;
     if (selection >= static_cast<int>(_SkillDataList.size())) return;
-    
+
     const ClassData& classData = _ClassDataList[selection];
     const ClassSkillData& skillData = _SkillDataList[selection];
-    
+
     // 1. 직업 클래스명 업데이트
     Panel* classNamePanel = _Drawer->GetPanel("ClassName");
     if (classNamePanel)
@@ -314,7 +314,7 @@ void CharacterSelectScene::UpdateClassInfo(int selection)
         classNamePanel->SetContentRenderer(std::move(classNameText));
         classNamePanel->Redraw();
     }
-    
+
     // 2. 역할 업데이트
     Panel* rolePanel = _Drawer->GetPanel("Role");
     if (rolePanel)
@@ -325,7 +325,7 @@ void CharacterSelectScene::UpdateClassInfo(int selection)
         rolePanel->SetContentRenderer(std::move(roleText));
         rolePanel->Redraw();
     }
-    
+
     // 3. 특징 업데이트
     Panel* descPanel = _Drawer->GetPanel("Description");
     if (descPanel)
@@ -338,7 +338,7 @@ void CharacterSelectScene::UpdateClassInfo(int selection)
         descPanel->SetContentRenderer(std::move(descText));
         descPanel->Redraw();
     }
-    
+
     // 4. 초기 스탯 업데이트
     Panel* statsPanel = _Drawer->GetPanel("Stats");
     if (statsPanel)
@@ -346,32 +346,32 @@ void CharacterSelectScene::UpdateClassInfo(int selection)
         auto statsText = std::make_unique<TextRenderer>();
         statsText->AddLineWithColor("  초기 스탯:",
             MakeColorAttribute(ETextColor::WHITE, EBackgroundColor::BLACK));
-        
+
         std::ostringstream oss;
         oss << "  HP: " << classData._HP << " | MP: " << classData._MP;
         statsText->AddLineWithColor(oss.str(),
             MakeColorAttribute(ETextColor::WHITE, EBackgroundColor::BLACK));
-        
+
         oss.str("");
         oss << "  ATK: " << classData._Atk << " | DEF: " << classData._Def;
         statsText->AddLineWithColor(oss.str(),
             MakeColorAttribute(ETextColor::WHITE, EBackgroundColor::BLACK));
-        
+
         oss.str("");
         oss << "  DEX: " << classData._Dex << " | LUK: " << classData._Luk;
         statsText->AddLineWithColor(oss.str(),
             MakeColorAttribute(ETextColor::WHITE, EBackgroundColor::BLACK));
-        
+
         oss.str("");
         oss << std::fixed << std::setprecision(1);
         oss << "  CRIT: " << (classData._CriticalRate * 100) << "%";
         statsText->AddLineWithColor(oss.str(),
             MakeColorAttribute(ETextColor::WHITE, EBackgroundColor::BLACK));
-        
+
         statsPanel->SetContentRenderer(std::move(statsText));
         statsPanel->Redraw();
     }
-    
+
     // 5. 고유 스킬 업데이트
     Panel* skillsPanel = _Drawer->GetPanel("Skills");
     if (skillsPanel)
@@ -392,10 +392,10 @@ void CharacterSelectScene::UpdateGuideMessage(int selection)
 {
     if (selection < 0 || selection >= static_cast<int>(_ClassDataList.size())) return;
     if (selection >= static_cast<int>(_SkillDataList.size())) return;
-    
+
     const ClassData& classData = _ClassDataList[selection];
     const ClassSkillData& skillData = _SkillDataList[selection];
-    
+
     // 스킬 설명 패널 업데이트
     Panel* skillDescPanel = _Drawer->GetPanel("SkillDesc");
     if (skillDescPanel)
@@ -403,13 +403,13 @@ void CharacterSelectScene::UpdateGuideMessage(int selection)
         auto skillDescText = std::make_unique<TextRenderer>();
         skillDescText->AddLineWithColor("  스킬 정보:",
             MakeColorAttribute(ETextColor::WHITE, EBackgroundColor::BLACK));
-        
+
         // 스킬 설명
         skillDescText->AddLineWithColor("  • " + skillData._Skill1Name + ": " + skillData._Skill1Desc,
             MakeColorAttribute(ETextColor::WHITE, EBackgroundColor::BLACK));
         skillDescText->AddLineWithColor("  • " + skillData._Skill2Name + ": " + skillData._Skill2Desc,
             MakeColorAttribute(ETextColor::WHITE, EBackgroundColor::BLACK));
-        
+
         skillDescPanel->SetContentRenderer(std::move(skillDescText));
         skillDescPanel->Redraw();
     }
@@ -419,7 +419,7 @@ void CharacterSelectScene::UpdateTitlePage(int selection)
 {
     Panel* titlePanel = _Drawer->GetPanel("Title");
     if (!titlePanel) return;
-    
+
     auto titleText = std::make_unique<TextRenderer>();
     titleText->AddLine("");
     titleText->AddLineWithColor("                [ 직업 선택 ]",
@@ -454,68 +454,69 @@ void CharacterSelectScene::HandleInput()
 {
     InputManager* input = InputManager::GetInstance();
     if (!input->IsKeyPressed()) return;
-    
+
     int keyCode = input->GetKeyCode();
-    
+
     if (keyCode == 0x4B)  // 왼쪽 화살표
     {
         _CurrentSelection--;
         if (_CurrentSelection < 0) _CurrentSelection = static_cast<int>(_ClassDataList.size()) - 1;
-        
+
         UpdateClassImage(_CurrentSelection);
         UpdateClassInfo(_CurrentSelection);
         UpdateGuideMessage(_CurrentSelection);
         UpdateTitlePage(_CurrentSelection);
-        
+
         _Drawer->Render();
     }
     else if (keyCode == 0x4D)  // 오른쪽 화살표
     {
         _CurrentSelection++;
         if (_CurrentSelection >= static_cast<int>(_ClassDataList.size())) _CurrentSelection = 0;
-        
+
         UpdateClassImage(_CurrentSelection);
         UpdateClassInfo(_CurrentSelection);
         UpdateGuideMessage(_CurrentSelection);
         UpdateTitlePage(_CurrentSelection);
-        
+
         _Drawer->Render();
     }
     else if (keyCode == VK_RETURN || keyCode == '\r')  // Enter - 선택 확인
     {
-      if (_CurrentSelection >= 0 &&
-          _CurrentSelection < static_cast<int>(_ClassDataList.size())) {
-        // SceneManager에서 플레이어 가져오기
-        Player* player = SceneManager::GetInstance()->GetPlayer();
+        if (_CurrentSelection >= 0 &&
+            _CurrentSelection < static_cast<int>(_ClassDataList.size()))
+        {
+            // 선택된 직업 데이터 가져오기
+            const ClassData& selectedClass = _ClassDataList[_CurrentSelection];
 
-        if (player) {
-          // 선택된 직업 데이터로 플레이어 스탯 설정
-          const ClassData& selectedClass = _ClassDataList[_CurrentSelection];
+            // GameManager에서 저장된 플레이어 이름 가져오기
+            std::string playerName = GameManager::GetInstance()->GetTempPlayerName();
 
-          player->ModifyMaxHP(selectedClass._HP);
-          player->ModifyHP(selectedClass._HP);
-          player->ModifyMaxMP(selectedClass._MP);
-          player->ModifyMP(selectedClass._MP);
-          player->ModifyAtk(selectedClass._Atk);
-          player->ModifyDef(selectedClass._Def);
-          player->ModifyDex(selectedClass._Dex);
-          player->ModifyLuk(selectedClass._Luk);
-          player->ModifyCriticalRate(selectedClass._CriticalRate -
-                                     player->GetCriticalRate()); // 기본 값이 존재하므로 조정
+            // GameManager를 통해 CSV 기반 플레이어 생성
+            GameManager* gm = GameManager::GetInstance();
+            bool success = gm->CreateMainPlayerWithClass(playerName, selectedClass._ClassId);
 
-          // GameManager에 플레이어 등록 (shared_ptr로 변환)
-          GameManager* gm = GameManager::GetInstance();
+            if (!success)
+            {
+                // 플레이어 생성 실패 시 에러 메시지 표시
+                Panel* errorPanel = _Drawer->GetPanel("Guide");
+                if (errorPanel)
+                {
+                    auto errorText = std::make_unique<TextRenderer>();
+                    errorText->AddLineWithColor(
+                        "  [ 플레이어 생성 실패! 다시 시도하세요. ]",
+                        MakeColorAttribute(ETextColor::RED, EBackgroundColor::BLACK)
+                    );
+                    errorPanel->SetContentRenderer(std::move(errorText));
+                    errorPanel->Redraw();
+                    _Drawer->Render();
+                }
+                return;
+            }
 
-          // Player를 shared_ptr로 관리하도록 변경 필요
-          // 임시로 shared_ptr 생성 (메모리 누수 주의!)
-          auto playerPtr = std::shared_ptr<Player>(
-              player, [](Player*) {});  // 삭제자 비활성화
-          gm->SetMainPlayer(playerPtr);
+            // 다음 씬으로 이동 (StageSelect 또는 Battle)
+            SceneManager::GetInstance()->ChangeScene(ESceneType::StageSelect);
         }
-
-        // 다음 씬으로 이동 (Battle 씬 테스트)
-        SceneManager::GetInstance()->ChangeScene(ESceneType::Battle);
-      }
     }
     else if (keyCode == VK_ESCAPE)  // ESC - 이전 화면
     {

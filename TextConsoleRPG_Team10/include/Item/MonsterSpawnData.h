@@ -1,4 +1,7 @@
-﻿struct MonsterSpawnData
+#pragma once
+#include <string>
+
+struct MonsterSpawnData
 {
     std::string Enemy_id;
     std::string MonsterName;
@@ -13,4 +16,5 @@
     int exp;
     int gold;
     std::string ascii_file;
+    std::string attack_name;  // 몬스터 기본 공격명
 };

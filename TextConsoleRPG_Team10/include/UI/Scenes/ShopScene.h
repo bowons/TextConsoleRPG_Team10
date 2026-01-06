@@ -13,6 +13,8 @@ private:
     bool _IsBuyMode;        // true: 구매 모드, false: 판매 모드
     int _PlayerInventorySlot;  // 판매 시 선택한 인벤토리 슬롯
 
+    std::vector<std::string> _SystemLogs; // 로그 메시지를 누적합니다.
+
     // 공통 패널 업데이트 함수 (Stage와 공유)
     void UpdateSystemLog(Panel* systemPanel, const std::vector<std::string>& messages);
     void UpdateInventoryPanel(Panel* inventoryPanel);

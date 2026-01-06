@@ -14,15 +14,22 @@
 #include "../../include/UI/Scenes/CompanionRecruitScene.h"
 #include "../../include/UI/Scenes/ResultScene.h"
 #include "../../include/Unit/Player.h"
+#include "../../include/Unit/Warrior.h"
+#include "../../include/Unit/Mage.h"
+#include "../../include/Unit/Archer.h"
+#include "../../include/Unit/Priest.h"
+#include "../../include/Data/ClassData.h"  // 추가
 #include <Windows.h>
 #include <algorithm>
+#include <cstdlib>
+#include <ctime>
 
 // ===== 파티 관리 구현 (Player 정의 필요) =====
 void GameManager::RemoveDeadCompanions()
 {
     // 메인 플레이어(0번)는 제외하고 동료들만 검사 - 메인 플레이어 죽으면 게임 끝남!
     if (_Party.size() <= 1) return;  // 메인 플레이어만 있으면 스킵
-    
+
     auto it = _Party.begin() + 1;  // 1번 인덱스부터 시작 (0번은 메인 플레이어)
     while (it != _Party.end())
     {
@@ -48,6 +55,9 @@ size_t GameManager::GetAliveCount() const
 // ===== 게임 초기화 (씬 등록) =====
 void GameManager::Initialize()
 {
+    // 랜덤 시드 초기화 (치명타 판정용)
+    std::srand(static_cast<unsigned int>(std::time(nullptr)));
+
     PrintManager::GetInstance()->PrintLogLine(
         "GameManager: 게임 초기화 중...",
         ELogImportance::DISPLAY
@@ -57,19 +67,19 @@ void GameManager::Initialize()
     if (!DataManager::GetInstance()->Initialize())
     {
         PrintManager::GetInstance()->PrintLogLine(
-         "DataManager 초기화 실패!",
-         ELogImportance::WARNING
+            "DataManager 초기화 실패!",
+            ELogImportance::WARNING
         );
-    return;
+        return;
     }
 
     // StageManager 초기화
     if (!StageManager::GetInstance()->Initialize())
     {
         PrintManager::GetInstance()->PrintLogLine(
-    "StageManager 초기화 실패!",
-      ELogImportance::WARNING
-   );
+            "StageManager 초기화 실패!",
+            ELogImportance::WARNING
+        );
         return;
     }
 
@@ -169,55 +179,155 @@ void GameManager::EndGame()
     _IsRunning = false;
 }
 
+// ===== 게임 재시작 =====
+void GameManager::RestartGame()
+{
+    PrintManager::GetInstance()->PrintLogLine(
+        "게임을 재시작합니다...",
+        ELogImportance::DISPLAY
+    );
+
+    ClearParty();
+
+    StageManager* stageMgr = StageManager::GetInstance();
+    if (stageMgr && stageMgr->IsInitialized())
+    {
+        stageMgr->StartNewGame();
+    }
+
+    _IsGameOver = false;
+    _IsRunning = true;
+
+    UIDrawer* drawer = UIDrawer::GetInstance();
+    drawer->ClearScreen();
+    drawer->RemoveAllPanels();
+
+    PrintManager::GetInstance()->PrintLogLine(
+        "새로운 여정을 시작합니다!",
+        ELogImportance::DISPLAY
+    );
+
+    SceneManager::GetInstance()->ChangeScene(ESceneType::PlayerNameInput);
+}
+
+// ===== DEPRECATED: 레거시 함수, CreateMainPlayerWithClass 사용 권장 =====
+void GameManager::CreateMainPlayer(const std::string& name)
+{
+    // CSV 기반 생성자 사용 권장
+    // TODO: 이 함수는 삭제 예정
+    _MainPlayer = std::make_shared<Warrior>(name, true);
+    _Party.clear();
+    _Party.push_back(_MainPlayer);
+}
+
+bool GameManager::CreateMainPlayerWithClass(const std::string& name, const std::string& classId)
+{
+    DataManager* dm = DataManager::GetInstance();
+
+    // Class.csv에서 직업 데이터 로드
+    std::optional<ClassData> classDataOpt = dm->GetClassData(classId);
+
+    if (!classDataOpt.has_value())
+    {
+        PrintManager::GetInstance()->PrintLogLine(
+            "직업 데이터를 불러올 수 없습니다: " + classId,
+            ELogImportance::WARNING
+        );
+        return false;
+    }
+
+    const ClassData& data = classDataOpt.value();
+
+    // 직업별 플레이어 생성 (CSV 데이터 사용)
+    std::shared_ptr<Player> newPlayer;
+
+    if (classId == "warrior")
+    {
+        newPlayer = std::make_shared<Warrior>(data, name, true);
+    }
+    else if (classId == "mage")
+    {
+        newPlayer = std::make_shared<Mage>(data, name, true);
+    }
+    else if (classId == "archer")
+    {
+        newPlayer = std::make_shared<Archer>(data, name, true);
+    }
+    else if (classId == "priest")
+    {
+        newPlayer = std::make_shared<Priest>(data, name, true);
+    }
+    else
+    {
+        PrintManager::GetInstance()->PrintLogLine(
+            "알 수 없는 직업 ID: " + classId,
+            ELogImportance::WARNING
+        );
+        return false;
+    }
+
+    // 파티 설정
+    _MainPlayer = newPlayer;
+    _Party.clear();
+    _Party.push_back(_MainPlayer);
+
+    PrintManager::GetInstance()->PrintLogLine(
+        name + " (" + data._Role + ") 생성 완료!",
+        ELogImportance::DISPLAY
+    );
+
+    return true;
+}
+
 // ===== 배틀 테스트 (임시) =====
 void GameManager::StartBattleTest()
 {
-  _IsGameOver = false;
-  _IsRunning = true;
+    _IsGameOver = false;
+    _IsRunning = true;
 
-  PrintManager::GetInstance()->PrintLogLine(
-	  "배틀 테스트 모드 시작...",
-	  ELogImportance::DISPLAY);
-  PrintManager::GetInstance()->EndLine();
+    PrintManager::GetInstance()->PrintLogLine(
+        "배틀 테스트 모드 시작...",
+        ELogImportance::DISPLAY);
+    PrintManager::GetInstance()->EndLine();
 
-  // 임시 파티 생성 (메인 플레이어 + 용병 3명)
-  auto mainPlayer = std::make_shared<Player>("플레이어", true);
-  auto companion1 = std::make_shared<Player>("용병 A", false);
-  auto companion2 = std::make_shared<Player>("용병 B", false);
-  auto companion3 = std::make_shared<Player>("용병 C", false);
+    // 임시 파티 생성 (직업별로 테스트)
+    auto mainPlayer = std::make_shared<Warrior>("전사", true);
+    auto companion1 = std::make_shared<Mage>("마법사", false);
+    auto companion2 = std::make_shared<Archer>("궁수", false);
+    auto companion3 = std::make_shared<Priest>("사제", false);
 
-  _Party.clear();
-  _Party.push_back(mainPlayer);
-  _Party.push_back(companion1);
-  _Party.push_back(companion2);
-  _Party.push_back(companion3);
+    _Party.clear();
+    _Party.push_back(mainPlayer);
+    _Party.push_back(companion1);
+    _Party.push_back(companion2);
+    _Party.push_back(companion3);
 
-  SceneManager* sm = SceneManager::GetInstance();
-  UIDrawer* drawer = UIDrawer::GetInstance();
+    SceneManager* sm = SceneManager::GetInstance();
+    UIDrawer* drawer = UIDrawer::GetInstance();
 
-  // 배틀 씬으로 바로 전환
-  sm->ChangeScene(ESceneType::Battle);
+    // 배틀 씬으로 바로 전환
+    sm->ChangeScene(ESceneType::Battle);
 
-  // ===== 메인 게임 루프 =====
-  while (_IsRunning && !_IsGameOver) {
-    // 씬 업데이트
-    sm->Update();
+    // ===== 메인 게임 루프 =====
+    while (_IsRunning && !_IsGameOver) {
+        // 씬 업데이트
+        sm->Update();
 
-    // 씬 렌더링
-    sm->Render();
+        // 씬 렌더링
+        sm->Render();
 
-    // ESC 키로 종료 가능 (테스트용)
-    if (GetAsyncKeyState(VK_ESCAPE) & 0x8000) {
-      Sleep(150);
-      EndGame();
+        // ESC 키로 종료 가능 (테스트용)
+        if (GetAsyncKeyState(VK_ESCAPE) & 0x8000) {
+            Sleep(150);
+            EndGame();
+        }
     }
-  }
 
-  // 게임 종료 메시지
-  PrintManager::GetInstance()->EndLine();
-  PrintManager::GetInstance()->PrintLogLine("전투 테스트를 종료합니다.",
-                                            ELogImportance::DISPLAY);
+    // 게임 종료 메시지
+    PrintManager::GetInstance()->EndLine();
+    PrintManager::GetInstance()->PrintLogLine("전투 테스트를 종료합니다.",
+        ELogImportance::DISPLAY);
 
-  // UIDrawer 정리
-  drawer->Shutdown();
+    // UIDrawer 정리
+    drawer->Shutdown();
 }

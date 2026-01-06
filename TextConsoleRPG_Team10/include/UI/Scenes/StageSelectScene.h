@@ -67,4 +67,6 @@ public:
     void UpdateInventoryPanel(Panel* inventoryPanel);
     void UpdateGuidePanel(Panel* guidePanel);  // 가이드 패널 업데이트
     void RenderStageMap(Panel* nodePanel);     // 맵 렌더링
+
+    std::vector<std::string> _SystemLogs; // 시스템 로그 저장 변수 추가
 };

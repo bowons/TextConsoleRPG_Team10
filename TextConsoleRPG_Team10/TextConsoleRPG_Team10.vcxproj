@@ -134,21 +134,21 @@
   <ItemGroup>
     <!-- Core -->
     <ClInclude Include="include\Config.h" />
-    <ClInclude Include="include\Data\ClassData.h" />
+    <ClInclude Include="include\Data\FloorScalingData.h" />
+    <ClInclude Include="include\Singleton.h" />
+    <!-- Common -->
+    <ClInclude Include="include\Common\TextColor.h" />
     <ClInclude Include="include\Data\StageData.h" />
+    <ClInclude Include="include\Data\ClassData.h" />
+    <!-- Factory -->
+    <ClInclude Include="include\Factory\Factory.h" />
+    <ClInclude Include="include\Factory\ItemFactory.h" />
+    <!-- Item -->
     <ClInclude Include="include\Item\FairyEssence.h" />
     <ClInclude Include="include\Item\FocusRune.h" />
     <ClInclude Include="include\Item\LuckyCharm.h" />
     <ClInclude Include="include\Item\ShieldDefense.h" />
     <ClInclude Include="include\Item\TitanAwakening.h" />
-    <ClInclude Include="include\Manager\StageManager.h" />
-    <ClInclude Include="include\Singleton.h" />
-    <!-- Common -->
-    <ClInclude Include="include\Common\TextColor.h" />
-    <!-- Factory -->
-    <ClInclude Include="include\Factory\Factory.h" />
-    <ClInclude Include="include\Factory\ItemFactory.h" />
-    <!-- Item -->
     <ClInclude Include="include\Item\AttackUp.h" />
     <ClInclude Include="include\Item\HealPotion.h" />
     <ClInclude Include="include\Item\IItem.h" />
@@ -157,6 +157,7 @@
     <ClInclude Include="include\Item\ItemSlot.h" />
     <ClInclude Include="include\Item\MonsterSpawnData.h" />
     <!-- Manager -->
+    <ClInclude Include="include\Manager\StageManager.h" />
     <ClInclude Include="include\Manager\BattleManager.h" />
     <ClInclude Include="include\Manager\DataManager.h" />
     <ClInclude Include="include\Manager\GameManager.h" />
@@ -165,6 +166,12 @@
     <ClInclude Include="include\Manager\SceneManager.h" />
     <ClInclude Include="include\Manager\ShopManager.h" />
     <ClInclude Include="include\Manager\SoundPlayer.h" />
+    <ClInclude Include="include\Skill\ArcherSkills.h" />
+    <ClInclude Include="include\Skill\ISkill.h" />
+    <ClInclude Include="include\Skill\MageSkills.h" />
+    <ClInclude Include="include\Skill\MonsterSkills.h" />
+    <ClInclude Include="include\Skill\PriestSkills.h" />
+    <ClInclude Include="include\Skill\WarriorSkills.h" />
     <!-- UI -->
     <ClInclude Include="include\UI\AsciiArtRenderer.h" />
     <ClInclude Include="include\UI\IContentRenderer.h" />
@@ -185,28 +192,43 @@
     <ClInclude Include="include\UI\Scenes\ShopScene.h" />
     <ClInclude Include="include\UI\Scenes\StageSelectScene.h" />
     <ClInclude Include="include\UI\Scenes\StoryProgressScene.h" />
+    <ClInclude Include="include\Unit\Archer.h" />
     <!-- Unit -->
     <ClInclude Include="include\Unit\Boss.h" />
+    <ClInclude Include="include\Unit\EliteMonster.h" />
     <ClInclude Include="include\Unit\ICharacter.h" />
     <ClInclude Include="include\Unit\IMonster.h" />
+    <ClInclude Include="include\Unit\Mage.h" />
     <ClInclude Include="include\Unit\NormalMonster.h" />
     <ClInclude Include="include\Unit\Player.h" />
+    <ClInclude Include="include\Unit\Priest.h" />
+    <ClInclude Include="include\Unit\Warrior.h" />
   </ItemGroup>
   <!-- Source Files -->
   <ItemGroup>
     <!-- Main -->
     <ClCompile Include="Main.cpp" />
+    <ClCompile Include="src\Manager\StageManager.cpp" />
+    <ClCompile Include="src\Skill\ArcherSkills.cpp" />
+    <ClCompile Include="src\Skill\MageSkills.cpp" />
+    <ClCompile Include="src\Skill\MonsterSkills.cpp" />
+    <ClCompile Include="src\Skill\PriestSkills.cpp" />
+    <ClCompile Include="src\Skill\WarriorSkills.cpp" />
+    <ClCompile Include="src\UI\Scenes\StageSelectScene.cpp" />
+    <ClCompile Include="src\Unit\Archer.cpp" />
+    <ClCompile Include="src\Unit\EliteMonster.cpp" />
+    <ClCompile Include="src\Unit\Mage.cpp" />
+    <ClCompile Include="src\Unit\Priest.cpp" />
+    <ClCompile Include="src\Unit\Warrior.cpp" />
+    <ClCompile Include="UIDrawer_TestExample.cpp" />
+    <!-- Factory -->
+    <ClCompile Include="src\Factory\ItemFactory.cpp" />
+    <!-- Item -->
     <ClCompile Include="src\Item\FairyEssence.cpp" />
     <ClCompile Include="src\Item\FocusRune.cpp" />
     <ClCompile Include="src\Item\LuckyCharm.cpp" />
     <ClCompile Include="src\Item\ShieldDefense.cpp" />
     <ClCompile Include="src\Item\TitanAwakening.cpp" />
-    <ClCompile Include="src\Manager\StageManager.cpp" />
-    <ClCompile Include="src\UI\Scenes\StageSelectScene.cpp" />
-    <ClCompile Include="UIDrawer_TestExample.cpp" />
-    <!-- Factory -->
-    <ClCompile Include="src\Factory\ItemFactory.cpp" />
-    <!-- Item -->
     <ClCompile Include="src\Item\AttackUp.cpp" />
     <ClCompile Include="src\Item\HealPotion.cpp" />
     <ClCompile Include="src\Item\Inventory.cpp" />
@@ -260,6 +282,11 @@
     <None Include="Resources\Stages\Floor8.csv" />
     <None Include="Resources\Stages\Floor9.csv" />
     <None Include="Resources\Stages\FloorInfo.csv" />
+    <None Include="Resources\Monsters\Monsters.csv" />
+    <None Include="Resources\Monsters\FloorScaling.csv" />
+    <None Include="Resources\Monsters\Enemy_Normal.csv" />
+    <None Include="Resources\Monsters\Enemy_Elite.csv" />
+    <None Include="Resources\Monsters\Enemy_Boss.csv" />
     <None Include="SCENE_IMPLEMENTATION_GUIDE.md" />
     <None Include="UIDrawer_Flowchart.md" />
   </ItemGroup>
