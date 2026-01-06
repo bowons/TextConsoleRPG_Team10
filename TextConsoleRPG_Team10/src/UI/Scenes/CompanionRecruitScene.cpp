@@ -242,13 +242,27 @@ void CompanionRecruitScene::UpdateCompanionInfoPanel(Panel* infoPanel) {
   auto characterArt = std::make_unique<AsciiArtRenderer>();
   std::string charactersPath = DataManager::GetInstance()->GetResourcePath("Characters");
   
-  // CSV에서 읽은 파일명 사용
-  std::string fileName = companion._AsciiFile;
-
-  // "Characters/" 접두사 제거
-  if (fileName.find("Characters/") == 0)
-  {
+  // ===== 직업별 앞모습 이미지 파일명 결정 (Class.csv의 ascii_file_select 컬럼) =====
+  std::string fileName;
+  
+  if (companion._JobType == "warrior") {
+    fileName = "P_WarriorF.txt";  // CSV: Characters/P_WarriorF.txt
+  }
+  else if (companion._JobType == "mage") {
+    fileName = "P_MageF.txt";     // CSV: Characters/P_MageF.txt
+  }
+  else if (companion._JobType == "archer") {
+    fileName = "P_ArcherF.txt";   // CSV: Characters/P_ArcherF.txt
+  }
+  else if (companion._JobType == "priest") {
+    fileName = "P_PriestF.txt";   // CSV: Characters/P_PriestF.txt
+  }
+  else {
+    // 폴백: CSV의 AsciiFile 사용
+    fileName = companion._AsciiFile;
+    if (fileName.find("Characters/") == 0) {
       fileName = fileName.substr(11);
+    }
   }
   
   bool artLoaded = characterArt->LoadFromFile(charactersPath, fileName);

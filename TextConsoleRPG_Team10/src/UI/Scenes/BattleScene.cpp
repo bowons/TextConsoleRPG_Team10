@@ -88,7 +88,8 @@ void BattleScene::Enter() {
 
     auto party = gameMgr->GetParty();
 
-    for (int i = 0; i < 4; ++i) {
+    for (int i = 0; i < 4; ++i)
+    {
         int row = i / 2;
         int col = i % 2;
         int xPos = charArtStartX + col * charArtWidth;
@@ -100,23 +101,66 @@ void BattleScene::Enter() {
             _Drawer->CreatePanel(panelName, xPos, yPos, charArtWidth, charArtHeight);
         charArtPanel->SetBorder(true, ETextColor::WHITE);
 
-        // TODO: 캐릭터별 아스키 아트 로드
-        auto charArtText = std::make_unique<TextRenderer>();
-        charArtText->AddLine("");
-        charArtText->AddLine("");
-
+        // 캐릭터별 아스키 아트 로드
         if (i < party.size() && party[i])
         {
-            charArtText->AddLine("     [" + party[i]->GetName() + "]");
+            Player* player = party[i].get();
+            
+            // CSV에서 정의된 파일명 사용 (Class.csv의 ascii_file 컬럼)
+            std::string artFileName;
+            
+            if (dynamic_cast<Warrior*>(player)) {
+                artFileName = "P_Warrior.txt";  // CSV: Characters/P_Warrior.txt
+            }
+            else if (dynamic_cast<Mage*>(player)) {
+                artFileName = "P_Mage.txt";     // CSV: Characters/P_Mage.txt
+            }
+            else if (dynamic_cast<Archer*>(player)) {
+                artFileName = "P_Archer.txt";   // CSV: Characters/P_Archer.txt
+            }
+            else if (dynamic_cast<Priest*>(player)) {
+                artFileName = "P_Priest.txt";   // CSV: Characters/P_Priest.txt
+            }
+            else {
+                artFileName = "P_" + player->GetName() + ".txt";
+            }
+
+            auto charArt = std::make_unique<AsciiArtRenderer>();
+            std::string charactersPath = DataManager::GetInstance()->GetResourcePath("Characters");
+            
+            if (charArt->LoadFromFile(charactersPath, artFileName))
+            {
+                charArt->SetAlignment(ArtAlignment::CENTER);
+                charArt->SetColor(ETextColor::WHITE);
+                charArtPanel->SetContentRenderer(std::move(charArt));
+            }
+            else
+            {
+                // 로드 실패 시 기본 텍스트
+                auto fallbackText = std::make_unique<TextRenderer>();
+                fallbackText->AddLine("");
+                fallbackText->AddLine("");
+                fallbackText->AddLine("  [" + player->GetName() + "]");
+                fallbackText->AddLine("");
+                fallbackText->AddLineWithColor("  (이미지 없음)",
+                    MakeColorAttribute(ETextColor::DARK_GRAY, EBackgroundColor::BLACK));
+                fallbackText->SetTextColor(
+                    MakeColorAttribute(ETextColor::WHITE, EBackgroundColor::BLACK));
+                charArtPanel->SetContentRenderer(std::move(fallbackText));
+            }
         }
         else
         {
-            charArtText->AddLine("     [빈 슬롯]");
+            // 빈 슬롯
+            auto emptyText = std::make_unique<TextRenderer>();
+            emptyText->AddLine("");
+            emptyText->AddLine("");
+            emptyText->AddLine("     [빈 슬롯]");
+            emptyText->SetTextColor(
+                MakeColorAttribute(ETextColor::DARK_GRAY, EBackgroundColor::BLACK));
+            charArtPanel->SetContentRenderer(std::move(emptyText));
         }
 
-        charArtText->SetTextColor(
-            MakeColorAttribute(ETextColor::WHITE, EBackgroundColor::BLACK));
-        charArtPanel->SetContentRenderer(std::move(charArtText));
         charArtPanel->Redraw();
     }
 
@@ -536,29 +580,132 @@ void BattleScene::UpdateMonsterInfoPanel()
         return;
     }
 
-    // TODO: 몬스터별 아스키 아트 로드
-    auto monsterArt = std::make_unique<AsciiArtRenderer>();
-
+    // ===== CSV 파일명 매핑 로직 =====
+    // Enemy_Normal.csv, Enemy_Elite.csv, Enemy_Boss.csv의 ascii_file 컬럼 사용
+    // 예: "Monsters/Slime.txt" → "Slime.txt"
+    
     std::string monstersPath = DataManager::GetInstance()->GetResourcePath("Monsters");
-    std::string artFile = monster->GetName() + ".txt";  // 몬스터 이름으로 파일 검색
+    
+    // 몬스터 이름 기반으로 파일명 추출
+    // CSV 데이터: ascii_file = "Monsters/Slime.txt"
+    // 실제 필요한 파일명: "Slime.txt"
+    
+    std::string fileName;
+    std::string monsterName = monster->GetName();
+    
+    // ===== 몬스터 이름 → 파일명 매핑 (Monsters.csv 기준) =====
+    if (monsterName.find("슬라임") != std::string::npos || monsterName.find("망령") != std::string::npos) {
+        fileName = "Slime.txt";
+    }
+    else if (monsterName.find("쥐") != std::string::npos) {
+        fileName = "Mouse.txt";
+    }
+    else if (monsterName.find("고블린") != std::string::npos) {
+        fileName = "Goblin.txt";
+    }
+    else if (monsterName.find("박쥐") != std::string::npos) {
+        fileName = "Bat.txt";
+    }
+    else if (monsterName.find("해골") != std::string::npos || monsterName.find("스켈레톤") != std::string::npos) {
+        fileName = "Skeleton.txt";
+    }
+    else if (monsterName.find("좀비") != std::string::npos) {
+        fileName = "Zombie.txt";
+    }
+    else if (monsterName.find("가고일") != std::string::npos || monsterName.find("조각상") != std::string::npos) {
+        fileName = "Gargoyle.txt";
+    }
+    else if (monsterName.find("수호자") != std::string::npos || monsterName.find("집사") != std::string::npos) {
+        fileName = "Butler.txt";
+    }
+    else if (monsterName.find("하피") != std::string::npos) {
+        fileName = "Harpy.txt";
+    }
+    else if (monsterName.find("바실리스크") != std::string::npos) {
+        fileName = "Basilisk.txt";
+    }
+    else if (monsterName.find("늑대") != std::string::npos || monsterName.find("팽") != std::string::npos || monsterName.find("하운드") != std::string::npos) {
+        fileName = "Wolf.txt";
+    }
+    else if (monsterName.find("예티") != std::string::npos || monsterName.find("골렘") != std::string::npos) {
+        fileName = "Yeti.txt";
+    }
+    else if (monsterName.find("워커") != std::string::npos) {
+        fileName = "Walker.txt";
+    }
+    else if (monsterName.find("데몬") != std::string::npos) {
+        fileName = "Demmon.txt";
+    }
+    else if (monsterName.find("비홀더") != std::string::npos) {
+        fileName = "Beholder.txt";
+    }
+    else if (monsterName.find("호러") != std::string::npos) {
+        fileName = "Horror.txt";
+    }
+    else if (monsterName.find("카오스") != std::string::npos) {
+        fileName = "Chaos.txt";
+    }
+    else if (monsterName.find("에테르노") != std::string::npos) {
+        fileName = "Boss.txt";
+    }
+    else {
+        // 기본 폴백
+        fileName = "Slime.txt";
+    }
 
-    if (monsterArt->LoadFromFile(monstersPath, artFile))
+    // 아스키 아트 로드
+    auto monsterArt = std::make_unique<AsciiArtRenderer>();
+    
+    if (monsterArt->LoadFromFile(monstersPath, fileName))
     {
         monsterArt->SetAlignment(ArtAlignment::CENTER);
-        monsterArt->SetColor(ETextColor::LIGHT_RED);
+        monsterArt->SetColor(ETextColor::WHITE);
         enemyPanel->SetContentRenderer(std::move(monsterArt));
     }
     else
     {
+        // 로드 실패 시 기본 텍스트 + 스탯 표시
         auto fallbackText = std::make_unique<TextRenderer>();
         fallbackText->AddLine("");
-        fallbackText->AddLine("");
-        fallbackText->AddLineWithColor("  [" + monster->GetName() + "]",
+        fallbackText->AddLineWithColor("  [ " + monster->GetName() + " ]",
             MakeColorAttribute(ETextColor::LIGHT_RED, EBackgroundColor::BLACK));
         fallbackText->AddLine("");
-        fallbackText->AddLineWithColor("  HP: " + std::to_string(monster->GetCurrentHP()) +
-            "/" + std::to_string(monster->GetMaxHP()),
+        
+        // HP 바 표시
+        int hp = monster->GetCurrentHP();
+        int maxHp = monster->GetMaxHP();
+        float hpRatio = static_cast<float>(hp) / maxHp;
+        
+        std::string hpBar = "  HP: [";
+        int barLength = 20;
+        int filledLength = static_cast<int>(hpRatio * barLength);
+        
+        for (int i = 0; i < barLength; ++i)
+        {
+            if (i < filledLength)
+                hpBar += "=";
+            else
+                hpBar += "-";
+        }
+        hpBar += "]";
+        
+        WORD hpColor = (hpRatio < 0.3f) 
+            ? MakeColorAttribute(ETextColor::LIGHT_RED, EBackgroundColor::BLACK)
+            : MakeColorAttribute(ETextColor::LIGHT_GREEN, EBackgroundColor::BLACK);
+        
+        fallbackText->AddLineWithColor(hpBar, hpColor);
+        fallbackText->AddLineWithColor("      " + std::to_string(hp) + " / " + std::to_string(maxHp),
             MakeColorAttribute(ETextColor::WHITE, EBackgroundColor::BLACK));
+        
+        fallbackText->AddLine("");
+        fallbackText->AddLineWithColor("  ATK: " + std::to_string(monster->GetAtk()) + 
+            " | DEF: " + std::to_string(monster->GetDef()),
+            MakeColorAttribute(ETextColor::YELLOW, EBackgroundColor::BLACK));
+        
+        fallbackText->AddLine("");
+        fallbackText->AddLineWithColor("  (파일: " + fileName + ")",
+            MakeColorAttribute(ETextColor::DARK_GRAY, EBackgroundColor::BLACK));
+        
         enemyPanel->SetContentRenderer(std::move(fallbackText));
     }
 
