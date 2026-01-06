@@ -19,6 +19,11 @@
 #include "../../../include/Item/Inventory.h"
 #include "../../../include/Item/IItem.h"
 #include <Windows.h>
+#include <fstream>
+#include <nlohmann/json.hpp>
+
+static const std::string ANIM_ROOT_PATH =
+"Resources/Animations/";
 
 BattleScene::BattleScene()
     : UIScene("Battle")
@@ -217,6 +222,34 @@ void BattleScene::Enter() {
         [this](EBattleFlushType type)
         {
             this->CollectBattleLogs();
+            switch (type)
+            {
+            case EBattleFlushType::PlayerAttack:
+                //SetPanelAnimation("PlayerAttack", "PlayerAttack.txt");
+                SetPanelAnimation("Animation", "test.json", 1.0f);
+                break;
+
+            case EBattleFlushType::PlayerItem:
+                //SetPanelAnimation("PlayerItem", "PlayerItem.txt");
+                SetPanelAnimation("Animation", "test.json", 1.0f);
+                break;
+
+            case EBattleFlushType::MonsterAttack:
+                //SetPanelAnimation("MonsterAttack", "MonsterAttack.txt");
+                SetPanelAnimation("Animation", "test.json", 1.0f);
+                break;
+
+            case EBattleFlushType::BossAttack:
+                //SetPanelAnimation("BossAttack", "BossAttack.txt");
+                SetPanelAnimation("Animation", "test.json", 1.0f);
+                break;
+
+            case EBattleFlushType::BossDebuff:
+                // 애니메이션 대기 설정
+                _IsWaitingForAnimation = true;
+                //_AnimationWaitTimer = 1.0f; // 1초 대기
+                break;
+            }
         }
     );
 }
@@ -224,7 +257,9 @@ void BattleScene::Enter() {
 void BattleScene::Exit()
 {
     // 🔥 중요: Flush 콜백 해제
-    BattleManager::GetInstance()->SetFlushCallback(nullptr);
+    BattleManager* bm = BattleManager::GetInstance();
+    bm->SetFlushCallback(nullptr);
+    bm->SetAnimationCallback(nullptr); // 🔥 이거 필수
 
     _Drawer->RemoveAllPanels();
     _SystemLogs.clear();
@@ -233,27 +268,62 @@ void BattleScene::Exit()
 
 void BattleScene::Update()
 {
+    float deltaTime = 0.016f; // 60FPS 가정
+
+    // ===============================
+    // 1️⃣ 애니메이션 처리
+    // ===============================
+    if (_IsWaitingForAnimation && !_CurrentAnimation.Frames.empty())
+    {
+        _AnimElapsedTime += deltaTime * 1000.0f; // ms
+
+        if (_CurrentAnimFrame + 1 < _CurrentAnimation.TimestampsMs.size())
+        {
+            int nextTime = _CurrentAnimation.TimestampsMs[_CurrentAnimFrame + 1];
+
+            if (_AnimElapsedTime >= nextTime)
+            {
+                _CurrentAnimFrame++;
+                UpdateAnimationPanel(); // ⭐ 핵심
+            }
+        }
+        else
+        {
+            // ✅ 애니메이션 완전 종료
+            _IsWaitingForAnimation = false;
+            _CurrentAnimation = {};
+            _CurrentAnimFrame = 0;
+            _AnimElapsedTime = 0.0f;
+            ClearAnimationPanel();   // ⭐ 자동 삭제
+
+            FlushConsoleInputBuffer(GetStdHandle(STD_INPUT_HANDLE));
+        }
+    }
+
+    // ===============================
+    // 2️⃣ 씬 업데이트
+    // ===============================
     if (_IsActive)
     {
         _Drawer->Update();
 
-        // 애니메이션 대기 타이머 업데이트
-        if (_IsWaitingForAnimation)
+        // 애니메이션 중엔 입력 차단
+        if (!_IsWaitingForAnimation)
         {
-            _AnimationWaitTimer -= 0.016f;// ~60 FPS
-            if (_AnimationWaitTimer <= 0.0f)
-            {
-                _IsWaitingForAnimation = false;
-            }
+            HandleInput();
         }
-
-        HandleInput();
     }
 }
 
 void BattleScene::Render()
 {
-    // UIDrawer::Update()에서 자동 렌더링
+    //// UIDrawer::Update()에서 자동 렌더링
+    //if (_IsWaitingForAnimation && !_CurrentAnimation.Frames.empty())
+    //{
+    //    system("cls");
+    //    //std::cout << _CurrentAnimation.Frames[_CurrentAnimFrame] << std::endl;
+    //    return;
+    //}
 }
 
 // ===== UI 업데이트 함수 (StageSelectScene 패턴) =====
@@ -764,6 +834,11 @@ void BattleScene::UpdateBattleInfoPanel()
 
 void BattleScene::HandleInput()
 {
+    if (_IsWaitingForAnimation)
+        return;
+
+    /*if (_InputState != EBattleInputState::Playing)
+        return;*/
     InputManager* input = InputManager::GetInstance();
     if (!input->IsKeyPressed()) return;
 
@@ -1268,27 +1343,16 @@ void BattleScene::SetPanelAnimation(const std::string& panelName,
     const std::string& animJsonFile,
     float duration)
 {
-    Panel* panel = _Drawer->GetPanel(panelName);
-    if (!panel) return;
+    if (_IsWaitingForAnimation)
+        return; // 🔥 중복 애니메이션 방지
 
-    // 애니메이션 로더
-    auto animRenderer = std::make_unique<AsciiArtRenderer>();
-    std::string animPath = DataManager::GetInstance()->GetAnimationsPath();
+    if (!LoadAnimationFromJson(animJsonFile))
+        return;
 
-    if (animRenderer->LoadAnimationFromJson(animPath, animJsonFile))
-    {
-        animRenderer->SetAlignment(ArtAlignment::CENTER);
-        animRenderer->StartAnimation();
-        panel->SetContentRenderer(std::move(animRenderer));
-        panel->Redraw();
-        _Drawer->Render();
-
-        // duration > 0이면 블로킹 대기
-        if (duration > 0.0f)
-        {
-            Sleep(static_cast<DWORD>(duration * 1000));
-        }
-    }
+    _IsWaitingForAnimation = true;
+    _CurrentAnimFrame = 0;
+    _AnimElapsedTime = 0.0f;
+    UpdateAnimationPanel();
 }
 
 void BattleScene::SetPanelArt(const std::string& panelName,
@@ -1352,4 +1416,76 @@ void BattleScene::RefreshBattleUI()
     UpdateCommandPanel();
 
     _Drawer->Render();
+}
+ConsoleAnimation BattleScene::LoadAnimation(const std::string& animFile)
+{
+    ConsoleAnimation anim;
+
+    std::string fullPath = ANIM_ROOT_PATH + animFile;
+
+    std::ifstream file(fullPath);
+    if (!file.is_open())
+        return anim;
+
+    nlohmann::json j;
+    file >> j;
+
+    for (auto& f : j["frames"])
+        anim.Frames.push_back(f.get<std::string>());
+
+    for (auto& t : j["timestamps_ms"])
+        anim.TimestampsMs.push_back(t.get<int>());
+
+    return anim;
+}
+
+bool BattleScene::LoadAnimationFromJson(const std::string& fileName)
+{
+    std::string fullPath = ANIM_ROOT_PATH + fileName;
+    std::ifstream file(fullPath);
+    if (!file.is_open())
+        return false;
+
+    nlohmann::json j;
+    file >> j;
+
+    _CurrentAnimation = {};
+    _CurrentAnimFrame = 0;
+    _AnimElapsedTime = 0.0f;
+
+    for (const auto& f : j["frames"])
+        _CurrentAnimation.Frames.push_back(f.get<std::string>());
+
+    for (const auto& t : j["timestamps_ms"])
+        _CurrentAnimation.TimestampsMs.push_back(t.get<int>());
+
+    return !_CurrentAnimation.Frames.empty();
+}
+void BattleScene::UpdateAnimationPanel()
+{
+    Panel* panel = _Drawer->GetPanel("Animation");
+    if (!panel || _CurrentAnimation.Frames.empty())
+        return;
+
+    panel->ClearRenderers();
+
+    auto art = std::make_unique<AsciiArtRenderer>();
+    art->SetAlignment(ArtAlignment::CENTER);
+    art->SetColor(ETextColor::WHITE);
+
+    art->LoadFromString(
+        _CurrentAnimation.Frames[_CurrentAnimFrame]
+    );
+
+    panel->SetContentRenderer(std::move(art));
+    panel->Redraw();
+}
+void BattleScene::ClearAnimationPanel()
+{
+    Panel* animPanel = _Drawer->GetPanel("Animation");
+    if (!animPanel) return;
+
+    animPanel->ClearRenderers();   // 💥 핵심
+    animPanel->SetDirty();
+    animPanel->Redraw();
 }

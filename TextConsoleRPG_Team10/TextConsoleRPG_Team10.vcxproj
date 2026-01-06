@@ -108,6 +108,7 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalIncludeDirectories>$(ProjectDir)include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -136,6 +137,7 @@
     <ClInclude Include="include\Config.h" />
     <ClInclude Include="include\Data\CompanionData.h" />
     <ClInclude Include="include\Data\FloorScalingData.h" />
+    <ClInclude Include="include\nlohmann\json.hpp" />
     <ClInclude Include="include\Singleton.h" />
     <!-- Common -->
     <ClInclude Include="include\Common\TextColor.h" />
