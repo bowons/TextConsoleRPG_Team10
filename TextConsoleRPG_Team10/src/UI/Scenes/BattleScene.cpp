@@ -225,23 +225,23 @@ void BattleScene::Enter() {
             switch (type)
             {
             case EBattleFlushType::PlayerAttack:
-                //SetPanelAnimation("PlayerAttack", "PlayerAttack.txt");
-                SetPanelAnimation("Animation", "test.json", 1.0f);
+                SetPanelAnimation("PlayerAttack", "PlayerAttack.json", 1.0f);
+                //SetPanelAnimation("Animation", "test.json", 1.0f);
                 break;
 
             case EBattleFlushType::PlayerItem:
-                //SetPanelAnimation("PlayerItem", "PlayerItem.txt");
-                SetPanelAnimation("Animation", "test.json", 1.0f);
+                SetPanelAnimation("PlayerItem", "PlayerItem.json", 1.0f);
+                //SetPanelAnimation("Animation", "test.json", 1.0f);
                 break;
 
             case EBattleFlushType::MonsterAttack:
-                //SetPanelAnimation("MonsterAttack", "MonsterAttack.txt");
-                SetPanelAnimation("Animation", "test.json", 1.0f);
+                SetPanelAnimation("MonsterAttack", "MonsterAttack.json", 1.0f);
+                //SetPanelAnimation("Animation", "test.json", 1.0f);
                 break;
 
             case EBattleFlushType::BossAttack:
-                //SetPanelAnimation("BossAttack", "BossAttack.txt");
-                SetPanelAnimation("Animation", "test.json", 1.0f);
+                SetPanelAnimation("BossAttack", "BossAttack.json", 1.0f);
+                //SetPanelAnimation("Animation", "test.json", 1.0f);
                 break;
 
             case EBattleFlushType::BossDebuff:
