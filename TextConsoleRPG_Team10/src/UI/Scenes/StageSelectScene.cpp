@@ -629,6 +629,7 @@ void StageSelectScene::HandleInput()
         if (!_SelectedNodeId.empty())
         {
             EnterNode(_SelectedNodeId);
+            SoundPlayer::GetInstance()->PlaySFX("Footstep" + std::to_string(rand() % 9 + 1));
         }
         return;
     }
@@ -647,6 +648,8 @@ void StageSelectScene::HandleInput()
         }
         return;
     }
+
+    SoundPlayer::GetInstance()->PlaySFX("FootStep_" + std::to_string(rand() % 9 + 1));
 
     int currentIndex = -1;
     for (size_t i = 0; i < _AvailableNodeIds.size(); ++i)

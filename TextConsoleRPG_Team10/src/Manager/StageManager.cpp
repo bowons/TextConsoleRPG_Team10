@@ -27,7 +27,7 @@ bool StageManager::Initialize()
         }
 
         // 진행 상태 초기화
-        _Progress.CurrentFloor = 10; // 여기 변경
+        _Progress.CurrentFloor = 1; // 여기 변경
         _Progress.CurrentNodeId = "";
 
         // 1층 노드 로드
