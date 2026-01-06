@@ -444,7 +444,7 @@ void BattleScene::UpdatePartyPanels()
         if (i < party.size() && party[i])
         {
             std::string name = party[i]->GetName();
-
+            
             // ===== 직업 판별 =====
             std::string className = "Unknown";
             if (dynamic_cast<Warrior*>(party[i].get())) {
@@ -461,6 +461,7 @@ void BattleScene::UpdatePartyPanels()
             }
 
             // ===== 스탯 정보 =====
+            int level = party[i]->GetLevel();
             int hp = party[i]->GetCurrentHP();
             int maxHp = party[i]->GetMaxHP();
             int mp = party[i]->GetCurrentMP();
@@ -474,7 +475,7 @@ void BattleScene::UpdatePartyPanels()
 
             // ===== 이름 + 직업 + 어그로 =====
             WORD nameColor = MakeColorAttribute(ETextColor::LIGHT_CYAN, EBackgroundColor::BLACK);
-            std::string nameLine = " " + name + "/" + className + " (AG:" + std::to_string(aggro) + ")";
+            std::string nameLine = "Lv." + std::to_string(level) + "-" + name + "/" + className + " (AG:" + std::to_string(aggro) + ")";
             partyText->AddLineWithColor(nameLine, nameColor);
 
             // ===== HP (빨강/초록) =====
@@ -1060,4 +1061,96 @@ void BattleScene::CollectBattleLogs()
     Panel* logPanel = _Drawer->GetPanel("SystemLog");
     if (logPanel)
         UpdateSystemLog(logPanel, _SystemLogs);
+}
+
+// ===== IBattleAnimationCallback 구현 =====
+
+void BattleScene::SetPanelAnimation(const std::string& panelName,
+    const std::string& animJsonFile,
+    float duration)
+{
+    Panel* panel = _Drawer->GetPanel(panelName);
+if (!panel) return;
+
+    // 애니메이션 로더
+    auto animRenderer = std::make_unique<AsciiArtRenderer>();
+    std::string animPath = DataManager::GetInstance()->GetAnimationsPath();
+
+    if (animRenderer->LoadAnimationFromJson(animPath, animJsonFile))
+    {
+        animRenderer->SetAlignment(ArtAlignment::CENTER);
+        animRenderer->StartAnimation();
+        panel->SetContentRenderer(std::move(animRenderer));
+   panel->Redraw();
+    _Drawer->Render();
+
+        // duration > 0이면 블로킹 대기
+     if (duration > 0.0f)
+        {
+            Sleep(static_cast<DWORD>(duration * 1000));
+        }
+    }
+}
+
+void BattleScene::SetPanelArt(const std::string& panelName,
+    const std::string& artTxtFile)
+{
+    Panel* panel = _Drawer->GetPanel(panelName);
+  if (!panel) return;
+
+    // 정적 아스키 아트 로더
+    auto artRenderer = std::make_unique<AsciiArtRenderer>();
+    std::string folderPath;
+
+    // 패널 이름으로 폴더 자동 감지
+    if (panelName == "Enemy")
+    {
+    folderPath = DataManager::GetInstance()->GetMonstersPath();
+    }
+    else if (panelName.find("CharArt") == 0)
+    {
+        folderPath = DataManager::GetInstance()->GetCharactersPath();
+    }
+    else
+    {
+     folderPath = DataManager::GetInstance()->GetAnimationsPath();
+    }
+
+    if (artRenderer->LoadFromFile(folderPath, artTxtFile))
+    {
+        artRenderer->SetAlignment(ArtAlignment::CENTER);
+ panel->SetContentRenderer(std::move(artRenderer));
+        panel->Redraw();
+        _Drawer->Render();
+  }
+}
+
+void BattleScene::UpdatePartyDisplay()
+{
+  UpdatePartyPanels();
+    _Drawer->Render();
+}
+
+void BattleScene::UpdateMonsterDisplay()
+{
+    UpdateMonsterInfoPanel();
+    UpdateBattleInfoPanel();
+    _Drawer->Render();
+}
+
+void BattleScene::RefreshBattleUI()
+{
+    UpdatePartyPanels();
+    UpdateMonsterInfoPanel();
+    UpdateBattleInfoPanel();
+
+    Panel* logPanel = _Drawer->GetPanel("SystemLog");
+    if (logPanel) UpdateSystemLog(logPanel, _SystemLogs);
+
+    Panel* inventoryPanel = _Drawer->GetPanel("Inventory");
+  if (inventoryPanel) UpdateInventoryPanel(inventoryPanel);
+
+    UpdateCommandPanel();
+
+    _Drawer->Render();
 }

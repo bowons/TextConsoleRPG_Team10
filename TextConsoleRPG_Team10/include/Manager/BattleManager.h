@@ -65,14 +65,21 @@ private:
     BattleResult _Result;
 
     // ===== 아이템 예약 시스템 =====
-    int _CurrentRound = 0;  // 현재 라운드 (0부터 시작)
+    int _CurrentRound = 0;  // 현재 턴 카운터 (0부터 시작)
     std::vector<ItemReservation> _ItemReservations;  // 예약 목록
+
+    // ===== 턴제 시스템 (우선순위 순환) =====
+    int _CurrentPartyMemberIndex = 0;  // 현재 행동할 파티원 인덱스 (우선순위 정렬 후)
+    std::vector<Player*> _TurnOrder;   // 우선순위 정렬된 파티원 목록 (전투 시작 시 생성)
 
     // ===== 애니메이션 콜백 =====
     IBattleAnimationCallback* _AnimationCallback = nullptr;
 
 private:
     std::vector<BattleLog> _BattleLogs;
+
+    // ===== 내부 헬퍼 함수 =====
+    void RefreshTurnOrder();  // 파티 정렬 (사망자 제외)
 
 public:
     // ===== 애니메이션 콜백 등록 =====
