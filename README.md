@@ -7,15 +7,19 @@
 ![Platform](https://img.shields.io/badge/platform-Windows-0078D6.svg?logo=windows)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
 
-**[🎥 Gameplay Video]([https://youtu.be/VIDEO_ID](https://youtu.be/k-tPc7hbnwE))**  
+**[🎥 Gameplay Video](https://youtu.be/k-tPc7hbnwE)** ·
 **[📄 Game Design Document](https://www.notion.so/teamsparta/2de2dc3ef5148072bfe8e8df9bed6356)**
 **[💻 GitHub 저장소](https://github.com/SpartChapter2Team10/TextConsoleRPG_Team10)**  
 
 **Text-based Turn-based Strategy RPG · Roguelike**
+<div align="center">
+  <a href="https://youtu.be/k-tPc7hbnwE">
+    <img src="https://img.youtube.com/vi/k-tPc7hbnwE/0.jpg" width="720">
+  </a>
+</div>
 
-[![플레이 영상](assets/video_thumbnail.png)](https://youtu.be/k-tPc7hbnwE)
+“강자는 모든 것을 잃고, 약자는 모든 것을 얻는다.”
 
-> “강자는 모든 것을 잃고, 약자는 모든 것을 얻는다.”
 
 </div>
 
