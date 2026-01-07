@@ -13,12 +13,14 @@
 
 **Text-based Turn-based Strategy RPG · Roguelike**
 <div align="center">
+
+  “강자는 모든 것을 잃고, 약자는 모든 것을 얻는다.”
+  
   <a href="https://youtu.be/k-tPc7hbnwE">
-    <img src="https://img.youtube.com/vi/k-tPc7hbnwE/0.jpg" width="720">
+    <img width="1198" height="710" alt="스크린샷 2026-01-07 122304" src="https://github.com/user-attachments/assets/e08b2178-3296-4925-8ea3-6134a6986205" />
   </a>
 </div>
 
-“강자는 모든 것을 잃고, 약자는 모든 것을 얻는다.”
 
 
 </div>
