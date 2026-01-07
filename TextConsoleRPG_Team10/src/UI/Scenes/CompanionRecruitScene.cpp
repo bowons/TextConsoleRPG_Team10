@@ -129,7 +129,7 @@ void CompanionRecruitScene::Enter() {
   }
 
   // 타워 화살표 업데이트
-UpdateTowerArrow(towerPanel, floorInfo->Floor);
+  UpdateTowerArrow(towerPanel, stageMgr->GetCurrentFloor());
 
   // ===== 아군 파티 패널 (중단, 4명 가로 배치) =====
   auto party = GameManager::GetInstance()->GetParty();
@@ -360,13 +360,19 @@ void CompanionRecruitScene::UpdateCompanionInfoPanel(Panel* infoPanel) {
 void CompanionRecruitScene::UpdateTowerArrow(Panel* towerPanel, int currentFloor) {
   auto arrowRenderer = std::make_unique<TextRenderer>();
 
-  const int towerHeight = 25;  // StageSelectScene과 동일
+  const int panelHeight = 28;
+  const int towerImageHeight = 25;  // 실제 타워 이미지 높이
   const int maxFloor = 10;
-  const int topMargin = 6;     // StageSelectScene과 동일
+  const int topMargin = 6;
   const int bottomMargin = 0;
-  const int usableHeight = towerHeight - topMargin - bottomMargin;
+  
+  // 패널 크기에 맞춰 usableHeight 계산
+  const int usableHeight = towerImageHeight - topMargin - bottomMargin;
 
-  int arrowLine = topMargin + ((maxFloor - currentFloor) * usableHeight / maxFloor);
+  // 패널 높이 차이를 보정 (30 - 28 = 2칸 차이)
+  const int panelOffset = (30 - panelHeight) / 2;
+  
+  int arrowLine = topMargin + ((maxFloor - currentFloor) * usableHeight / maxFloor) - panelOffset;
 
   for (int i = 0; i < arrowLine; ++i) {
     arrowRenderer->AddLine("");
@@ -375,7 +381,7 @@ void CompanionRecruitScene::UpdateTowerArrow(Panel* towerPanel, int currentFloor
   arrowRenderer->AddLineWithColor("*----►",
       MakeColorAttribute(ETextColor::LIGHT_YELLOW, EBackgroundColor::BLACK));
 
-  towerPanel->AddRenderer(0, 0, 5, towerHeight, std::move(arrowRenderer));
+  towerPanel->AddRenderer(0, 0, 5, towerImageHeight, std::move(arrowRenderer));
   towerPanel->Redraw();
 }
 
