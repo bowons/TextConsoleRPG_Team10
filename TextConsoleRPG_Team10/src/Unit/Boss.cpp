@@ -85,6 +85,7 @@ int Boss::TakeDamage(ICharacter* Target, int Amount)
     if (_Stats._CurrentHP < 0)
     {
         _Stats._CurrentHP = 0;
+        SoundPlayer::GetInstance()->PlayMonsterSFX(GetName(), "_Dead");
     }
 
     // 페이즈 체크

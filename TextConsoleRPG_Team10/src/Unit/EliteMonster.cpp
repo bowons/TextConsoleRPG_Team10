@@ -11,6 +11,7 @@
 #include "../../include/Item/TitanAwakening.h"
 #include "../../include/Manager/GameManager.h"
 #include "../../include/Manager/DataManager.h"
+#include "../../include/Manager/SoundPlayer.h"
 #include "../../include/Item/ItemData.h"
 #include "../../include/Skill/MonsterSkills.h"
 #include "../../include/Skill/ISkill.h"
@@ -77,6 +78,11 @@ int EliteMonster::TakeDamage(ICharacter* Target, int Amount)
     if (_Stats._CurrentHP < 0)
     {
         _Stats._CurrentHP = 0;
+        SoundPlayer::GetInstance()->PlayMonsterSFX(GetName(), "_Dead");
+    }
+    else
+    {
+        SoundPlayer::GetInstance()->PlayMonsterSFX(GetName(), "_Hit");
     }
     return Amount;
 }
@@ -88,6 +94,9 @@ std::tuple<std::string, int> EliteMonster::Attack(ICharacter* Target) const
 
     // 턴 카운터 증가 (공격할 때마다)
     _TurnCounter++;
+
+    // 공격 효과음 재행
+    SoundPlayer::GetInstance()->PlayMonsterSFX(GetName(), "_Attack");
 
     // 3턴마다 스킬 사용
     if (_TurnCounter % 3 == 0 && !_Skills.empty())
@@ -142,7 +151,7 @@ std::tuple<int, int, std::unique_ptr<IItem>> EliteMonster::DropReward()
             if (item.MonsterDropRate > 0.0f)
             {
                 // Elite는 1.5배 확률 (최대 1.0으로 제한)
-                float eliteDropRate = std::min(item.MonsterDropRate * 1.5f, 1.0f);
+                float eliteDropRate = min(item.MonsterDropRate * 1.5f, 1.0f);
                 dropPool.push_back({ item, eliteDropRate });
             }
         }

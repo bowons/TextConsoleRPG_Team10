@@ -1,4 +1,4 @@
-﻿#include "../../../include/UI/Scenes/CompanionRecruitScene.h"
+#include "../../../include/UI/Scenes/CompanionRecruitScene.h"
 
 #include <Windows.h>
 
@@ -8,6 +8,7 @@
 #include "../../../include/Manager/InputManager.h"
 #include "../../../include/Manager/SceneManager.h"
 #include "../../../include/Manager/StageManager.h"
+#include "../../../include/Manager/SoundPlayer.h"
 #include "../../../include/UI/AsciiArtRenderer.h"
 #include "../../../include/UI/Panel.h"
 #include "../../../include/UI/TextRenderer.h"
@@ -63,6 +64,9 @@ void CompanionRecruitScene::Enter() {
     SceneManager::GetInstance()->ChangeScene(ESceneType::StageSelect);
       return;
   }
+
+  // 동료 영입 씬 입장 효과음 재생
+  SoundPlayer::GetInstance()->PlaySFX("RecruitEvent");
 
   // ===== 대화 데이터 로드 =====
   LoadDialogueData();
@@ -556,6 +560,9 @@ for (int i = 1; i < _CompanionLevel; ++i) {
      ("  " + _RecruitMessage),
        MakeColorAttribute(ETextColor::LIGHT_GREEN, EBackgroundColor::BLACK));
           successText->AddLine("  (잠시 후 자동으로 돌아갑니다)");
+
+          // 동료 영입 효과음 재생
+          SoundPlayer::GetInstance()->PlaySFXWithPause("Recruit");
  logPanel->AddRenderer(0, 0, 65, 8, std::move(successText));
      logPanel->Redraw();
           _Drawer->Render();

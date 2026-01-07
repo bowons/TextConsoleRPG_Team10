@@ -27,7 +27,7 @@ Slime_Hit,SlimeHitted.wav,0.386,1
 Rat_Attack,RatAttack.wav,1.202,0.5
 Rat_Dead,RatDead.wav,1.138,1
 Rat_Hit,RatHitted.wav,0.508,0.7
-Goblin_Attack,GoblinAttack .wav,0.589,0.8
+Goblin_Attack,GoblinAttack.wav,0.589,0.8
 Goblin_Dead,GoblinDead.wav,0.48,0.5
 Goblin_Hit,GoblinHitted.wav,0.231,0.8
 Bat_Attack,BatAttack.wav,0.785,1
@@ -78,7 +78,7 @@ LivingStatue_Hit,GolemHit.wav,0.328,1
 BigRat_Attack,RatAttack.wav,1.202,0.5
 BigRat_Dead,RatDead.wav,1.138,1
 BigRat_Hit,RatHitted.wav,0.508,0.7
-GoblinRabblemaster_Attack,GobinAttack.wav,0.589,0.8
+GoblinRabblemaster_Attack,GoblinAttack.wav,0.589,0.8
 GoblinRabblemaster_Dead,GoblinDead.wav,0.48,0.5
 GoblinRabblemaster_Hit,GoblinHitted.wav,0.231,0.8
 SkeletonKnight_Attack,SkeletonKnightAttack.wav,0.514,0.9
@@ -106,8 +106,8 @@ BGM_0,BGM_NoneSet01.wav,82,0.5
 BGM_NoneSet01,BGM_NoneSet01.wav,82,0.5
 BGM_NoneSet02,BGM_NoneSet02.wav,82.909,0.5
 BGM_NoneSet03,BGM_NoneSet03.wav,60.022,0.5
-BGM_NoneSet04,BGM_NoneSet04,15.01,0.5
-BGM_NoneSet05,BGM_NoneSet05,50.759,0.5
+BGM_NoneSet04,BGM_NoneSet04.wav,15.01,0.5
+BGM_NoneSet05,BGM_NoneSet05.wav,50.759,0.5
 BGM_1,Ambient_01_Sewer.wav,20.063,1
 BGM_2,Ambient_02_AbandonedMine.wav,70.157,0.8
 BGM_3,BGM_3.wav,240.741,0.5
@@ -118,16 +118,16 @@ BGM_7,BGM_7.wav,225,0.5
 BGM_8,BGM_8.wav,92.773,0.5
 BGM_9,BGM_09_Altar.wav,71.231,0.5
 BGM_10,BGM_10.wav,229.868,0.5
-BGM_11,BGM_11_GameOver,11.087,0.5
-BGM_12,BGM_12_GameClear,27.951,0.5
+BGM_11,BGM_11_GameOver.wav,11.087,0.5
+BGM_12,BGM_12_GameClear.wav,27.951,0.5
 BGM_Shop,BGM_Shop.wav,64,0.8
 Boss_Voice1,BossVoice_IamDeath.wav,0.557,0.5
 Boss_Voice2,BossVoice_IamTheDarkness.wav,1.779,0.5
 Boss_Voice3,BossVoice_YouCannotEscapeDeath.wav,2.44,0.5
 Boss_Dead,Boss_Dead.wav,2.907,0.8
-Boss_Attack1,Boss_Attack1,0.921,0.5
-Boss_Attack2,Boss_Attack2,1.333,0.5
-Boss_Debuff,Boss_Debuff,1.207,1
+Boss_Attack1,Boss_Attack1.wav,0.921,0.5
+Boss_Attack2,Boss_Attack2.wav,1.333,0.5
+Boss_Debuff,Boss_Debuff.wav,1.207,1
 FootStep_1,FootStep_1.wav,0.282,1
 FootStep_2,FootStep_2.wav,0.242,1
 FootStep_3,FootStep_3.wav,0.269,1

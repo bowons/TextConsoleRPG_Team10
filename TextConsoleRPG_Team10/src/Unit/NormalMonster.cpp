@@ -67,10 +67,12 @@ int NormalMonster::TakeDamage(ICharacter* Target, int Amount)
     if (_Stats._CurrentHP < 0)
     {
         _Stats._CurrentHP = 0;
+        SoundPlayer::GetInstance()->PlayMonsterSFX(GetName(), "_Dead");
     }
-
-    SoundPlayer::GetInstance()->PlayMonsterSFX(GetName(), "_Hit");
-
+    else
+    {
+        SoundPlayer::GetInstance()->PlayMonsterSFX(GetName(), "_Hit");
+    }
     return Amount;
 }
 
