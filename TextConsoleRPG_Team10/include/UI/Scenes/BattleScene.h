@@ -5,7 +5,7 @@
 #include <string>
 #include <Windows.h>
 #include <fstream>
-#include "../../nlohmann/json.hpp"
+#include <nlohmann/json.hpp>
 
 // ===== 전투 입력 상태 =====
 enum class EBattleInputState

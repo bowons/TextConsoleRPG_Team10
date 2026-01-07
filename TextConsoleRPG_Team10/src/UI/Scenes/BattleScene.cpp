@@ -1,4 +1,4 @@
-﻿#include "../../../include/UI/Scenes/BattleScene.h"
+#include "../../../include/UI/Scenes/BattleScene.h"
 #include "../../../include/UI/UIDrawer.h"
 #include "../../../include/UI/Panel.h"
 #include "../../../include/UI/TextRenderer.h"
@@ -20,7 +20,7 @@
 #include "../../../include/Item/IItem.h"
 #include <Windows.h>
 #include <fstream>
-#include "../../../include/nlohmann/json.hpp"
+#include <nlohmann/json.hpp>
 
 static const std::string ANIM_ROOT_PATH =
 "Resources/Animations/";
@@ -687,7 +687,10 @@ void BattleScene::UpdateMonsterInfoPanel()
     // ===== 몬스터 이름 → 파일명 매핑 (Monsters.csv 기준) =====
     if (monsterName.find("슬라임") != std::string::npos || monsterName.find("망령") != std::string::npos) {
         fileName = "Slime.txt";
-    } 
+    }
+    else if (monsterName.find("거대 시궁쥐") != std::string::npos) {
+      fileName = "BigMouse.txt";
+    }
 	else if (monsterName.find("박쥐") != std::string::npos) {
         fileName = "Bat.txt";
     }
