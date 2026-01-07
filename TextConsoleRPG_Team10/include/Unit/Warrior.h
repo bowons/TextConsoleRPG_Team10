@@ -25,4 +25,7 @@ public:
 
     // 어그로 최대 대사 오버라이드
     std::string GetAggroMaxDialogue() const override;
+    
+    // ⭐ 어그로 초기화 오버라이드 (전사는 30으로 시작)
+    void ResetAggro() override;
 };

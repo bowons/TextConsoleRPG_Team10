@@ -714,7 +714,7 @@ void Player::ResetAggro()
 
     // 어그로 고정 상태 초기화
     _IsAggroLocked = false;
-    _AggroLockRoundsRemaining = 0;
+  _AggroLockRoundsRemaining = 0;
     _LockedAggroValue = 0;
 }
 

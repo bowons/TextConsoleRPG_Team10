@@ -45,10 +45,10 @@ void StoryProgressScene::Enter()
         _Floor = 0;
     }
     // ⭐ 사망 엔딩 (플레이어 사망 시)
-    else if (GameManager::GetInstance()->GetMainPlayer().get() != nullptr && 
-   GameManager::GetInstance()->GetMainPlayer().get()->IsDead())
+    else if (GameManager::GetInstance()->GetMainPlayer().get() != nullptr &&
+        GameManager::GetInstance()->GetMainPlayer().get()->IsDead())
     {
- _Floor = 11;
+        _Floor = 11;
     }
     // ⭐ 굿엔딩 (StageSelectScene에서 Floor 12 설정됨)
     else if (_Floor == 12)
@@ -56,13 +56,13 @@ void StoryProgressScene::Enter()
         // 그대로 유지 (Floor 12)
     }
     // ⭐ 일반 층 (1~10)
- else if (_Floor >= 1 && _Floor <= 10)
+    else if (_Floor >= 1 && _Floor <= 10)
     {
-     // 그대로 유지
-  }
+        // 그대로 유지
+    }
     else
     {
-    // ⭐ 비정상 케이스 → 1층으로 강제 설정
+        // ⭐ 비정상 케이스 → 1층으로 강제 설정
         _Floor = 1;
     }
 
@@ -106,15 +106,15 @@ void StoryProgressScene::Enter()
      //Panel* imagePanel = _Drawer->GetPanel("StoryImage");
     auto ArtRenderer = std::make_unique<AsciiArtRenderer>();
     std::string UIPath = DataManager::GetInstance()->GetResourcePath("UI");
-    
-     // _CurrentStoryIndex에 따라 파일명 결정 (예: "Story1.txt", "Story2.txt")
+
+    // _CurrentStoryIndex에 따라 파일명 결정 (예: "Story1.txt", "Story2.txt")
     std::string FileName = "Story" + std::to_string(_Floor) + ".txt";
     if (ArtRenderer->LoadFromFile(UIPath, FileName)) {
         ArtRenderer->SetAlignment(ArtAlignment::CENTER);
         ArtRenderer->SetColor(ETextColor::LIGHT_CYAN);
         ImagePanel->SetContentRenderer(std::move(ArtRenderer));
         ImagePanel->Redraw();
-     }
+    }
 
     // ===== 스토리 텍스트 패널 (하단) =====
     Panel* TextPanel = _Drawer->CreatePanel("StoryText", 25, 36, 100, 8);
@@ -137,12 +137,12 @@ void StoryProgressScene::Enter()
         // 구현 방법:
     // Panel* textPanel = _Drawer->GetPanel("StoryText");
     // auto storyText = std::make_unique<TextRenderer>();
-        
+
     // _CurrentStoryIndex에 따라 스토리 텍스트 표시
     // storyText->AddLine("");
     // storyText->AddLineWithTyping("어둠의 탑 '에레보스'가 등장했다...", 
     // MakeColorAttribute(ETextColor::WHITE, EBackgroundColor::BLACK));
-    
+
     // 자동 줄바꿈 활성화 및 너비 설정
     StoryText->EnableAutoWrap(true);
     StoryText->SetWrapWidth(96);
@@ -152,10 +152,10 @@ void StoryProgressScene::Enter()
     TextPanel->SetContentRenderer(std::move(StoryText));
     UpdateUIWithCurrentStory();
     TextPanel->Redraw();
-        //
-        // // CSV 파일에서 스토리 로드:
-        // // DataManager::GetInstance()->LoadTextFile(경로, "Story.txt");
-        // // 또는 LoadCSVFile()로 여러 스토리 단계 관리
+    //
+    // // CSV 파일에서 스토리 로드:
+    // // DataManager::GetInstance()->LoadTextFile(경로, "Story.txt");
+    // // 또는 LoadCSVFile()로 여러 스토리 단계 관리
 
     _Drawer->Render();
 }
@@ -209,60 +209,60 @@ void StoryProgressScene::HandleInput() {
                 }
             }
             else {
-    // ⭐ 스토리 종료 후 처리
-       if (_Floor == 0)
-     {
-          // 프롤로그 종료 → 이름 입력
-   _IsFirst = false;
- SceneManager::GetInstance()->ChangeScene(ESceneType::PlayerNameInput);
-       }
-    else if (_Floor == 11 || _Floor == 12)
- {
-       // ⭐ 엔딩 종료 → 메인 메뉴 + 게임 리셋
-       GameManager::GetInstance()->ResetGame();  // ⭐ ResetGame() 사용
-         ResetIsFirst();
-        SceneManager::GetInstance()->ChangeScene(ESceneType::MainMenu);
-  }
-     else if (_Floor >= 1 && _Floor <= 10)
-  {
-         // 일반 층 스토리 종료 → StageSelect
-       SceneManager::GetInstance()->ChangeScene(ESceneType::StageSelect);
-      }
-     else
-    {
-// 비정상 케이스 → 메인 메뉴
-       GameManager::GetInstance()->ResetGame();  // ⭐ ResetGame() 사용
- SceneManager::GetInstance()->ChangeScene(ESceneType::MainMenu);
-      }
+                // ⭐ 스토리 종료 후 처리
+                if (_Floor == 0)
+                {
+                    // 프롤로그 종료 → 이름 입력
+                    _IsFirst = false;
+                    SceneManager::GetInstance()->ChangeScene(ESceneType::PlayerNameInput);
+                }
+                else if (_Floor == 11 || _Floor == 12)
+                {
+                    // ⭐ 엔딩 종료 → 메인 메뉴 + 게임 리셋
+                    GameManager::GetInstance()->ResetGame();  // ⭐ ResetGame() 사용
+                    ResetIsFirst();
+                    SceneManager::GetInstance()->ChangeScene(ESceneType::MainMenu);
+                }
+                else if (_Floor >= 1 && _Floor <= 10)
+                {
+                    // 일반 층 스토리 종료 → StageSelect
+                    SceneManager::GetInstance()->ChangeScene(ESceneType::StageSelect);
+                }
+                else
+                {
+                    // 비정상 케이스 → 메인 메뉴
+                    GameManager::GetInstance()->ResetGame();  // ⭐ ResetGame() 사용
+                    SceneManager::GetInstance()->ChangeScene(ESceneType::MainMenu);
+                }
+            }
         }
- }
         _Drawer->Render();
     }
     else if (keyCode == VK_ESCAPE) {  // ESC - 스토리 스킵
         if (_IsFirst)
         {
-  // 프롤로그 스킵
+            // 프롤로그 스킵
             _IsFirst = false;
             SceneManager::GetInstance()->ChangeScene(ESceneType::PlayerNameInput);
-    }
+        }
         else if (_Floor == 11 || _Floor == 12)
         {
-     // ⭐ 엔딩 스킵 → 메인 메뉴 + 게임 리셋
+            // ⭐ 엔딩 스킵 → 메인 메뉴 + 게임 리셋
             GameManager::GetInstance()->ResetGame();
             ResetIsFirst();
             SceneManager::GetInstance()->ChangeScene(ESceneType::MainMenu);
         }
         else if (GameManager::GetInstance()->GetMainPlayer().get() != nullptr &&
-   GameManager::GetInstance()->GetMainPlayer().get()->IsDead())
+            GameManager::GetInstance()->GetMainPlayer().get()->IsDead())
         {
-    // 사망 상태 → 메인 메뉴
+            // 사망 상태 → 메인 메뉴
             GameManager::GetInstance()->ResetGame();
             SceneManager::GetInstance()->ChangeScene(ESceneType::MainMenu);
-      }
+        }
         else
         {
             // ⭐ 일반 층 스토리 스킵 (1~10층 모두 StageSelect로)
-         SceneManager::GetInstance()->ChangeScene(ESceneType::StageSelect);
+            SceneManager::GetInstance()->ChangeScene(ESceneType::StageSelect);
         }
     }
 }
@@ -288,92 +288,92 @@ void StoryProgressScene::UpdateUIWithCurrentStory()
 void StoryProgressScene::GetStoriesData(int FloorIndex)
 {
     if (DataManager::GetInstance())
-  {
+    {
         const auto& Datas = DataManager::GetInstance()->LoadCSVFile(
             DataManager::GetInstance()->GetResourcePath("Stories"),
             "Stories.csv");
-        
-   // 현재 파티 내부의 직업 및 그 이름 체크
-      // 0 : Warrior 이름들, 1 : Mage 이름들, 2 : Archer 이름들, 3 : Priest 이름들
+
+        // 현재 파티 내부의 직업 및 그 이름 체크
+           // 0 : Warrior 이름들, 1 : Mage 이름들, 2 : Archer 이름들, 3 : Priest 이름들
         std::vector<std::vector<std::string>> NamePerJob(4, std::vector<std::string>());
         CheckPartyInfo(NamePerJob);
 
-// 파티 사이즈 확인
-  size_t partySize = GameManager::GetInstance()->GetPartySize();
+        // 파티 사이즈 확인
+        size_t partySize = GameManager::GetInstance()->GetPartySize();
         bool isSolo = (partySize <= 1);
 
         // 0번째는 Column 이름
         for (int i = 1; i < Datas.size(); ++i)
         {
-        // CSV 구조: 0:ID, 1:Floor, 2:Type, 3:Speaker, 4:Content
+            // CSV 구조: 0:ID, 1:Floor, 2:Type, 3:Speaker, 4:Content
             if (stoi(Datas[i][1]) == FloorIndex)
-     {
-         const std::string& type = Datas[i][2];
-       const std::string& speaker = Datas[i][3];
-         const std::string& content = Datas[i][4];
+            {
+                const std::string& type = Datas[i][2];
+                const std::string& speaker = Datas[i][3];
+                const std::string& content = Datas[i][4];
 
-            // Type 필터링
-             if (type == "Solo" && !isSolo) continue;
-        if (type == "Party" && isSolo) continue;
+                // Type 필터링
+                if (type == "Solo" && !isSolo) continue;
+                if (type == "Party" && isSolo) continue;
 
-          // Speaker 필터링
-  if (speaker == "Warrior" && NamePerJob[0].size() == 0) continue;
-    if (speaker == "Mage" && NamePerJob[1].size() == 0) continue;
-    if (speaker == "Archer" && NamePerJob[2].size() == 0) continue;
-           if (speaker == "Priest" && NamePerJob[3].size() == 0) continue;
+                // Speaker 필터링
+                if (speaker == "Warrior" && NamePerJob[0].size() == 0) continue;
+                if (speaker == "Mage" && NamePerJob[1].size() == 0) continue;
+                if (speaker == "Archer" && NamePerJob[2].size() == 0) continue;
+                if (speaker == "Priest" && NamePerJob[3].size() == 0) continue;
 
-       // 화자 이름 포맷팅 (예: [이름] : 대사)
-            std::string prefix = "";
-  if (speaker == "Player" && GameManager::GetInstance()->GetPartySize() > 0)
-    {
-    prefix = "[" + GameManager::GetInstance()->GetParty()[0].get()->GetName() + "]: ";
-      }
+                // 화자 이름 포맷팅 (예: [이름] : 대사)
+                std::string prefix = "";
+                if (speaker == "Player" && GameManager::GetInstance()->GetPartySize() > 0)
+                {
+                    prefix = "[" + GameManager::GetInstance()->GetParty()[0].get()->GetName() + "]: ";
+                }
                 else if (speaker == "Warrior" && NamePerJob[0].size() > 0)
-             {
-         int index = rand() % NamePerJob[0].size();
-          prefix = "[" + NamePerJob[0][index] + "]: ";
+                {
+                    int index = rand() % NamePerJob[0].size();
+                    prefix = "[" + NamePerJob[0][index] + "]: ";
                 }
-       else if (speaker == "Mage" && NamePerJob[1].size() > 0)
+                else if (speaker == "Mage" && NamePerJob[1].size() > 0)
                 {
-    int index = rand() % NamePerJob[1].size();
-         prefix = "[" + NamePerJob[1][index] + "]: ";
-}
-       else if (speaker == "Archer" && NamePerJob[2].size() > 0)
+                    int index = rand() % NamePerJob[1].size();
+                    prefix = "[" + NamePerJob[1][index] + "]: ";
+                }
+                else if (speaker == "Archer" && NamePerJob[2].size() > 0)
                 {
-  int index = rand() % NamePerJob[2].size();
-         prefix = "[" + NamePerJob[2][index] + "]: ";
-              }
-        else if (speaker == "Priest" && NamePerJob[3].size() > 0)
+                    int index = rand() % NamePerJob[2].size();
+                    prefix = "[" + NamePerJob[2][index] + "]: ";
+                }
+                else if (speaker == "Priest" && NamePerJob[3].size() > 0)
                 {
-       int index = rand() % NamePerJob[3].size();
-      prefix = "[" + NamePerJob[3][index] + "]: ";
+                    int index = rand() % NamePerJob[3].size();
+                    prefix = "[" + NamePerJob[3][index] + "]: ";
                 }
 
-        // 문자열 분리
-          std::vector<std::string> lines;
-       SplitText(lines, content, "\\n");
+                // 문자열 분리
+                std::vector<std::string> lines;
+                SplitText(lines, content, "\\n");
                 for (std::string& line : lines)
-          {
-     // System이 아니면 화자 이름 추가
-       if (speaker != "System")
-     {
-  line = prefix + line;
-  }
-             }
-
-     for (const std::string& line : lines)
                 {
-        if (speaker == "System")
-       {
-        _LineColor.push_back(14); // LIGHT_YELLOW
-             }
-      else
-      {
- _LineColor.push_back(15); // WHITE
-   }
-       _StoryTexts.push_back(line);
-          }
- }
+                    // System이 아니면 화자 이름 추가
+                    if (speaker != "System")
+                    {
+                        line = prefix + line;
+                    }
+                }
+
+                for (const std::string& line : lines)
+                {
+                    if (speaker == "System")
+                    {
+                        _LineColor.push_back(14); // LIGHT_YELLOW
+                    }
+                    else
+                    {
+                        _LineColor.push_back(15); // WHITE
+                    }
+                    _StoryTexts.push_back(line);
+                }
+            }
         }
     }
 }
@@ -417,17 +417,22 @@ void  StoryProgressScene::CheckPartyInfo(std::vector<std::vector<std::string>>& 
 {
     // 파티 정보 분석
     const auto& PartyList = GameManager::GetInstance()->GetParty();
-    bool IsSolo = GameManager::GetInstance()->GetPartySize() == 1;
 
-    // 직업별 이름 저장용 (Warrior: 0, Mage: 1, Archer: 2, Priest: 3)
-    std::vector<std::vector<std::string>> NamePerJob(4);
+    // ⭐ OutNamePerJob 초기화 (4개 직업)
+    OutNamePerJob.clear();
+    OutNamePerJob.resize(4);
 
+    // 직업별 이름 저장 (Warrior: 0, Mage: 1, Archer: 2, Priest: 3)
     for (size_t i = 1; i < PartyList.size(); i++) // 0번 Player 제외
     {
-        if (dynamic_cast<Warrior*>(PartyList[i].get())) NamePerJob[0].push_back(PartyList[i]->GetName());
-        else if (dynamic_cast<Mage*>(PartyList[i].get())) NamePerJob[1].push_back(PartyList[i]->GetName());
-        else if (dynamic_cast<Archer*>(PartyList[i].get())) NamePerJob[2].push_back(PartyList[i]->GetName());
-        else if (dynamic_cast<Priest*>(PartyList[i].get())) NamePerJob[3].push_back(PartyList[i]->GetName());
+        if (dynamic_cast<Warrior*>(PartyList[i].get()))
+            OutNamePerJob[0].push_back(PartyList[i]->GetName());
+        else if (dynamic_cast<Mage*>(PartyList[i].get()))
+            OutNamePerJob[1].push_back(PartyList[i]->GetName());
+        else if (dynamic_cast<Archer*>(PartyList[i].get()))
+            OutNamePerJob[2].push_back(PartyList[i]->GetName());
+        else if (dynamic_cast<Priest*>(PartyList[i].get()))
+            OutNamePerJob[3].push_back(PartyList[i]->GetName());
     }
 }
 

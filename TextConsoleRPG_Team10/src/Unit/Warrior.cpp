@@ -84,3 +84,14 @@ void Warrior::ApplyProficiencyGrowth()
       );
     }
 }
+
+// ⭐ 어그로 초기화 오버라이드 (전사는 30으로 시작)
+void Warrior::ResetAggro()
+{
+    _AggroValue = 0;  // 전사 초기 어그로 - 30으로 여기서 설정가능 (0으로 현재 픽스)
+    
+    // 어그로 고정 상태 초기화
+    _IsAggroLocked = false;
+    _AggroLockRoundsRemaining = 0;
+    _LockedAggroValue = 0;
+}

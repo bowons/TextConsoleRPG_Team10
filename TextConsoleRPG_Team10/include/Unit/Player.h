@@ -161,7 +161,7 @@ public:
     // ===== 어그로 시스템 =====
     inline int GetAggro() const { return _AggroValue; }
     void ModifyAggro(int amount);  // 어그로 증감 (0~100 제한, 고정 중이면 무시)
-    void ResetAggro();  // 전투 시작 시 초기화 (전사 30, 나머지 0)
+    virtual void ResetAggro();  // 전투 시작 시 초기화 (전사 30, 나머지 0)
     virtual std::string GetAggroMaxDialogue() const;  // 어그로 100 도달 시 대사 (각 클래스에서 오버라이드)
     
     // 어그로 고정 시스템 (포효 스킬용)

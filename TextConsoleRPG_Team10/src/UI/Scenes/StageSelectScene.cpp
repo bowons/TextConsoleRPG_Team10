@@ -112,10 +112,8 @@ void StageSelectScene::Enter()
     systemPanel->SetBorder(true, ETextColor::WHITE);
 
     std::vector<std::string> initialLogs = {
-        "[디버그] StageSelectScene 진입",
         "",
-        "[정보] 다음 스테이지를 선택하세요.",
-        "[성공] 게임을 시작합니다."
+        "[정보] 다음 스테이지를 선택하세요."
     };
     UpdateSystemLog(systemPanel, initialLogs);
 

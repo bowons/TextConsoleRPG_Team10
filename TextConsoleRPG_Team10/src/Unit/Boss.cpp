@@ -78,7 +78,7 @@ int Boss::TakeDamage(ICharacter* Target, int Amount)
     {
         // 회피 성공
         Amount = 0;
-        return Amount;
+        return -1;
     }
 
     _Stats._CurrentHP -= Amount;

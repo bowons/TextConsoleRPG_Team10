@@ -1,4 +1,4 @@
-﻿#include "../../../include/UI/Scenes/BattleScene.h"
+#include "../../../include/UI/Scenes/BattleScene.h"
 #include "../../../include/UI/UIDrawer.h"
 #include "../../../include/UI/Panel.h"
 #include "../../../include/UI/TextRenderer.h"
@@ -238,33 +238,28 @@ void BattleScene::Enter() {
             {
             case EBattleFlushType::PlayerAttack:
                 SetPanelAnimation("PlayerAttack", "PlayerAttack.json", 1.0f);
-                //SetPanelAnimation("Animation", "test.json", 1.0f);
                 break;
             case EBattleFlushType::PlayerSkill:
                 SetPanelAnimation("PlayerSkill", "PlayerSkill.json", 1.0f);
-                //SetPanelAnimation("Animation", "test.json", 1.0f);
                 break;
 
             case EBattleFlushType::PlayerItem:
                 SetPanelAnimation("PlayerItem", "PlayerItem.json", 1.0f);
-                //SetPanelAnimation("Animation", "test.json", 1.0f);
                 break;
 
             case EBattleFlushType::MonsterAttack:
                 SetPanelAnimation("MonsterAttack", "MonsterAttack.json", 1.0f);
-                //SetPanelAnimation("Animation", "test.json", 1.0f);
                 break;
 
             case EBattleFlushType::BossAttack:
                 SetPanelAnimation("BossAttack", "BossAttack.json", 1.0f);
-                //SetPanelAnimation("Animation", "test.json", 1.0f);
                 break;
 
             case EBattleFlushType::BossDebuff:
-                // 애니메이션 대기 설정
-                _IsWaitingForAnimation = true;
-                //_AnimationWaitTimer = 1.0f; // 1초 대기
-                break;
+                // ⭐ 디버프는 애니메이션 없이 즉시 진행
+                // 애니메이션이 필요하면 SetPanelAnimation 호출
+                SetPanelAnimation("BossDebuff", "Debuff.json", 1.0f);
+               break;
             }
         }
     );
@@ -493,10 +488,8 @@ void BattleScene::UpdateCommandPanel()
     commandText->AddLineWithColor(
         " [ 커맨드 ]",
         MakeColorAttribute(ETextColor::LIGHT_YELLOW, EBackgroundColor::BLACK));
-    commandText->AddLine(" [Space] 턴 진행");
-    commandText->AddLine(" [1~5] 아이템 선택");
-    commandText->AddLine(" [←→] 대상 선택");
-    commandText->AddLine(" [C] 예약 취소");
+    commandText->AddLine(" [Space] 턴 진행 [1~5] 아이템 선택");
+    commandText->AddLine(" [←→] 대상 선택 [C] 예약 취소");
     commandText->AddLine("");
 
     // 현재 활성화된 예약 표시
@@ -518,7 +511,7 @@ void BattleScene::UpdateCommandPanel()
     }
 
     commandPanel->ClearRenderers();
-    commandPanel->AddRenderer(0, 0, 35, 5, std::move(commandText));
+    commandPanel->AddRenderer(0, 0, 35, 6, std::move(commandText));
     commandPanel->Redraw();
 }
 
@@ -1178,48 +1171,41 @@ void BattleScene::ProcessBattleTurn()
         return;
     }
 
-    // 2. 라운드 로그
-    _SystemLogs.push_back(
-        "[전투] === 라운드 " +
-        std::to_string(battleMgr->GetCurrentRound() + 1) +
-        " 시작 ==="
-    );
-
-    // 3. 턴 처리
+    // 2. 턴 처리
     bool continuesBattle = battleMgr->ProcessBattleTurn();
 
-    // 4. UI 갱신
+    // 3. UI 갱신
     UpdatePartyPanels();
     UpdateMonsterInfoPanel();
     UpdateBattleInfoPanel();
 
-    // 5. 전투 종료 감지 → 상태만 변경
+    // 4. 전투 종료 감지 → 상태만 변경
     if (!continuesBattle)
     {
-        const BattleResult& result = battleMgr->GetBattleResult();
+const BattleResult& result = battleMgr->GetBattleResult();
 
         if (result.Victory)
         {
-            _SystemLogs.push_back("");
-            _SystemLogs.push_back("[승리] 전투에서 승리했습니다!");
+      _SystemLogs.push_back("");
+      _SystemLogs.push_back("[승리] 전투에서 승리했습니다!");
             // ===== BattleResult에서 보상 정보 조회 =====
      // CalculateReward는 EndBattle()에서 호출되므로 여기서는 표시하지 않음
-            _SystemLogs.push_back("");
-            _SystemLogs.push_back("[안내] Space 키를 눌러 보상을 확인하세요.");
+          _SystemLogs.push_back("");
+       _SystemLogs.push_back("[안내] Space 키를 눌러 보상을 확인하세요.");
         }
-        else
+      else
         {
             _SystemLogs.push_back("");
-            _SystemLogs.push_back("[패배] 전투에서 패배했습니다...");
+    _SystemLogs.push_back("[패배] 전투에서 패배했습니다...");
             _SystemLogs.push_back("");
-            _SystemLogs.push_back("[안내] Space 키를 눌러 계속하세요.");
+ _SystemLogs.push_back("[안내] Space 키를 눌러 계속하세요.");
         }
 
         _BattleEnd = true;
         _InputState = EBattleInputState::EndWaiting;
     }
 
-    // 6. 로그/UI 반영
+    // 5. 로그/UI 반영
     if (auto logPanel = _Drawer->GetPanel("SystemLog"))
         UpdateSystemLog(logPanel, _SystemLogs);
 

@@ -1,4 +1,4 @@
-﻿#include "../../include/Manager/BattleManager.h"
+#include "../../include/Manager/BattleManager.h"
 #include "../../include/Manager/PrintManager.h"
 #include "../../include/Unit/NormalMonster.h"
 #include "../../include/Unit/EliteMonster.h"
@@ -194,6 +194,15 @@ void BattleManager::ProcessAttack(ICharacter* Atk, ICharacter* Def)
                     for (int i = 0; i < result.HitCount; ++i)
                     {
                         int damage = Def->TakeDamage(player, result.Value);
+
+                        // ⭐ 회피 체크 (-1이면 회피)
+                        if (damage == -1)
+                        {
+                            PushLog("타격 " + std::to_string(i + 1) + "/" + std::to_string(result.HitCount) +
+                                ": " + Def->GetName() + "이(가) 회피했다!", EBattleLogType::Warning);
+                            continue;
+                        }
+
                         totalDamage += damage;
                         player->ModifyAggro(10);
 
@@ -208,8 +217,17 @@ void BattleManager::ProcessAttack(ICharacter* Atk, ICharacter* Def)
                 else
                 {
                     int damage = Def->TakeDamage(player, result.Value);
-                    player->ModifyAggro(10);
-                    PushLog(Def->GetName() + "에게 " + std::to_string(damage) + " 데미지!", EBattleLogType::Important);
+
+                    // ⭐ 회피 체크
+                    if (damage == -1)
+                    {
+                        PushLog(Def->GetName() + "이(가) 회피했다!", EBattleLogType::Warning);
+                    }
+                    else
+                    {
+                        player->ModifyAggro(10);
+                        PushLog(Def->GetName() + "에게 " + std::to_string(damage) + " 데미지!", EBattleLogType::Important);
+                    }
                 }
 
                 if (!result.Message.empty())
@@ -258,6 +276,14 @@ void BattleManager::ProcessAttack(ICharacter* Atk, ICharacter* Def)
     else if (IMonster* monster = dynamic_cast<IMonster*>(Atk))
     {
         Damage = Def->TakeDamage(Atk, baseDamage);
+
+        // ⭐ 회피 체크 (-1이면 회피)
+        if (Damage == -1)
+        {
+            PushLog(Def->GetName() + "이(가) 공격을 회피했다!", EBattleLogType::Warning);
+            RequestFlush(EBattleFlushType::MonsterAttack);
+            return;
+        }
     }
 
     // 몬스터 공격 시 피격자 어그로 감소
@@ -632,6 +658,9 @@ bool BattleManager::ProcessBattleTurn()
     {
         // ⭐ 플레이어 턴 시작 시 라운드 증가 (한 번만!)
         SetCurrentRound(_CurrentRound + 1);
+        
+        // ⭐ 플레이어 턴 시작 로그
+        PushLog("=== 플레이어 턴 " + std::to_string(_CurrentRound) + " 시작 ===", EBattleLogType::Important);
 
         // 4. 플레이어 턴: ProcessTurn(Monster)
         ProcessTurn(_CurrentMonster.get());
@@ -644,42 +673,44 @@ bool BattleManager::ProcessBattleTurn()
             SoundPlayer::GetInstance()->PlayMonsterSFX(_CurrentMonster.get()->GetName(), "Dead");
             return false;
         }
-        _IsPlayerTurn = false;   // ⭐ 다음은 몬스터
-        return true;             // ⭐ 여기서 끊는다
+      _IsPlayerTurn = false;   // ⭐ 다음은 몬스터
+        return true;        // ⭐ 여기서 끊는다
     }
     else
     {
+ // ⭐ 몬스터 턴 시작 로그
+        PushLog("=== 몬스터 턴 " + std::to_string(_CurrentRound) + " 시작 ===", EBattleLogType::Important);
+    
         // 6. 몬스터 턴: 타겟 선정 후 공격
         Player* target = SelectMonsterTarget();
-        GameManager* gm = GameManager::GetInstance();
+GameManager* gm = GameManager::GetInstance();
         ProcessAttack(_CurrentMonster.get(), target);
 
         // 7. 메인 플레이어 사망 확인 (게임 오버 조건)
-        if (gm->GetMainPlayer()->IsDead())
+     if (gm->GetMainPlayer()->IsDead())
         {
             _Result.Victory = false;
             _Result.IsCompleted = true;
 
-            SoundPlayer::GetInstance()->PlaySFX("Player_Dead");
-            PushLog("용사의 여정이 끝났습니다... 전투에서 패배했습니다.", EBattleLogType::Important);
-            return false;
+   SoundPlayer::GetInstance()->PlaySFX("Player_Dead");
+    PushLog("용사의 여정이 끝났습니다... 전투에서 패배했습니다.", EBattleLogType::Important);
+     return false;
         }
 
         // 8. 라운드 종료 처리: 파티 전체 버프 감소 + 스킬 쿨타임 감소
         const auto& party = gm->GetParty();
         for (const auto& member : party)
-        {
+ {
             if (member && !member->IsDead())
-            {
+    {
                 member->ProcessRoundEnd();  // 버프 라운드 감소
-            }
-        }
+       }
+      }
 
         _IsPlayerTurn = true;    // ⭐ 다시 플레이어
         return true;
     }
 }
-
 
 // ========================================
 // ===== 아이템 예약 시스템 =====
@@ -714,6 +745,16 @@ bool BattleManager::ReserveItemUse(Player* owner, Player* target, int slotIndex)
     {
         PushLog(item->GetName() + "은(는) 이미 예약되어 있습니다.", EBattleLogType::Important);
         return false;
+    }
+
+    // ⭐ 대상 캐릭터가 이미 다른 아이템을 예약받았는지 확인
+    for (const auto& reservation : _ItemReservations)
+    {
+        if (reservation.IsActive && reservation.Target == target)
+    {
+       PushLog(target->GetName() + "은(는) 이미 다른 아이템을 예약받았습니다.", EBattleLogType::Important);
+            return false;
+        }
     }
 
     // 예약 등록

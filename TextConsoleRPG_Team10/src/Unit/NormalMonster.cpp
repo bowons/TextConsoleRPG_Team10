@@ -55,12 +55,12 @@ int NormalMonster::TakeDamage(ICharacter* Target, int Amount)
 {
     // 데미지 받음
     //회피율 = 5% + (피해자_DEX − 공격자_DEX) × 1.5%
-    int Evasion = 5 + (Target->GetDex() - this->GetDex()) * 15 / 10;
+    int Evasion = 5 + (this->GetDex() - Target->GetDex()) * 15 / 10;
     if (Evasion > 95) Evasion = 95; // 최대 회피율 95%
     if (std::uniform_int_distribution<>(1, 100)(gen) <= Evasion)
     {
         // 회피 성공
-        Amount = 0;
+        Amount = -1;
         return Amount;
     }
     _Stats._CurrentHP -= Amount;
